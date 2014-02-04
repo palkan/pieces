@@ -1,0 +1,18 @@
+{
+  "name": "js-pieces",
+  "version": "0.0.1",
+  "authors": [],
+  "license": "MIT",
+  "private":true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "test"
+  ],
+  "dependencies": {
+    "jquery": "~1.10.0",
+    "moment": "~2.5.0"
+  }
+}
