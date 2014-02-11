@@ -15,10 +15,12 @@ do (context = this) ->
     constructor: (target, @options = {}) ->
       super
       @visible = @enabled = true
+      @active = false
       @init_nod target
       @init_plugins()
       @disable() if @options.disabled
       @hide() if @options.hidden
+      @activate() if @options.active
       @value = @nod.data('value') || @nod.val()
       @nod.data(pi.API_DATA_KEY, this)
       @initialize()
@@ -34,7 +36,7 @@ do (context = this) ->
     
     init_plugins: ->
       if @options.plugins?
-        attach_plugin name for name in @options.plugins
+        @attach_plugin name for name in @options.plugins
         
     attach_plugin: (name) ->
       name = utils.camelCase name
@@ -48,7 +50,7 @@ do (context = this) ->
       @_initialized = true
 
     native_events:
-      ["click", "focus", "blur", "change", "scroll", "select", "mouseover", "mouseout", "mousemove", "mouseup", "mousedown", "mouseenter", "mouseleave", "resize", "keydown", "keypress", "keydown"]
+      ["click", "focus", "blur", "change", "scroll", "select", "mouseover", "mouseout", "mousemove", "mouseup", "mousedown", "mouseenter", "mouseleave", "keydown", "keypress", "keydown"]
 
     event_is_native: (event) ->
       @native_events.indexOf(event) > -1
@@ -62,6 +64,14 @@ do (context = this) ->
 
     changed: (property) ->
       @trigger property, this[property]
+      return
+
+    delegate: (methods, to) ->
+      for method in methods
+        do (method) =>
+          @[method] = (args...) =>
+            @[to][method].apply(this, args)
+          return
       return
 
     ## event dispatcher ##
@@ -91,29 +101,42 @@ do (context = this) ->
 
     show: -> 
       if not @visible
-        @nod.removeClass 'hidden'
+        @nod.removeClass 'is-hidden'
         @visible = true
         @changed 'visible'
 
     hide: ->
       if @visible
-        @nod.addClass 'hidden'
+        @nod.addClass 'is-hidden'
         @visible = false
         @changed 'visible'
 
     enable: ->
       if not @enabled 
-        @nod.removeClass 'disabled'
+        @nod.removeClass 'is-disabled'
         @nod.get(0).removeAttribute('disabled')
         @enabled = true
         @changed 'enabled'
 
     disable: ->
       if @enabled
-        @nod.addClass 'disabled'
+        @nod.addClass 'is-disabled'
         @nod.get(0).setAttribute('disabled', 'disabled')
         @enabled = false
         @changed 'enabled'
+
+    activate: ->
+      if not @active 
+        @nod.addClass 'is-active'
+        @active = true
+        @changed 'active'
+
+    deactivate: ->
+      if @active
+        @nod.removeClass 'is-active'
+        @active = false
+        @changed 'active'
+
 
     move: (x,y) ->
       @nod.css left: x, top: y
@@ -199,14 +222,15 @@ do (context = this) ->
 
   pi.call = (component, method, args = []) ->   
     try
-      target = $("@#{ component }").pi()
+      target = if component instanceof pi.Base then component else $("@#{ component }").pi()
       target[method].apply(target, args)
     catch error
       utils.error error
 
   pi.str_to_fun = (callstr) ->
     matches = callstr.match(/@([\w\d_]+)\.([\w\d_]+)(?:\s+([\w\d,]+))?/)
-    curry(pi.call,[matches[1], matches[2], (if matches[3] then (utils.serialize(arg) for arg in matches[3].split(",")) else [])])
+    target = if matches[1] == 'this' then this else matches[1]
+    curry(pi.call,[target, matches[2], (if matches[3] then (utils.serialize(arg) for arg in matches[3].split(",")) else [])])
 
 
   $.extend(
@@ -222,6 +246,7 @@ do (context = this) ->
       if @getAttribute("href")[0] == "@"
         e.preventDefault()
         pi.str_to_fun(@getAttribute("href"))()
+        e.stopImmediatePropagation()
       return
 
   return

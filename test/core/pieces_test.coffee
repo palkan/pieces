@@ -28,6 +28,7 @@ describe "pieces core", ->
       @test_div.append('<a id="show" href="@test.show">Show</div>')
       @test_div.append('<a id="text" href="@test.text hello_test">Text</div>')
       @test_div.append('<a id="move" href="@test.move 20,30">Move</div>')
+      @test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
       pi.piecify()
 
     it "should create piece", ->
@@ -50,6 +51,10 @@ describe "pieces core", ->
     it "should work with function call with several arguments", ->
       TestHelpers.clickElement $('a#move').get(0)
       expect($('@test').pi().position()).to.include({x:20,y:30})
+
+#    it "should work with self call", ->
+#      TestHelpers.clickElement $('a#thiz').get(0)
+#      expect($('a#thiz').pi().active).to.be.true
 
   describe "pi base events", ->
     beforeEach  ->

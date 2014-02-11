@@ -3,6 +3,7 @@ do (context = this) ->
 
   $ = context.$
   pi = context.pi  = context.pi || {}
+  pi.config ||= {}
   
   _email_regexp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/
 
@@ -77,7 +78,7 @@ do (context = this) ->
         fun = if ("function" == typeof fun) then fun else ths[fun]
         args = if (args instanceof Array) then args else [args]
         (rest...)->
-          fun.apply(ths, args.concat rest)
+          fun.apply(ths, args.concat rest)      
 
     # return delayed version of function
 
@@ -100,7 +101,8 @@ do (context = this) ->
 
   (utils[level] = utils.curry(utils.log,level)) for level,val of _log_levels 
 
-  # event listener & dispatcher todo: add conditions
+  # Event listener class
+  # @private
 
   class pi.EventListener
     constructor: (@type, @handler, @context = null, @disposable = false, @conditions) ->
@@ -121,27 +123,49 @@ do (context = this) ->
       @handler = @context = @conditions = null 
       @disposed = true
 
-
+  # Base Event Dispatcher class for all components
+  # Wrapper for underlying native events api (jQuery) and custom events
+  # @private
 
   class pi.EventDispatcher
     constructor: ->
       @listeners = {} # event_type to listener hash
       @listeners_by_key = {} # key is event_type:handler_uuid:context_uuid
 
-    ## API ##
+    # Attach listener
 
     on: (event, callback, context, conditions) ->
       @add_listener new pi.EventListener(event, callback, context, false, conditions) 
-      
+    
+    # Attach disposable (= one-time) listener
+
     one: (event, callback, context, conditions) ->
       @add_listener new pi.EventListener(event, callback, context, true, conditions) 
+
+    # Remove listeners
+    # 
+    # @param [String, Null] event
+    # @param [Function, Null] callback
+    # @param [Object, Null] context
+    # 
+    # @example Remove all listeners for all events
+    #     element.off()
+    #
+    # @example Remove all listeners of a type 'event'
+    #     element.off('event')  
+    # 
 
     off: (event, callback, context, conditions) ->
       @remove_listener event, callback, context, conditions
 
+
+    # Trigger event
+    # @params [String] event
+    # @params [Object, Null] data data that will be passed with event as 'event.data'
+
     trigger: (event, data) ->
       event = $.Event(event) unless event.type?
-      event.data = data unless data?
+      event.data = data if data?
       event.target = this
       if @listeners[event.type]?
         for listener in @listeners[event.type]
