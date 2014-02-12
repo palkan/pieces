@@ -42,6 +42,7 @@ do (context = this) ->
   class pi.List extends pi.Base
     initialize: () ->
       @items_cont = @nod.find(".#{ list_klass }")
+      @items_cont = @nod unless @items_cont.length
       @item_renderer = @options.renderer
       
       unless @item_renderer?
@@ -204,8 +205,16 @@ do (context = this) ->
       @list.on 'item_click', (event) =>
         if @type == 'radio' and not event.data.item.selected
           @list.clear_selection()
-        @list._toggle_select event.data.item
+          @list._select event.data.item
+        else
+          @list._toggle_select event.data.item
         return
+
+      _selected = @list.items_cont.find('.is-selected')
+
+      if _selected.length
+        @list.items[_selected.data('list-index')].selected = true
+
       @list.selectable = this
       @list.delegate ['clear_selection','selected','select_all','_select','_deselect','_toggle_select'], 'selectable'
 
