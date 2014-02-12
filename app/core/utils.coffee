@@ -72,6 +72,30 @@ do (context = this) ->
         when isNaN(Number(val)) then val 
         else Number(val)
 
+    clone: (obj) ->
+      if not obj? or typeof obj isnt 'object'
+        return obj
+
+      if obj instanceof Date
+        return new Date(obj.getTime()) 
+
+      if obj instanceof RegExp
+        flags = ''
+        flags += 'g' if obj.global?
+        flags += 'i' if obj.ignoreCase?
+        flags += 'm' if obj.multiline?
+        flags += 'y' if obj.sticky?
+        return new RegExp(obj.source, flags) 
+
+      if obj instanceof Node
+        return obj.cloneNode(true)
+
+      newInstance = new obj.constructor()
+
+      for key of obj
+        newInstance[key] = pi.utils.clone obj[key]
+
+      return newInstance
 
 
     curry: (fun, args = [], ths = this) ->

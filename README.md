@@ -39,7 +39,6 @@ nothin'
 * Pieces (or _components_) from the box:
    - List: list of elements with built-in manipulation functions (add/remove/clear), template rendering (or DOM parsing), custom events ('item_click') and many useful plugins (Selectable, Searchable, Autoload, Sortable)
    - ...    
-* Extend component functionality with plugins to be done
 * *Slim* shortcuts to be done
 * Some useful functions in _pi.utils_: 
   ```
