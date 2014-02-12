@@ -7,7 +7,8 @@ exports.config =
       defaultExtension: 'coffee'
       joinTo:
         'javascripts/pieces.js': /^app/
-        'javascripts/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
+        'javascripts/jquery.js': /^bower_components[\\/]jquery/
+        'javascripts/vendor.js': /^(bower_components|vendor)[\\/](?!test)(?!jquery)/
         'test/javascripts/test.js': /^test/
         'test/javascripts/test-vendor.js': /^vendor[\\/](?=test)/
       order:

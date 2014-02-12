@@ -17,7 +17,6 @@ do (context = this) ->
       @visible = @enabled = true
       @active = false
       @init_nod target
-      @init_plugins()
       @disable() if @options.disabled
       @hide() if @options.hidden
       @activate() if @options.active
@@ -25,6 +24,7 @@ do (context = this) ->
       @nod.data(pi.API_DATA_KEY, this)
       @initialize()
       @setup_events()
+      @init_plugins()
 
     init_nod: (target) ->
       if typeof target is "string"

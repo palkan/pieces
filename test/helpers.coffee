@@ -25,3 +25,12 @@ this.TestHelpers =
   clickElement: (el) ->
     TestHelpers.mouseEventElement el, "click"
     return
+
+  scrollEvent: (el) ->
+    ev = document.createEvent "Event"
+    ev.initEvent(
+      'scroll',
+      true, #bubble 
+      true #cancelable
+    )
+    el.dispatchEvent ev 
