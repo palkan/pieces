@@ -1,6 +1,8 @@
 class pi.TestComponent extends pi.Base
   initialize: ->
     @nod.addClass 'test'
+    @btn = new pi.Base @nod.find('.btn')
+
   text: (val = null) ->
     if val? 
       @nod.text val

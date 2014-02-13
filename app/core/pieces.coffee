@@ -20,7 +20,7 @@ do (context = this) ->
       @disable() if @options.disabled
       @hide() if @options.hidden
       @activate() if @options.active
-      @value = @nod.data('value') || @nod.val()
+      @_value = @nod.data('value')
       @nod.data(pi.API_DATA_KEY, this)
       @initialize()
       @setup_events()
@@ -50,7 +50,7 @@ do (context = this) ->
       @_initialized = true
 
     native_events:
-      ["click", "focus", "blur", "change", "scroll", "select", "mouseover", "mouseout", "mousemove", "mouseup", "mousedown", "mouseenter", "mouseleave", "keydown", "keypress", "keydown"]
+      ["click", "focus", "blur", "change", "scroll", "select", "mouseover", "mouseout", "mousemove", "mouseup", "mousedown", "mouseenter", "mouseleave", "keyup", "keypress", "keydown"]
 
     event_is_native: (event) ->
       @native_events.indexOf(event) > -1
@@ -60,7 +60,7 @@ do (context = this) ->
 
     setup_events: ->
       for event, handler of @options.events
-        @on event, pi.str_to_fun(handler)
+        @on event, pi.str_to_fun(handler, this)
 
     changed: (property) ->
       @trigger property, this[property]
@@ -137,6 +137,10 @@ do (context = this) ->
         @active = false
         @changed 'active'
 
+    value: (val = null) ->
+      if val?
+        @_value = val
+      @_value
 
     move: (x,y) ->
       @nod.css left: x, top: y
@@ -202,6 +206,7 @@ do (context = this) ->
   pi.piecify = (context) ->
     context = if context instanceof $ then context else $(context || document)
     pi.init_component($(nod)) for nod in context.find(".pi")
+    pi.event.trigger 'piecified', {context: context}
   
   pi.gather_options = (el) ->
     el = if el instanceof $ then el else $(el)
@@ -220,18 +225,41 @@ do (context = this) ->
 
     opts
 
-  pi.call = (component, method, args = []) ->   
+  pi.call = (component, method_chain, args = []) ->   
     try
       target = if component instanceof pi.Base then component else $("@#{ component }").pi()
-      target[method].apply(target, args)
+
+      [method,target] =
+        if method_chain.indexOf(".") < 0
+          [method_chain, target]
+        else
+          [_void, target_chain, method_] = method_chain.match(/([\w\d\._]+)\.([\w\d_]+)/)
+          target_ = target
+          for key_ in target_chain.split('.') 
+            do (key_) ->
+              target_ = target_[key_]
+          [method_, target_]
+
+      target[method].apply(target, ((if typeof arg is 'function' then arg.call(null) else arg) for arg in args))
     catch error
       utils.error error
 
-  pi.str_to_fun = (callstr) ->
-    matches = callstr.match(/@([\w\d_]+)\.([\w\d_]+)(?:\s+([\w\d,]+))?/)
-    target = if matches[1] == 'this' then this else matches[1]
-    curry(pi.call,[target, matches[2], (if matches[3] then (utils.serialize(arg) for arg in matches[3].split(",")) else [])])
+  prepare_arg = (arg, host) ->
+    if arg[0] is "@"
+      pi.str_to_fun arg, host
+    else
+      utils.serialize arg
 
+
+  pi.str_to_fun = (callstr, host = null) ->
+    matches = callstr.match(/@([\w\d_]+)\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),]+)\))?/)
+    target = if matches[1] == 'this' then host else matches[1]
+    curry(pi.call,[target, matches[2], (if matches[3] then (prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
+
+
+  # Global Event Dispatcher
+
+  pi.event = new pi.EventDispatcher()
 
   $.extend(
     $.fn, 
@@ -244,9 +272,8 @@ do (context = this) ->
   $ ->
     $('body').on 'click', 'a', (e) ->
       if @getAttribute("href")[0] == "@"
+        pi.str_to_fun(@getAttribute("href"), $(e.target).pi())()
         e.preventDefault()
-        pi.str_to_fun(@getAttribute("href"))()
-        e.stopImmediatePropagation()
       return
 
   return

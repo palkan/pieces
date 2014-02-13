@@ -24,6 +24,15 @@ describe "searchable list component", ->
       @list.search 'kill'
       expect(@list.size()).to.equal 1
 
+
+    it "should search with discontinuation", ->  
+      @list.search 'tw'
+      expect(@list.size()).to.equal 1
+      @list.search 't'
+      expect(@list.size()).to.equal 2
+
+      
+
     it "should dispatch start event", (done)->
 
       @list.on 'search_start', (event) =>

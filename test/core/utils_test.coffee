@@ -31,6 +31,11 @@ describe "pieces utils", ->
     it "should work with a few words", ->
       expect(pi.utils.snakeCase("CamelSong")).to.equal("camel_song")
 
+    it "should work with non-capitalized word", ->
+      expect(pi.utils.snakeCase("camelSong")).to.equal("camel_song")
+
+
+
 
   describe "serialize", ->
     it "should recognize bool", ->
@@ -45,6 +50,30 @@ describe "pieces utils", ->
 
     it "should recognize string", ->
       expect(pi.utils.serialize("123m535.35")).to.equal("123m535.35") 
+
+
+  describe "sorting", ->
+    it "should sort by key", ->
+      arr = [ {key: 1}, {key: 3}, {key: 2}, {key: -2} ]
+      expect(pi.utils.sort_by(arr,'key')).to.eql([ {key: 3}, {key: 2}, {key: 1}, {key: -2} ])
+
+    it "should sort by key asc", ->
+      arr = [ {key: 1}, {key: 3}, {key: 2}, {key: -2} ]
+      expect(pi.utils.sort_by(arr,'key',true)).to.eql([ {key: -2}, {key: 1}, {key: 2}, {key: 3} ])
+
+    it "should sort by many keys", ->
+      arr = [ {key: 1, name: "bob"}, {key: 2, name: "jack"}, {key: 2, name: "doug"}, {key: -2} ]
+      expect(pi.utils.sort(arr,['key','name'])).to.eql([ {key: 2, name:'jack'}, {key: 2, name: 'doug'}, {key: 1, name: 'bob'}, {key: -2} ])
+
+    it "should sort by many keys asc", ->
+      arr = [ {key: 1, name: "bob"}, {key: 2, name: "jack"}, {key: 2, name: "doug"}, {key: -2} ]
+      expect(pi.utils.sort(arr,['name','key'],true)).to.eql([ {key: -2}, {key: 1, name: 'bob'}, {key: 2, name: 'doug'}, {key: 2, name:'jack'} ])
+
+    it "should sort by many keys with diff orders", ->
+      arr = [ {key: 1, name: "bob"}, {key: 2, name: "jack"}, {key: 2, name: "doug"}, {key: -2} ]
+      expect(pi.utils.sort(arr,['key','name'],[false,true])).to.eql([ {key: 2, name:'doug'}, {key: 2, name: 'jack'}, {key: 1, name: 'bob'}, {key: -2} ])
+
+
 
   describe "event dispatcher", ->
     beforeEach  ->

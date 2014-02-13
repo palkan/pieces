@@ -26,8 +26,8 @@ describe "pieces core", ->
       @test_div.append('<div class="pi" data-component="test_component" data-pi="test" style="position:relative"></div>')
       @test_div.append('<a id="hide" href="@test.hide">Hide</div>')
       @test_div.append('<a id="show" href="@test.show">Show</div>')
-      @test_div.append('<a id="text" href="@test.text hello_test">Text</div>')
-      @test_div.append('<a id="move" href="@test.move 20,30">Move</div>')
+      @test_div.append('<a id="text" href="@test.text(hello_test)">Text</div>')
+      @test_div.append('<a id="move" href="@test.move(20,30)">Move</div>')
       @test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
       pi.piecify()
 
@@ -52,9 +52,38 @@ describe "pieces core", ->
       TestHelpers.clickElement $('a#move').get(0)
       expect($('@test').pi().position()).to.include({x:20,y:30})
 
-#    it "should work with self call", ->
-#      TestHelpers.clickElement $('a#thiz').get(0)
-#      expect($('a#thiz').pi().active).to.be.true
+    it "should work with self call", ->
+      TestHelpers.clickElement $('a#thiz').get(0)
+      expect($('a#thiz').pi().active).to.be.true
+
+
+  describe "pi complex call queries", ->
+    beforeEach  ->
+      @test_div.append('<div class="pi" data-component="test_component" data-event-click="@this.text(@this.value)" data-value="13" data-pi="test1" style="position:relative">ping</div>')
+      @test_div.append('<div class="pi" data-component="test_component" data-pi="test2" style="position:relative"></div>')
+
+      @test_div.append('<a id="call1" href="@test1.text(pong)">Text</div>')
+      @test_div.append('<a id="call2" href="@test2.text(@test1.text)">Text</div>')
+      @test_div.append('<a id="call3" href="@test2.btn.hide">Hide</div>')
+      @test_div.find('@test2').append('<a class="btn" data-component="base" href="@test1.hide">Hide</div>')
+      pi.piecify()
+
+    it "should work with nested component", ->
+      TestHelpers.clickElement $('a#call3').get(0)
+      expect($('@test2').pi().btn.visible).to.be.false
+     
+    it "should work with bound call", ->
+      TestHelpers.clickElement $('a#call2').get(0)
+      expect($('@test2').pi().text()).to.equal('ping')
+      
+      TestHelpers.clickElement $('a#call1').get(0)
+      TestHelpers.clickElement $('a#call2').get(0)
+      expect($('@test2').pi().text()).to.equal('pong')
+
+    it "should work with self bound call", ->
+      TestHelpers.clickElement $('@test1').get(0)
+      expect($('@test1').pi().text()).to.equal('13')
+    
 
   describe "pi base events", ->
     beforeEach  ->
