@@ -35,7 +35,7 @@ describe "selectable list component", ->
 
       TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
 
-      @list.on 'item_click', (event) =>
+      @list.on 'selected', (event) =>
         expect(@list.selected().length).to.equal 2
         done()
 
@@ -46,9 +46,19 @@ describe "selectable list component", ->
       item = $('<li class="item" data-id="4" data-key="new">New</li>')
       @list.add_item item
 
-      @list.on 'item_click', (event) =>
+      @list.on 'selected', (event) =>
         expect(@list.selected()[0].key).to.equal 'new'
         done()
 
       TestHelpers.clickElement $('@test .item[data-id="4"]').get(0)
       
+    it "should send cleared event when all items are deselected", (done)->
+      @list.selectable.type = 'check'
+
+      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+
+      @list.on 'selection_cleared', (event) =>
+        expect(@list.selected().length).to.equal 0
+        done()
+
+      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)

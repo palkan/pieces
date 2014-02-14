@@ -17,9 +17,9 @@ do (context = this) ->
       @visible = @enabled = true
       @active = false
       @init_nod target
-      @disable() if @options.disabled
-      @hide() if @options.hidden
-      @activate() if @options.active
+      @disable() if (@options.disabled || @nod.hasClass('is-disabled'))
+      @hide() if (@options.hidden || @nod.hasClass('is-hidden'))
+      @activate() if (@options.active || @nod.hasClass('is-active'))
       @_value = @nod.data('value')
       @nod.data(pi.API_DATA_KEY, this)
       @initialize()
@@ -41,6 +41,7 @@ do (context = this) ->
     attach_plugin: (name) ->
       name = utils.camelCase name
       if pi[name]?
+        utils.debug "plugin attached #{name}"
         new pi[name] this
 
 
@@ -194,10 +195,11 @@ do (context = this) ->
   event_re = new RegExp('event(\\w+)', 'i');
 
   pi.init_component = (nod) ->
-    component_name = utils.camelCase(nod.data('component'))
+    component_name = utils.camelCase(nod.data('component')||'base')
     component = pi[component_name]
 
     if component? and not nod.data(pi.API_DATA_KEY)
+      utils.debug "component created: #{component_name}"
       new pi[component_name](nod,pi.gather_options(nod))
     else
       throw new ReferenceError('unknown or initialized component: ' + component_name)
@@ -212,7 +214,7 @@ do (context = this) ->
     el = if el instanceof $ then el else $(el)
 
     opts =
-      component: el.data('component')                
+      component: el.data('component') || 'base'               
       plugins: if el.data('plugins') then el.data('plugins').split(/\s+/) else null
       events: {}
 
@@ -227,6 +229,7 @@ do (context = this) ->
 
   pi.call = (component, method_chain, args = []) ->   
     try
+      utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
       target = if component instanceof pi.Base then component else $("@#{ component }").pi()
 
       [method,target] =
@@ -272,8 +275,10 @@ do (context = this) ->
   $ ->
     $('body').on 'click', 'a', (e) ->
       if @getAttribute("href")[0] == "@"
+        utils.debug "handle pi click: #{@getAttribute('href')}"
         pi.str_to_fun(@getAttribute("href"), $(e.target).pi())()
         e.preventDefault()
+        e.stopImmediatePropagation()
       return
 
   return

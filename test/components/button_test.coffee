@@ -9,7 +9,7 @@ describe "button component", ->
 
   describe "click option", ->
     beforeEach  ->
-      @test_div.append('<div class="pi" data-component="test_component" data-pi="test" style="position:relative"></div>')
+      @test_div.append('<div class="pi" data-pi="test" style="position:relative"></div>')
       @test_div.append('<button class="pi" data-component="button" data-pi="btn" data-event-click="@test.hide" style="position:relative">Button</button>')
       pi.piecify()
 

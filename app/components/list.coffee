@@ -30,7 +30,8 @@ do (context = this) ->
 
       @nod.addClass 'is-empty' if @empty()
 
-      @nod.on "click", ".#{ item_klass }", (e) =>  @_item_clicked($(` this `),e)
+      @nod.on "click", ".#{ item_klass }", (e) =>  
+        @_item_clicked($(` this `),e) unless e.target.href?
 
     parse_html_items: () ->
       @add_item($(nod)) for nod in @items_cont.find(".#{ item_klass }")

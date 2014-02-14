@@ -245,6 +245,7 @@ do (context = this) ->
       event.data = data if data?
       event.target = this
       if @listeners[event.type]?
+        utils.debug "Event: #{event.type}"
         for listener in @listeners[event.type]
           listener.dispatch event
           break if event.isPropagationStopped()

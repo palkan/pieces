@@ -15,11 +15,13 @@ do (context = this) ->
       @type = @list.options.select || 'radio' 
       
       @list.on 'item_click', (event) =>
-        if @type == 'radio' and not event.data.item.selected
+        if @type.match('radio') and not event.data.item.selected
           @list.clear_selection()
           @list._select event.data.item
-        else if @type == 'check'
+          @list.trigger 'selected'
+        else if @type.match('check')
           @list._toggle_select event.data.item
+          if @list.selected().length then @list.trigger('selected') else @list.trigger('selection_cleared')
         return
 
       _selected = @list.items_cont.find('.is-selected')
