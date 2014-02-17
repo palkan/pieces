@@ -74,6 +74,26 @@ describe "pieces utils", ->
       expect(pi.utils.sort(arr,['key','name'],[false,true])).to.eql([ {key: 2, name:'doug'}, {key: 2, name: 'jack'}, {key: 1, name: 'bob'}, {key: -2} ])
 
 
+  describe "debounce", ->
+    it "should invoke on first call", ->
+      spy_fun = sinon.spy()
+      fun = debounce 500, spy_fun
+      fun.call null
+      expect(spy_fun.callCount).to.equal 1
+
+    it "should debounce call series", (done) ->
+      spy_fun = sinon.spy()
+      fun = debounce 200, spy_fun
+      
+      after 300, =>
+        expect(spy_fun.callCount).to.equal 2
+        done()
+
+      fun(0)
+      fun(1)
+      fun(2)
+      fun(3)
+
 
   describe "event dispatcher", ->
     beforeEach  ->

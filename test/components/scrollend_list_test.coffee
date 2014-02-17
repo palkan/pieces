@@ -65,8 +65,8 @@ describe "scroll_end list component", ->
       after 200, =>
          @list.items_cont.get(0).scrollTop += 5
 
-      after 550, =>
+      after 350, =>
          @list.items_cont.get(0).scrollTop += 5
 
-      after 1000, =>
+      after 450, =>
          @list.items_cont.get(0).scrollTop += 5

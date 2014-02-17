@@ -151,6 +151,22 @@ do (context = this) ->
           !!item.nod.text().match(regexp)
         
 
+    debounce: (period, fun, ths = null) ->
+      _wait = false
+      _buf = null
+
+      (args...) ->
+        if _wait
+          _buf = args
+          return
+
+        pi.utils.after period, ->
+          _wait = false
+          fun.apply(ths,_buf) if _buf?
+
+        _wait = true
+        fun.apply(ths,args) unless _buf?
+
     curry: (fun, args = [], ths = this, last = false) ->
         fun = if ("function" == typeof fun) then fun else ths[fun]
         args = if (args instanceof Array) then args else [args]
@@ -173,6 +189,7 @@ do (context = this) ->
   context.curry = utils.curry
   context.delayed = utils.delayed
   context.after = utils.after
+  context.debounce = utils.debounce
   
   # log aliases
 
