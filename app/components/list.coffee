@@ -48,8 +48,7 @@ do (context = this) ->
          return
 
       @add_item(item,false) for item in data
-      @_flush_buffer()
-      @trigger 'update'
+      @update()
 
     add_item: (data, update = true) ->
       item = @_create_item data
@@ -120,6 +119,10 @@ do (context = this) ->
 
     empty: () ->
       @size() is 0
+
+    update: () ->
+      @_flush_buffer()
+      @trigger 'update'
 
     clear: () ->
       @items_cont.children().detach()

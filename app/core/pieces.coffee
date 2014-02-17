@@ -230,7 +230,7 @@ do (context = this) ->
   pi.call = (component, method_chain, args = []) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
-      target = if component instanceof pi.Base then component else $("@#{ component }").pi()
+      target = if typeof component is 'object' then component else $("@#{ component }").pi()
 
       [method,target] =
         if method_chain.indexOf(".") < 0

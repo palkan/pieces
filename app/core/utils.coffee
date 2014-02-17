@@ -41,7 +41,6 @@ do (context = this) ->
         r = r_ if r is 0
     return r
 
-
     
   pi.log_level = "info"
 

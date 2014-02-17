@@ -17,6 +17,10 @@
   rewriteSelector($.find, 'matchesSelector', 1);
   rewriteSelector($.find, 'matches', 0);
 
-  $.extend($.fn, {});
+  $.extend($.fn, {
+    scrollHeight: function(){
+      return $(this).get(0).scrollHeight
+    }
+  });
 
 })(jQuery)
