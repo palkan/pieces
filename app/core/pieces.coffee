@@ -242,12 +242,14 @@ do (context = this) ->
             do (key_) ->
               target_ = target_[key_]
           [method_, target_]
-
-      target[method].apply(target, ((if typeof arg is 'function' then arg.call(null) else arg) for arg in args))
+      if target[method]?.call?
+        target[method].apply(target, ((if typeof arg is 'function' then arg.call(null) else arg) for arg in args))
+      else
+        target[method]
     catch error
       utils.error error
 
-  prepare_arg = (arg, host) ->
+  pi.prepare_arg = (arg, host) ->
     if arg[0] is "@"
       pi.str_to_fun arg, host
     else
@@ -257,7 +259,7 @@ do (context = this) ->
   pi.str_to_fun = (callstr, host = null) ->
     matches = callstr.match(/@([\w\d_]+)\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),]+)\))?/)
     target = if matches[1] == 'this' then host else matches[1]
-    curry(pi.call,[target, matches[2], (if matches[3] then (prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
+    curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
 
 
   # Global Event Dispatcher
