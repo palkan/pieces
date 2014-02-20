@@ -30,7 +30,7 @@ do (context = this) ->
         @list.items[_selected.data('list-index')].selected = true
 
       @list.selectable = this
-      @list.delegate ['clear_selection','selected','selectedItem','select_all','_select','_deselect','_toggle_select'], 'selectable'
+      @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], 'selectable'
 
       return
 
@@ -60,6 +60,6 @@ do (context = this) ->
     selected: () ->
       item for item in @items when item.selected
 
-    selectedItem: ()->
+    selected_item: ()->
       _ref = @selected()
       if _ref.length then _ref[0] else null
