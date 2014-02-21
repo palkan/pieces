@@ -65,6 +65,7 @@ do (context = this) ->
 
     changed: (property) ->
       @trigger property, this[property]
+      @trigger "#{property}_#{this[property]}"
       return
 
     delegate: (methods, to) ->

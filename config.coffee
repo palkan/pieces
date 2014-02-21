@@ -16,6 +16,7 @@ exports.config =
           [
             'app/core/jquery-pi.js',
             'app/core/utils.coffee',
+            'app/core/events.coffee',
             'app/core/pieces.coffee',
             'test/helpers.coffee'
           ]

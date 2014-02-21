@@ -97,6 +97,12 @@ describe "pieces core", ->
         done()
       @example.enable()
 
+    it "should send enabled event with flag", (done) ->
+      @example.on 'enabled_true', (event) => 
+        expect(@example.enabled).to.be.true
+        done()
+      @example.enable()
+
     it "should not send enabled event", (done) ->
       @example.on 'enabled', (event) => 
         expect(@example.enabled).to.be.true
