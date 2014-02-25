@@ -99,6 +99,10 @@ do (context = this) ->
       super event
       @nod.off event if @event_is_native(event) and @nod?
 
+    trigger: (event, data) ->
+      if @enabled or event is 'enabled'
+        super event, data
+
     ## public interface ##
 
     show: -> 
