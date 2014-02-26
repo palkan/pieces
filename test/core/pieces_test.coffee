@@ -113,18 +113,21 @@ describe "pieces core", ->
         done()
 
     it "should send resize event", (done) ->
+      @example.enable()
       @example.on 'resize', (event) => 
         expect(@example.size()).to.include width:100, height: 50
         done()
       @example.size(100,50)
 
     it "should send resize event on width change", (done) ->
+      @example.enable()
       @example.on 'resize', (event) => 
         expect(@example.width()).to.equal(100)
         done()
       @example.width(100)
 
     it "should send resize event on height change", (done) ->
+      @example.enable()
       @example.on 'resize', (event) => 
         expect(@example.height()).to.equal(50)
         done()
