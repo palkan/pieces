@@ -28,7 +28,7 @@ do (context = this) ->
     
       @parse_html_items()
 
-      @nod.addClass 'is-empty' if @empty()
+      @_check_empty()
 
       @nod.on "click", ".#{ item_klass }", (e) =>  
         @_item_clicked($(` this `),e) unless e.target.href?
@@ -44,7 +44,7 @@ do (context = this) ->
       @clear() if @items.length  
 
       unless data? and data.length
-         @nod.addClass 'is-empty'
+         @_check_empty()
          return
 
       @add_item(item,false) for item in data
@@ -54,7 +54,7 @@ do (context = this) ->
       item = @_create_item data
       @items.push item
 
-      @nod.removeClass 'is-empty' if @size() == 1
+      @_check_empty()
 
       # save item index in DOM element
       item.nod.data('list-index',@items.length-1)
@@ -87,7 +87,7 @@ do (context = this) ->
         @_destroy_item(item)
         item.nod.data('list-index','')
 
-        @nod.addClass 'is-empty' if @empty()
+        @_check_empty()
 
         @trigger('update', {type:'item_removed',item:item}) if update
       return  
@@ -117,9 +117,6 @@ do (context = this) ->
     size: () ->
       @items.length
 
-    empty: () ->
-      @size() is 0
-
     update: () ->
       @_flush_buffer()
       @trigger 'update'
@@ -128,6 +125,17 @@ do (context = this) ->
       @items_cont.children().detach()
       @items.length = 0
       @trigger 'update', {type:'clear'}
+
+    _check_empty: ->
+      if !@empty and @items.length is 0
+        @nod.addClass 'is-empty'
+        @empty = true
+        @changed 'empty'
+      else if @empty and @items.length > 0
+        @nod.removeClass 'is-empty'
+        @empty = false
+        @changed 'empty'
+      
 
     _create_item: (data) ->
       return data if data.nod instanceof $ 

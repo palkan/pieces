@@ -49,9 +49,11 @@ do (context = this) ->
 
     clear_selection: () ->
       @_deselect(item) for item in @items
+      @trigger('selection_cleared')
     
     select_all: () ->
       @_select(item) for item in @items
+      @trigger('selected') if @selected().length
 
 
     # Return selected items
