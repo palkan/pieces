@@ -44,10 +44,11 @@ do (context = this) ->
       @clear() if @items.length  
 
       unless data? and data.length
-         @_check_empty()
-         return
+        @_check_empty()
+        return
 
       @add_item(item,false) for item in data
+      
       @update()
 
     add_item: (data, update = true) ->
@@ -78,7 +79,11 @@ do (context = this) ->
 
       item.nod.insertBefore(_after.nod)
 
-      @trigger('update', {type:'item_added', item:item}) if update
+      @_need_update_indeces = true
+
+      if update
+        @_update_indeces()
+        @trigger('update', {type:'item_added', item:item})
 
     remove_item: (item,update = true) ->
       index = @items.indexOf(item)
@@ -89,7 +94,11 @@ do (context = this) ->
 
         @_check_empty()
 
-        @trigger('update', {type:'item_removed',item:item}) if update
+        @_need_update_indeces = true
+
+        if update
+          @_update_indeces()
+          @trigger('update', {type:'item_removed',item:item})
       return  
 
     remove_item_at: (index,update = true) ->
@@ -119,6 +128,7 @@ do (context = this) ->
 
     update: () ->
       @_flush_buffer()
+      @_update_indeces() if @_need_update_indeces
       @trigger 'update'
 
     clear: () ->
@@ -126,6 +136,9 @@ do (context = this) ->
       @items.length = 0
       @trigger 'update', {type:'clear'}
 
+    _update_indeces: ->
+      item.nod.data('list-index',i) for item,i in @items
+      @_need_update_indeces = false
     _check_empty: ->
       if !@empty and @items.length is 0
         @nod.addClass 'is-empty'

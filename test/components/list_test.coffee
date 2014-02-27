@@ -71,6 +71,16 @@ describe "list component", ->
       expect(@list.nod.find('.item').size()).to.equal 3
       expect(@list.nod.find('.author').first().text()).to.equal 'John'
 
+  describe "item click and operations", ->
+    it "should trigger correct item after list modification", (done) ->
+      @list.remove_item_at 0
+
+      @list.on 'item_click', (e) =>
+        expect(e.data.item.id).to.equal 2
+        done()
+
+      TestHelpers.clickElement $("@test li[data-id=2]").get(0)
+
 
   describe "list queries", ->
     it "should find by simple one-key object", ->

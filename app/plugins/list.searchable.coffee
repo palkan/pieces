@@ -13,11 +13,13 @@ do (context = this) ->
   #  To search within scope define 'options.search_scope'
   
 
+  _clear_mark_regexp = new RegExp("<mark>([^<>]*)<\/mark>","gim")
+
   class pi.Searchable
     constructor: (@list) ->
       @matcher_factory = @_matcher_from_scope(@list.options.search_scope)
       @list.searchable = this
-      @list.delegate ['search','_start_search','_stop_search'], 'searchable'
+      @list.delegate ['search','_start_search','_stop_search', '_highlight_item'], 'searchable'
       @list.searching = false
       return
 
@@ -53,7 +55,13 @@ do (context = this) ->
       @_all_items = null
       @trigger 'search_stop'
 
-    search: (q = '') ->
+    _highlight_item: (query, item) ->
+      _raw_html = item.nod.html()
+      _regexp = new RegExp("((?:^|>)[^<>]*?)(#{ query })","gim")
+      item.nod.html(_raw_html.replace(_clear_mark_regexp,"$1").replace(_regexp,'$1<mark>$2</mark>'))
+
+
+    search: (q = '', highlight = false) ->
       if q is ''
         return @_stop_search()
 
@@ -67,4 +75,8 @@ do (context = this) ->
 
       _buffer = (item for item in scope when matcher(item))
       @data_provider _buffer
+
+      if highlight
+        @_highlight_item(q,item) for item in _buffer
+
       @trigger 'search_update'

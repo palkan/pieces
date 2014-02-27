@@ -62,3 +62,39 @@ describe "selectable list component", ->
         done()
 
       TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+
+    it "should send cleared when selected item is removed", (done) ->
+      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+
+      @list.on 'selection_cleared', (event) =>
+        expect(@list.selected().length).to.equal 0
+        done()
+
+      @list.remove_item_at 0
+
+    it "should send cleared when list completely cleared", (done) ->
+      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+
+      @list.on 'selection_cleared', (event) =>
+        expect(@list.selected().length).to.equal 0
+        done()
+
+      @list.clear()
+
+    it "should not send cleared on item added", (done) ->
+
+      @list.item_renderer = (data) ->
+        nod = $("<div>#{ data.name }</div>")
+        nod.addClass 'item'
+        nod.append "<span class='author'>#{ data.author }</span>"
+        data.nod = nod
+        data
+
+      @list.on 'selection_cleared', (event) =>
+        expect(false).to.equal true
+        done()
+
+      after 1000, -> 
+        done()
+
+      @list.add_item {id:13, name: 'Element 3', author: 'John'} 

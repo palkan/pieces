@@ -57,3 +57,21 @@ describe "searchable list component", ->
 
       @list.search 'kill'
       @list.search null
+
+  describe 'search result highlight', ->
+    it "should highlight results", ->  
+      @list.search 'kill', true
+      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags"><mark>kill</mark>er,puppy</span>'
+
+    it "should highlight text (not within tags)", ->  
+      @list.search 'on', true
+      expect(@list.items[0].nod.html()).to.equal '<mark>On</mark>e<span class="tags">killer,puppy</span>'
+
+    it "should not highlight within tags", ->  
+      @list.search 'p', true
+      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,<mark>p</mark>uppy</span>'
+
+    it "should clear previous highlight on reduction", ->  
+      @list.search 'e', true
+      @list.search 'er', true
+      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">kill<mark>er</mark>,puppy</span>'

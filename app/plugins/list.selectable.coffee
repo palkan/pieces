@@ -14,15 +14,18 @@ do (context = this) ->
     constructor: (@list) ->
       @type = @list.options.select || 'radio' 
       
-      @list.on 'item_click', (event) =>
-        if @type.match('radio') and not event.data.item.selected
-          @list.clear_selection()
-          @list._select event.data.item
+      @list.on 'item_click', (e) =>
+        if @type.match('radio') and not e.data.item.selected
+          @list.clear_selection(true)
+          @list._select e.data.item
           @list.trigger 'selected'
         else if @type.match('check')
-          @list._toggle_select event.data.item
+          @list._toggle_select e.data.item
           if @list.selected().length then @list.trigger('selected') else @list.trigger('selection_cleared')
         return
+
+      @list.on 'update', (e) =>
+        @_check_selected() unless e.data?.type? and e.data.type is 'item_added'
 
       _selected = @list.items_cont.find('.is-selected')
 
@@ -33,6 +36,9 @@ do (context = this) ->
       @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], 'selectable'
 
       return
+
+    _check_selected: ->
+      @list.trigger('selection_cleared') if !@list.selected().length
 
     _select: (item) ->
       if not item.selected
@@ -47,9 +53,9 @@ do (context = this) ->
     _toggle_select: (item) ->
       if item.selected then @_deselect(item) else @_select(item)
 
-    clear_selection: () ->
+    clear_selection: (silent = false) ->
       @_deselect(item) for item in @items
-      @trigger('selection_cleared')
+      @trigger('selection_cleared') unless silent
     
     select_all: () ->
       @_select(item) for item in @items

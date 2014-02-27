@@ -44,6 +44,6 @@ do (context = this) ->
     scroll_listener: () ->
       return @_scroll_listener if @_scroll_listener?
       @_scroll_listener = debounce 500, (event) =>
-        if @_prev_top <= @scroll_object.scrollTop() and @scroll_object.scrollHeight() - @scroll_object.scrollTop() - @scroll_object.height()  < 50
+        if @_prev_top <= @scroll_object.scrollTop() and @list.height() - @scroll_object.scrollTop() - @scroll_object.height()  < 50
           @list.trigger 'scroll_end'
         @_prev_top = @scroll_object.scrollTop()
