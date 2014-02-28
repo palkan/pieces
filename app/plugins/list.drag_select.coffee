@@ -49,9 +49,9 @@ do (context = this) ->
       {top: item_y, left: item_x} = item.position()
 
       pos = {x: item_x, y: item_y}
-      param = if @_direction is 'y' then item.height() else item.width()
+      param = if @_direction is 'y' then item.outerHeight() else item.outerWidth()
 
-      if (point[@_direction] > pos[@_direction] and pos[@_direction] + param > point[@_direction])
+      if (point[@_direction] >= pos[@_direction] and pos[@_direction] + param > point[@_direction])
         0  
       else
         point[@_direction] - pos[@_direction]

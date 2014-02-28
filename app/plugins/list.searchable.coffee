@@ -44,7 +44,7 @@ do (context = this) ->
       @searching = true
       @nod.addClass 'is-searching'
       @_all_items = utils.clone(@items)
-      @_prevq = ''
+      @searchable._prevq = ''
       @trigger 'search_start'
 
     _stop_search: () ->
@@ -58,7 +58,9 @@ do (context = this) ->
     _highlight_item: (query, item) ->
       _raw_html = item.nod.html()
       _regexp = new RegExp("((?:^|>)[^<>]*?)(#{ query })","gim")
-      item.nod.html(_raw_html.replace(_clear_mark_regexp,"$1").replace(_regexp,'$1<mark>$2</mark>'))
+      _raw_html = _raw_html.replace(_clear_mark_regexp,"$1")
+      _raw_html = _raw_html.replace(_regexp,'$1<mark>$2</mark>') if query isnt ''
+      item.nod.html(_raw_html)
 
 
     search: (q = '', highlight = false) ->
@@ -67,7 +69,7 @@ do (context = this) ->
 
       @_start_search() unless @searching
 
-      scope = if @searchable._is_continuation(q) then @items.slice() else @_all_items.slice()
+      scope = if @searchable._is_continuation(q) then @items.slice() else utils.clone(@_all_items)
 
       @searchable._prevq = q
 

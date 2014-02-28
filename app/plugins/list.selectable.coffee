@@ -14,18 +14,9 @@ do (context = this) ->
     constructor: (@list) ->
       @type = @list.options.select || 'radio' 
       
-      @list.on 'item_click', (e) =>
-        if @type.match('radio') and not e.data.item.selected
-          @list.clear_selection(true)
-          @list._select e.data.item
-          @list.trigger 'selected'
-        else if @type.match('check')
-          @list._toggle_select e.data.item
-          if @list.selected().length then @list.trigger('selected') else @list.trigger('selection_cleared')
-        return
+      @list.on 'item_click', @item_click_handler()
 
-      @list.on 'update', (e) =>
-        @_check_selected() unless e.data?.type? and e.data.type is 'item_added'
+      @list.on 'update', @update_handler()
 
       _selected = @list.items_cont.find('.is-selected')
 
@@ -36,6 +27,23 @@ do (context = this) ->
       @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], 'selectable'
 
       return
+
+    item_click_handler: ->
+      return @_item_click_handler if @_item_click_handler
+      @_item_click_handler = (e) =>
+        if @type.match('radio') and not e.data.item.selected
+          @list.clear_selection(true)
+          @list._select e.data.item
+          @list.trigger 'selected'
+        else if @type.match('check')
+          @list._toggle_select e.data.item
+          if @list.selected().length then @list.trigger('selected') else @list.trigger('selection_cleared')
+        return      
+
+    update_handler: ->
+      return @_update_handler if @_update_handler
+      @_update_handler = (e) =>
+        @_check_selected() unless e.data?.type? and e.data.type is 'item_added'
 
     _check_selected: ->
       @list.trigger('selection_cleared') if !@list.selected().length

@@ -75,3 +75,15 @@ describe "searchable list component", ->
       @list.search 'e', true
       @list.search 'er', true
       expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">kill<mark>er</mark>,puppy</span>'
+
+    it "should remove all marks on search stop", ->  
+      @list.search 'er', true
+      @list.search '', true
+      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,puppy</span>'
+
+    it "should remove all marks on search stop after several steps", ->  
+      @list.search 'e', true
+      @list.search 'er', true
+      @list.search 'e', true
+      @list.search '', true
+      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,puppy</span>'
