@@ -97,7 +97,7 @@ do (context = this) ->
           @_start_index = @_item_under_point @_start_point
           @_last_index = @_start_index
           @list._select(@list.items[@_start_index])
-          @list.trigger 'selected'
+          @list.trigger 'selected' if @list.selected().length
           @list.on 'mousemove', @mouse_move_listener()
           @_dragging = true
         

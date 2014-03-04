@@ -82,7 +82,7 @@ describe "pieces core", ->
 
     it "should work with self bound call", ->
       TestHelpers.clickElement $('@test1').get(0)
-      expect($('@test1').pi().text()).to.equal('13')
+      expect($('@test1').pi().text()).to.equal '13'
     
 
   describe "pi base events", ->

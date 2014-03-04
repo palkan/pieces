@@ -88,7 +88,11 @@ do (context = this) ->
         when isNaN(Number(val)) then val 
         else Number(val)
 
-    clone: (obj) ->
+    # Clone object (without excepted fields) 
+    # @param [Object] obj
+    # @param [Array|null] except Array of keys to except (not recursively) 
+
+    clone: (obj, except=[]) ->
       if not obj? or typeof obj isnt 'object'
         return obj
 
@@ -108,7 +112,7 @@ do (context = this) ->
 
       newInstance = new obj.constructor()
 
-      for key of obj
+      for key of obj when (key not in except)
         newInstance[key] = pi.utils.clone obj[key]
 
       return newInstance
