@@ -7,13 +7,14 @@ do (context = this) ->
 
   class pi.TextInput extends pi.Base
     initialize: ->
+      @input = if @nod.get(0).nodeName.toLowerCase() is 'input' then @nod else @nod.find('input')
       @editable = true
       make_readonly if @options.readonly
       super
 
     make_editable: () ->
       if not @editable
-        @nod.get(0).removeAttribute('readonly') 
+        @input.get(0).removeAttribute('readonly') 
         @nod.removeClass 'is-readonly'
         @editable = true
         @changed 'editable'
@@ -21,7 +22,7 @@ do (context = this) ->
 
     make_readonly: () ->
       if @editable
-        @nod.get(0).setAttribute('readonly', 'readonly')
+        @input.get(0).setAttribute('readonly', 'readonly')
         @nod.addClass 'is-readonly'
         @editable = false
         @changed 'editable'
@@ -29,8 +30,8 @@ do (context = this) ->
 
     value: (val = null) ->
       if val?
-        @nod.val(val)
-      @nod.val()
+        @input.val(val)
+      @input.val()
 
     clear: () ->
-      @nod.val ''
+      @input.val ''
