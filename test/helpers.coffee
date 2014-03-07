@@ -9,6 +9,9 @@ class pi.TestComponent extends pi.Base
     else
       @nod.text()
 
+  append: (val) ->
+    @nod.append val.nod
+
 this.TestHelpers = 
   mouseEventElement: (el,type) ->
     ev = document.createEvent "MouseEvent"

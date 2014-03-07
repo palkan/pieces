@@ -28,6 +28,10 @@ describe "pieces core", ->
       @test_div.append('<a id="show" href="@test.show">Show</div>')
       @test_div.append('<a id="text" href="@test.text(hello_test)">Text</div>')
       @test_div.append('<a id="move" href="@test.move(20,30)">Move</div>')
+      @test_div.append('<a id="append" href="@test.append(@span)">Append</div>')
+      @test_div.append('<span id="append_click" class="pi" data-event-click="@test.append(@span)">Append</div>')
+      @test_div.append('<a id="append_self" class="pi" href="@test.append(@this)">Append self</div>')
+      @test_div.append('<span class="pi" data-pi="span">Append me</span>')
       @test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
       pi.piecify()
 
@@ -55,6 +59,19 @@ describe "pieces core", ->
     it "should work with self call", ->
       TestHelpers.clickElement $('a#thiz').get(0)
       expect($('a#thiz').pi().active).to.be.true
+
+    it "should work with only component (without method)", ->
+      TestHelpers.clickElement $('a#append').get(0)
+      expect($('@test .pi').text()).to.equal 'Append me'
+
+    it "should work with only component (without method) on event", ->
+      TestHelpers.clickElement $('span#append_click').get(0)
+      expect($('@test .pi').text()).to.equal 'Append me'
+
+    it "should work with only component self (without method)", ->
+      TestHelpers.clickElement $('a#append_self').get(0)
+      expect($('@test .pi').text()).to.equal 'Append self'
+
 
 
   describe "pi complex call queries", ->
