@@ -18,6 +18,7 @@ exports.config =
             'app/core/utils.coffee',
             'app/core/events.coffee',
             'app/core/pieces.coffee',
+            'app/components/textinput.coffee',
             'test/helpers.coffee'
           ]
     stylesheets:

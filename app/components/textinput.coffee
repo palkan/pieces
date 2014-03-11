@@ -9,7 +9,7 @@ do (context = this) ->
     initialize: ->
       @input = if @nod.get(0).nodeName.toLowerCase() is 'input' then @nod else @nod.find('input')
       @editable = true
-      make_readonly if @options.readonly
+      @make_readonly() if (@options.readonly || @nod.hasClass('is-readonly'))
       super
 
     make_editable: () ->
