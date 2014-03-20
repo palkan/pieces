@@ -82,13 +82,14 @@ describe "pieces core", ->
       @test_div.append('<a id="call1" href="@test1.text(pong)">Text</div>')
       @test_div.append('<a id="call2" href="@test2.text(@test1.text)">Text</div>')
       @test_div.append('<a id="call3" href="@test2.btn.hide">Hide</div>')
+      @test_div.append('<a id="call4" href="@test1.text(ABC)">ABC</div>')
       @test_div.find('@test2').append('<a class="btn" data-component="base" href="@test1.hide">Hide</div>')
       pi.piecify()
 
     it "should work with nested component", ->
       TestHelpers.clickElement $('a#call3').get(0)
       expect($('@test2').pi().btn.visible).to.be.false
-     
+
     it "should work with bound call", ->
       TestHelpers.clickElement $('a#call2').get(0)
       expect($('@test2').pi().text()).to.equal('ping')
