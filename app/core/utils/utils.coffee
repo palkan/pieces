@@ -1,30 +1,11 @@
 do (context = this) ->
   "use strict"
 
-  $ = context.$
   pi = context.pi  = context.pi || {}
-  pi.config ||= {}
   
   _email_regexp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/
 
   _uniq_id = 100
-
-  _log_levels =
-    error:
-      color: "#dd0011"
-      sort: 4
-    debug:
-      color: "#009922"
-      sort: 0
-    info:
-      color: "#1122ff"
-      sort: 1
-    warning: 
-      color: "#ffaa33"
-      sort: 2
-
-  _show_log =  (level) ->
-    _log_levels[pi.log_level].sort <= _log_levels[level].sort
 
   _key_compare = (a,b,key,reverse) ->
     return 0 if a[key] == b[key]
@@ -41,19 +22,8 @@ do (context = this) ->
         r = r_ if r is 0
     return r
 
-    
-  pi.log_level = "info"
 
   pi.utils =
-    log: (level, message) ->
-      _show_log(level) && console.log("%c #{ pi.utils.now().format('HH:MM:ss:SSS') } [#{ level }]", "color: #{_log_levels[level].color}", message)
-
-    jstime: (ts) ->
-        ts *= 1000 if (ts < 10000000000)
-        ts
-
-    now: ->
-      moment()
 
     uuid: ->
       ""+(++_uniq_id)
@@ -69,7 +39,7 @@ do (context = this) ->
 
     camelCase: (string) ->
       string = string + ""
-      if string.length then ((word[0].toUpperCase()+word.substring(1)) for word in string.split('_')).join('') else string
+      if string.length then (pi.utils.capitalize(word) for word in string.split('_')).join('') else string
 
     snakeCase: (string) ->
       string = string + ""
@@ -79,6 +49,8 @@ do (context = this) ->
       else 
         string
     
+    capitalize: (word) ->
+      word[0].toUpperCase()+word[1..] 
 
     serialize: (val) ->
       val = switch
@@ -185,15 +157,19 @@ do (context = this) ->
     after: (delay, fun, ths) ->
       delayed(delay, fun, [], ths)()
 
-  utils = pi.utils
+    # create new object with properties merged
 
-  # export functions 
-  context.curry = utils.curry
-  context.delayed = utils.delayed
-  context.after = utils.after
-  context.debounce = utils.debounce
-  
-  # log aliases
+    merge: (to, from) ->
+      obj = pi.utils.clone to
+      for own key, prop of from
+          obj[key]=prop
+      obj
 
-  (utils[level] = utils.curry(utils.log,level)) for level,val of _log_levels 
+    # extend target with data (skip existing props)
+
+    extend: (target, data) ->
+      for own key,prop of data
+        unless target[key]?
+          target[key] = prop
+      target
   return 

@@ -1,24 +1,28 @@
 describe "pieces core", ->
+  Nod = pi.Nod
+  root = Nod.create()
+  document.documentElement.appendChild root.node
+
   beforeEach ->
-    @test_div = $(document.createElement('div'))
-    @test_div.css position:'relative'
-    $('body').append(@test_div)
+    @test_div = Nod.create()
+    @test_div.style position:'relative'
+    root.append @test_div 
 
   afterEach ->
-    @test_div.remove()
+    root.html('')
 
   describe "global functions", ->
     it "should correctly parse options", ->
-      el = $('<div data-component="test" data-option-hidden="true" data-option-collection-id="13" data-plugins="autoload search filter"></div>')
+      el = Nod.create_html('<div data-component="test" data-option-hidden="true" data-option-collection-id="13" data-plugins="autoload search filter"></div>')
       options = pi.gather_options el
       expect(options).to.include({component:"test",hidden:true,collection_id:13}).and.to.have.property('plugins').with.length(3)
     it "should correctly init base component", ->
-      el = $('<div data-component="test_component" data-option-hidden="true"></div>')
+      el = Nod.create_html('<div data-component="test_component" data-option-hidden="true"></div>')
       component = pi.init_component el
       expect(component).to.be.an.instanceof pi.TestComponent
       expect(component.visible).to.be.false
     it "should throw error on undefined component", ->
-      el = $('<div data-component="testtt" data-option-hidden="true"></div>')
+      el = Nod.create_html('<div data-component="testtt" data-option-hidden="true"></div>')
       expect(curry(pi.init_component,el)).to.throw(ReferenceError)
 
   describe "pi piecify and click hanlder", ->
@@ -36,7 +40,7 @@ describe "pieces core", ->
       pi.piecify()
 
     it "should create piece", ->
-      expect($('@test').pi()).to.be.an.instanceof pi.TestComponent
+      expect(root.find('@test')).to.be.an.instanceof pi.TestComponent
 
     it "should work with simple function call", ->
       TestHelpers.clickElement $('a#hide').get(0)

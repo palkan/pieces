@@ -6,18 +6,20 @@ exports.config =
     javascripts:
       defaultExtension: 'coffee'
       joinTo:
-        'javascripts/pieces.js': /^app/
-        'javascripts/jquery.js': /^bower_components[\\/]jquery/
-        'javascripts/vendor.js': /^(bower_components|vendor)[\\/](?!test)(?!jquery)/
+        'javascripts/pieces.core.js': /^app[\\/]core/
+        'javascripts/pieces.js': /^app[\\/](?!core)/
+        'javascripts/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
         'test/javascripts/test.js': /^test/
         'test/javascripts/test-vendor.js': /^vendor[\\/](?=test)/
       order:
         before:
           [
             'app/core/jquery-pi.js',
-            'app/core/utils.coffee',
-            'app/core/events.coffee',
-            'app/core/pieces.coffee',
+            'app/core/utils/utils.coffee',
+            'app/core/events/events.coffee',
+            'app/core/events/nod_events.coffee',
+            'app/core/nod.coffee',
+            'app/components/pieces.coffee',
             'app/components/textinput.coffee',
             'test/helpers.coffee'
           ]

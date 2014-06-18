@@ -1,9 +1,24 @@
 do (context = this) ->
   "use strict"
+
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
+
+  # Extend Nod
+   
+  class pi.Event
+    constructor: (event) ->
+      if event? and typeof event is "object"
+        utils.extend @, event
+      else 
+        @type = event
+
+      @canceled = false
+
+    cancel: ->
+      @canceled = true
+
 
   # Event listener class
   # @private
@@ -68,14 +83,14 @@ do (context = this) ->
     # @params [Object, Null] data data that will be passed with event as 'event.data'
 
     trigger: (event, data) ->
-      event = $.Event(event) unless event.type?
+      event = new pi.Event(event) unless event instanceof pi.Event
       event.data = data if data?
       event.target = this
       if @listeners[event.type]?
         utils.debug "Event: #{event.type}"
         for listener in @listeners[event.type]
           listener.dispatch event
-          break if event.isPropagationStopped()
+          break if event.canceled is true
         @remove_disposed_listeners()
       return
 
@@ -88,10 +103,8 @@ do (context = this) ->
 
     remove_listener: (type, callback, context = null, conditions = null) ->
       if not type?
-        @listeners = {}
-        @listeners_by_key = {}
-        return
-
+        return @remove_all()
+      
       if not @listeners[type]?
         return
 
@@ -127,3 +140,7 @@ do (context = this) ->
           
     remove_type: (type) ->
       delete @listeners[type]
+    
+    remove_all: ->
+      @listeners = {}
+      @listeners_by_key = {} 

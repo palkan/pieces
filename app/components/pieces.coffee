@@ -1,22 +1,27 @@
 do (context = this) ->
   "use strict"
 
-
   # shortcuts
-
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
+  pi.config = {}
+  Nod = pi.Nod
 
   pi.API_DATA_KEY = "js_piece"
 
-  class pi.Base extends pi.EventDispatcher
+  pi._storage = {}
+
+  class pi.Base extends pi.NodEventDispatcher
 
     constructor: (target, @options = {}) ->
       super
       @visible = @enabled = true
       @active = false
       @init_nod target
+      return unless @nod
+
+      @node = @nod.node
+
       @disable() if (@options.disabled || @nod.hasClass('is-disabled'))
       @hide() if (@options.hidden || @nod.hasClass('is-hidden'))
       @activate() if (@options.active || @nod.hasClass('is-active'))
@@ -28,11 +33,9 @@ do (context = this) ->
 
     init_nod: (target) ->
       if typeof target is "string"
-        @nod = $(target)
-      else if target instanceof $
-        @nod = target
+        @nod = new Nod(Nod.root.find(target))
       else
-        @nod = $(target)
+        @nod = Nod.create target
     
     init_plugins: ->
       if @options.plugins?
@@ -48,16 +51,10 @@ do (context = this) ->
     ## internal ##
 
     initialize: -> 
+      pi._storage[@nod.data('pi')] = @ if @nod.data('pi')
       @_initialized = true
 
-    native_events:
-      ["click", "focus", "blur", "change", "scroll", "select", "mouseover", "mouseout", "mousemove", "mouseup", "mousedown", "mouseenter", "mouseleave", "keyup", "keypress", "keydown"]
-
-    event_is_native: (event) ->
-      @native_events.indexOf(event) > -1
-
-    native_event_listener: (event) ->
-      @trigger event
+    
 
     setup_events: ->
       for event, handler of @options.events
@@ -77,27 +74,6 @@ do (context = this) ->
       return
 
     ## event dispatcher ##
-
-    on: (event, callback, context) ->
-      if !@listeners[event]? and @event_is_native(event) and @nod?
-        @nod.on event, @native_event_listener.bind(this)
-      super event, callback, context
-
-    one: (event, callback, context) ->
-      if !@listeners[event]? and @event_is_native(event) and @nod?
-        @nod.on event, @native_event_listener.bind(this)
-      super event, callback, context
-
-    off: (event, callback, context) ->
-      super event, callback, context
-      if !@listeners[event]? and @event_is_native(event) and @nod?
-        @nod.off event
-      else if not event?
-        @nod.off()
-
-    remove_type: (event) ->
-      super event
-      @nod.off event if @event_is_native(event) and @nod?
 
     trigger: (event, data) ->
       if @enabled or event is 'enabled'
@@ -211,12 +187,14 @@ do (context = this) ->
     
 
   pi.piecify = (context) ->
-    context = if context instanceof $ then context else $(context || document)
-    pi.init_component($(nod)) for nod in context.find(".pi")
+    context = if context instanceof Nod then context else new Nod(context || document.documentElement)
+    context.each(".pi", (nod) ->
+      pi.init_component new Nod(nod)
+    )
     pi.event.trigger 'piecified', {context: context}
   
   pi.gather_options = (el) ->
-    el = if el instanceof $ then el else $(el)
+    el = if el instanceof Nod then el else new Nod(el)
 
     opts =
       component: el.data('component') || 'base'               
@@ -225,17 +203,17 @@ do (context = this) ->
 
     for key,val of el.data()
       if matches = key.match options_re
-        opts[utils.snakeCase(matches[1])] = val
+        opts[utils.snakeCase(matches[1])] = utils.serialize val
         continue
       if matches = key.match event_re
-        opts.events[utils.snakeCase(matches[1])] = val
+        opts.events[utils.snakeCase(matches[1])] = utils.serialize val
 
     opts
 
   pi.call = (component, method_chain, args = []) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
-      target = if typeof component is 'object' then component else $("@#{ component }").pi()
+      target = if typeof component is 'object' then component else pi._storage[component]
 
       [method,target] =
         if method_chain.indexOf(".") < 0
@@ -279,21 +257,27 @@ do (context = this) ->
 
   pi.event = new pi.EventDispatcher()
 
-  $.extend(
-    $.fn, 
-    pi: -> this.data(pi.API_DATA_KEY),
-    piecify: -> pi.piecify(this)
+  utils.extend(
+    Nod::, 
+    pi: -> @data(pi.API_DATA_KEY),
+    piecify: -> pi.piecify @
     )
 
   # handle all pi clicks
 
-  $ ->
-    $('body').on 'click', 'a', (e) ->
-      if @getAttribute("href")[0] == "@"
-        utils.debug "handle pi click: #{@getAttribute('href')}"
-        pi.str_to_fun(@getAttribute("href"), $(e.target).pi())()
-        e.preventDefault()
-        e.stopImmediatePropagation()
-      return
+#  $ ->
+#    $('body').on 'click', 'a', (e) ->
+#      if @getAttribute("href")[0] == "@"
+#        utils.debug "handle pi click: #{@getAttribute('href')}"
+#        pi.str_to_fun(@getAttribute("href"), $(e.target).pi())()
+#        e.preventDefault()
+#        e.stopImmediatePropagation()
+#      return
+
+   # export functions 
+  context.curry = utils.curry
+  context.delayed = utils.delayed
+  context.after = utils.after
+  context.debounce = utils.debounce
 
   return
