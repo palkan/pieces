@@ -3,13 +3,14 @@ do (context = this) ->
 
   pi = context.pi  = context.pi || {}
   
-  _email_regexp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/
+  _email_regexp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i
+  _html_regexp = /^<.+>$/m
 
   _uniq_id = 100
 
   _key_compare = (a,b,key,reverse) ->
     return 0 if a[key] == b[key]
-    if a[key] < b[key]
+    if !a[key] || a[key] < b[key]
       1+(-2*reverse)
     else 
       -(1+(-2*reverse))
@@ -34,14 +35,17 @@ do (context = this) ->
 
     
     is_email:(str) ->        
-      _email_regexp.test(str.toLowerCase())
+      _email_regexp.test str
+
+    is_html: (str) ->
+      _html_regexp.test str
 
 
     camelCase: (string) ->
       string = string + ""
       if string.length then (pi.utils.capitalize(word) for word in string.split('_')).join('') else string
 
-    snakeCase: (string) ->
+    snake_case: (string) ->
       string = string + ""
       if string.length 
         matches = string.match(/((?:^[^A-Z]|[A-Z])[^A-Z]*)/g)
@@ -113,18 +117,6 @@ do (context = this) ->
           unless item[key]? and matcher(item[key])
             return false
         return true
-
-    string_matcher: (string) ->
-      if string.indexOf(":") > 0
-        [path, query] = string.split ":"
-        regexp = new RegExp(query,'i')
-        (item) ->
-          !!item.nod.find(path).text().match(regexp)
-      else
-        regexp = new RegExp(string,'i')
-        (item) ->
-          !!item.nod.text().match(regexp)
-        
 
     debounce: (period, fun, ths = null) ->
       _wait = false

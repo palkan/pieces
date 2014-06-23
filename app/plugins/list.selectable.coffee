@@ -1,7 +1,6 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
    
@@ -18,10 +17,8 @@ do (context = this) ->
 
       @list.on 'update', @update_handler()
 
-      _selected = @list.items_cont.find('.is-selected')
-
-      if _selected.length
-        @list.items[_selected.data('list-index')].selected = true
+      @list.items_cont.each '.is-selected', (node) =>
+        @list.items[ pi.Nod.create(node).data('listIndex') ].selected = true
 
       @list.selectable = this
       @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], 'selectable'

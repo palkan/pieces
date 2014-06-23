@@ -1,9 +1,9 @@
 # JS Pieces
-Create interactive pages faster than ever! 
+Create interactive pages without writing any javascript (or maybe just a little piece of code).
 Use basic pieces or create your own on top of them. 
 
 ## Deps
-JQuery, moment.js
+No more deps! 
 
 ## Dev Deps
 NodeJS+Bower+Brunch
@@ -16,20 +16,26 @@ In your HTML:
 ```
 In your JS:
 ```
-$("@cont").pi().show() // remove 'hidden' class if present
-$("@cont").pi().hide() // add 'hidden' class 
-$("@cont").pi().enable() // remove 'disabled' class and DOM attr if present
-$("@cont").pi().disable() // add 'disabled' class and DOM attr 
+$("@cont").show() // remove 'hidden' class if present
+$("@cont").hide() // add 'hidden' class 
+$("@cont").enable() // remove 'disabled' class and DOM attr if present
+$("@cont").disable() // add 'disabled' class and DOM attr 
 
-$("@cont").pi().on("click",doSomething,this) // add event listener; custom events available too: "enabled", "visible"...
+$("@cont").on("click",doSomething,this) // add event listener; custom events available too: "enabled", "visible"...
 disposable listeners (i.e. "one(...)") also...
 ```
+
+**Note**: ``$`` is not JQuery; it's just a shortcut to:
+- search through components (using '@' prefix);
+- search DOM (using usual CSS queries, but return only the first matching element);
+- create DOM elements from HTML string
+
 * Use CSS styles instead of DOM manipulations like ```display:none;```: 
 every _piece_ automatically update class on state change ('hidden', 'disabled', 'selected', 'readonly', etc).
 * *Call queries* Move all your logic to DOM! If you want...
 In your HTML:
 ```
-<div class="pi" data-component="base" data-pi="cont" data-event-visible="@btn.toggleVisible">...</div>
+<div class="pi" data-component="base" data-pi="cont" data-event-shown="@btn.show">...</div>
 <a href="@cont.hide">Hide cont</a>
 <button class="pi" data-pi="btn" data-option-hidden="true" data-component="button" data-event-click="@cont.show">Show cont</a>
 ```
@@ -50,8 +56,8 @@ And even more:
 Conditions and logical operators to be done... Maybe.
 
 * Pieces (or _components_) from the box:
-   - List: list of elements with built-in manipulation functions (add/remove/clear), template rendering (or DOM parsing), custom events ('item_click') and many useful plugins (Selectable, Searchable, Autoload, Sortable)
-   - ...    
+   - List: list of elements with built-in manipulation functions (add/remove/clear), template rendering (or DOM parsing), custom events ('item_click') and many useful plugins (Selectable, Searchable, Autoload, Sortable, DragSelect, JSTRenderers);
+   - SWFPlayer: simple wrapper for flash objects (using swfobject.js);    
 * *Slim* shortcuts to be done
 * Some useful functions in _pi.utils_: 
   ```
@@ -77,10 +83,12 @@ Conditions and logical operators to be done... Maybe.
 
    // Camel case and snake case conversions
    pi.utils.camelCase("my_super_class") = "MySuperClass"
-   pi.utils.snakeCase("MySuperClass") = "my_super_class"
+   pi.utils.snake_case("MySuperClass") = "my_super_class"
+
 
    // email checking
    pi.utils.is_email("palkan@pieces.wtf") = true
+
 
    // string simple serialize
    pi.utils.serialize("true") = true
@@ -98,7 +106,6 @@ Conditions and logical operators to be done... Maybe.
    // deep cloning (clones Node elements too)
    pi.utils.clone(data)
 
-
    // beautiful colored, leveled and timed logging
    pi.utils.debug('something') // 2014-02-01 11:00:213 [debug] something (in green)
    pi.utils.error('something') // 2014-02-01 11:00:213 [error] something (in red)
@@ -107,7 +114,9 @@ Conditions and logical operators to be done... Maybe.
 
    // set log level: debug <- info <- warning <- error 
    pi.log_level = "info"
-    
+   
+   // time format
+   pi.utils.time.format(new Date(), '%Y-%m-%d %H:%M:%S') // 2014-06-19 20:05:33   
 
    
 

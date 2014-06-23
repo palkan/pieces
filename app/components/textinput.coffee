@@ -1,37 +1,42 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
   class pi.TextInput extends pi.Base
+
     initialize: ->
-      @input = if @nod.get(0).nodeName.toLowerCase() is 'input' then @nod else @nod.find('input')
+      @input = if @node.nodeName.toLowerCase() is 'input' then @ else @find('input')
       @editable = true
-      @make_readonly() if (@options.readonly || @nod.hasClass('is-readonly'))
+      @make_readonly() if (@options.readonly || @hasClass('is-readonly'))
       super
 
     make_editable: () ->
-      if not @editable
-        @input.get(0).removeAttribute('readonly') 
-        @nod.removeClass 'is-readonly'
+      unless @editable
+        @input.attr('readonly',null) 
+        @removeClass 'is-readonly'
         @editable = true
-        @changed 'editable'
-      return
+        @trigger 'editable'
+      @
 
     make_readonly: () ->
       if @editable
-        @input.get(0).setAttribute('readonly', 'readonly')
-        @nod.addClass 'is-readonly'
+        @input.attr('readonly', 'readonly')
+        @addClass 'is-readonly'
         @editable = false
-        @changed 'editable'
-      return        
+        @trigger 'readonly'
+      @        
 
-    value: (val = null) ->
-      if val?
-        @input.val(val)
-      @input.val()
+    value: (val) ->
+      if @ is @input
+        super
+      else
+        if val? 
+          @input.value val
+          @
+        else
+          @input.value()
 
     clear: () ->
-      @input.val ''
+      @input.value ''

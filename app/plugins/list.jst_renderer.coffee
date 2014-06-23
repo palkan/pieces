@@ -18,5 +18,5 @@ do (context = this) ->
 
       list.item_renderer = (data) ->
         item = utils.clone data
-        item.nod = $(list.jst_renderer(data))
+        item.nod = pi.Nod.create list.jst_renderer(data)
         item

@@ -1,8 +1,12 @@
 describe "searchable list component", ->
+  Nod = pi.Nod
+  root = Nod.create 'div'
+  Nod.root.append root.node
+
   beforeEach ->
-    @test_div = $(document.createElement('div'))
-    @test_div.css position:'relative'
-    $('body').append(@test_div)
+    @test_div = Nod.create 'div'
+    @test_div.style position:'relative'
+    root.append @test_div 
     @test_div.append """
         <div class="pi" data-component="list" data-plugins="searchable" data-pi="test" style="position:relative">
           <ul class="list">
@@ -13,7 +17,7 @@ describe "searchable list component", ->
         </div>
       """
     pi.piecify()
-    @list = $('@test').pi()
+    @list = $('@test')
 
   afterEach ->
     @test_div.remove()

@@ -1,16 +1,8 @@
 class pi.TestComponent extends pi.Base
   initialize: ->
-    @nod.addClass 'test'
-    @btn = new pi.Base @nod.find('.btn')
-
-  text: (val = null) ->
-    if val? 
-      @nod.text val
-    else
-      @nod.text()
-
-  append: (val) ->
-    @nod.append val.nod
+    super
+    @addClass 'test'
+    @btn = @find('.btn')
 
 this.TestHelpers = 
   mouseEventElement: (el,type) ->

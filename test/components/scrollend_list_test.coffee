@@ -1,8 +1,12 @@
 describe "scroll_end list component", ->
+  Nod = pi.Nod
+  root = Nod.create 'div'
+  Nod.root.append root.node
+
   beforeEach ->
-    @test_div = $(document.createElement('div'))
-    @test_div.css position:'relative'
-    $('body').append(@test_div)
+    @test_div = Nod.create 'div'
+    @test_div.style position:'relative'
+    root.append @test_div 
     @test_div.append """
         <div class="pi" data-component="list" data-plugins="scroll_end" data-pi="test" style="position:relative; height: 30px;">
           <ul class="list" style="overflow-y:scroll;height:30px;">
@@ -13,7 +17,7 @@ describe "scroll_end list component", ->
         </div>
       """
     pi.piecify()
-    @list = $('@test').pi()
+    @list = $('@test')
 
   afterEach ->
     @test_div.remove()
@@ -24,7 +28,7 @@ describe "scroll_end list component", ->
       @list.on 'scroll_end', (event) =>
         done()  
 
-      @list.items_cont.get(0).scrollTop = @list.items_cont.get(0).scrollHeight - @list.items_cont.get(0).clientHeight - 49
+      @list.items_cont.node.scrollTop = @list.items_cont.node.scrollHeight - @list.items_cont.node.clientHeight - 49
 
     it "should not send scroll_end event", (done)->  
       
@@ -35,7 +39,7 @@ describe "scroll_end list component", ->
       after 500, =>
         done() if count is 0
 
-      @list.items_cont.get(0).scrollTop = @list.items_cont.get(0).scrollHeight - @list.items_cont.get(0).clientHeight - 100 
+      @list.items_cont.node.scrollTop = @list.items_cont.node.scrollHeight - @list.items_cont.node.clientHeight - 100 
 
     it "should send scroll_end event once per 500ms", (done)->  
       
@@ -46,9 +50,9 @@ describe "scroll_end list component", ->
       after 500, =>
         done() if spy_fun.callCount is 1
 
-      @list.items_cont.get(0).scrollTop = @list.items_cont.get(0).scrollHeight - @list.items_cont.get(0).clientHeight - 49 
+      @list.items_cont.node.scrollTop = @list.items_cont.node.scrollHeight - @list.items_cont.node.clientHeight - 49 
       after 200, =>
-         @list.items_cont.get(0).scrollTop += 5
+         @list.items_cont.node.scrollTop += 5
          
 
     it "should send scroll_end event twice per 1000ms", (done)->  
@@ -60,13 +64,13 @@ describe "scroll_end list component", ->
       after 1200, =>
        done() if spy_fun.callCount is 2
 
-      @list.items_cont.get(0).scrollTop = @list.items_cont.get(0).scrollHeight - @list.items_cont.get(0).clientHeight - 40 
+      @list.items_cont.node.scrollTop = @list.items_cont.node.scrollHeight - @list.items_cont.node.clientHeight - 40 
 
       after 200, =>
-         @list.items_cont.get(0).scrollTop += 5
+         @list.items_cont.node.scrollTop += 5
 
       after 350, =>
-         @list.items_cont.get(0).scrollTop += 5
+         @list.items_cont.node.scrollTop += 5
 
       after 450, =>
-         @list.items_cont.get(0).scrollTop += 5
+         @list.items_cont.node.scrollTop += 5

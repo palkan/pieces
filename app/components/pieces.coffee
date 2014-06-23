@@ -11,31 +11,28 @@ do (context = this) ->
 
   pi._storage = {}
 
-  class pi.Base extends pi.NodEventDispatcher
+  class pi.Base extends pi.Nod
 
-    constructor: (target, @options = {}) ->
+    constructor: (@node, @options = {}) ->
       super
+      return unless @node
+
+      @pid = @data('pi')
+
       @visible = @enabled = true
       @active = false
-      @init_nod target
-      return unless @nod
+      @disable() if (@options.disabled || @hasClass('is-disabled'))
+      @hide() if (@options.hidden || @hasClass('is-hidden'))
+      @activate() if (@options.active || @hasClass('is-active'))
 
-      @node = @nod.node
-
-      @disable() if (@options.disabled || @nod.hasClass('is-disabled'))
-      @hide() if (@options.hidden || @nod.hasClass('is-hidden'))
-      @activate() if (@options.active || @nod.hasClass('is-active'))
-      @_value = @nod.data('value')
-      @nod.data(pi.API_DATA_KEY, this)
       @initialize()
       @setup_events()
       @init_plugins()
 
     init_nod: (target) ->
       if typeof target is "string"
-        @nod = new Nod(Nod.root.find(target))
-      else
-        @nod = Nod.create target
+        target = Nod.root.find(target) || target
+      Nod.create target
     
     init_plugins: ->
       if @options.plugins?
@@ -51,19 +48,12 @@ do (context = this) ->
     ## internal ##
 
     initialize: -> 
-      pi._storage[@nod.data('pi')] = @ if @nod.data('pi')
+      pi._storage[@pid] = @ if @pid
       @_initialized = true
-
-    
 
     setup_events: ->
       for event, handler of @options.events
         @on event, pi.str_to_fun(handler, this)
-
-    changed: (property) ->
-      @trigger property, this[property]
-      @trigger "#{property}_#{this[property]}"
-      return
 
     delegate: (methods, to) ->
       for method in methods
@@ -76,104 +66,61 @@ do (context = this) ->
     ## event dispatcher ##
 
     trigger: (event, data) ->
-      if @enabled or event is 'enabled'
+      if @enabled or event is 'disabled'
         super event, data
 
     ## public interface ##
 
     show: -> 
-      if not @visible
-        @nod.removeClass 'is-hidden'
+      unless @visible
+        @removeClass 'is-hidden'
         @visible = true
-        @changed 'visible'
+        @trigger 'shown'
+      @
 
     hide: ->
       if @visible
-        @nod.addClass 'is-hidden'
+        @addClass 'is-hidden'
         @visible = false
-        @changed 'visible'
+        @trigger 'hidden'
+      @
 
     enable: ->
-      if not @enabled 
-        @nod.removeClass 'is-disabled'
-        @nod.get(0).removeAttribute('disabled')
+      unless @enabled 
+        @removeClass 'is-disabled'
+        @attr 'disabled',null
         @enabled = true
-        @changed 'enabled'
+        @trigger 'enabled'
+      @
 
     disable: ->
       if @enabled
-        @nod.addClass 'is-disabled'
-        @nod.get(0).setAttribute('disabled', 'disabled')
+        @addClass 'is-disabled'
+        @attr 'disabled', 'disabled'
         @enabled = false
-        @changed 'enabled'
+        @trigger 'disabled'
+      @
 
     activate: ->
-      if not @active 
-        @nod.addClass 'is-active'
+      unless @active 
+        @addClass 'is-active'
         @active = true
-        @changed 'active'
+        @trigger 'active'
+      @
 
     deactivate: ->
       if @active
-        @nod.removeClass 'is-active'
+        @removeClass 'is-active'
         @active = false
-        @changed 'active'
-
-    value: (val = null) ->
-      if val?
-        @_value = val
-      @_value
-
-    move: (x,y) ->
-      @nod.css left: x, top: y
-
-    position: () ->
-      {left: x, top: y} = @nod.position()
-      x: x, y: y 
-
-    offset: () ->
-      {left: x, top: y} = @nod.offset()
-      x: x, y: y 
-
-    size: (width = null, height = null) ->
-      unless width? and height?
-        return width: @nod.width(), height: @nod.height()
-      
-      if width? and height?
-        @nod.width width
-        @nod.height height
-      else
-        old_h = @nod.height()
-        old_w = @nod.width()
-        if width?
-          @nod.width width
-          @nod.height (old_h * width/old_w)
-        else
-          @nod.height height
-          @nod.width (old_w * height/old_h)
-      @trigger 'resize'
-      return
-
-    width: (width = null) ->
-      unless width?
-        return @nod.width()
-
-      @nod.width width 
-      @trigger 'resize'
-      return
-
-    height: (height = null) ->
-      unless height?
-        return @nod.height()
-
-      @nod.height height 
-      @trigger 'resize'
-      return
-
-
+        @trigger 'inactive'
+      @
 
   options_re = new RegExp('option(\\w+)', 'i');
   event_re = new RegExp('event(\\w+)', 'i');
+
+
+  pi.find = (pid) ->
+    pi._storage[pid]
 
   pi.init_component = (nod) ->
     component_name = utils.camelCase(nod.data('component')||'base')
@@ -181,7 +128,7 @@ do (context = this) ->
 
     if component? and not nod.data(pi.API_DATA_KEY)
       utils.debug "component created: #{component_name}"
-      new pi[component_name](nod,pi.gather_options(nod))
+      new pi[component_name](nod.node,pi.gather_options(nod))
     else
       throw new ReferenceError('unknown or initialized component: ' + component_name)
     
@@ -203,17 +150,17 @@ do (context = this) ->
 
     for key,val of el.data()
       if matches = key.match options_re
-        opts[utils.snakeCase(matches[1])] = utils.serialize val
+        opts[utils.snake_case(matches[1])] = utils.serialize val
         continue
       if matches = key.match event_re
-        opts.events[utils.snakeCase(matches[1])] = utils.serialize val
+        opts.events[utils.snake_case(matches[1])] = utils.serialize val
 
     opts
 
   pi.call = (component, method_chain, args = []) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
-      target = if typeof component is 'object' then component else pi._storage[component]
+      target = if typeof component is 'object' then component else pi.find(component)
 
       [method,target] =
         if method_chain.indexOf(".") < 0
@@ -232,15 +179,17 @@ do (context = this) ->
     catch error
       utils.error error
 
+  _str_reg = /^['"].+['"]$/
+
   pi.prepare_arg = (arg, host) ->
     if arg[0] is "@"
       pi.str_to_fun arg, host
     else
-      utils.serialize arg
+      if _str_reg.test(arg) then arg[1...-1] else utils.serialize arg
 
 
   pi.str_to_fun = (callstr, host = null) ->
-    matches = callstr.match(/@([\w\d_]+)(?:\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),]+)\))?)?/)
+    matches = callstr.match(/@([\w\d_]+)(?:\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),'"]+)\))?)?/)
     target = if matches[1] == 'this' then host else matches[1]
     if matches[2]
       curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
@@ -250,7 +199,7 @@ do (context = this) ->
           target
       else
         ->
-          $("@#{ target }").pi()
+          pi.find target
 
 
   # Global Event Dispatcher
@@ -259,25 +208,42 @@ do (context = this) ->
 
   utils.extend(
     Nod::, 
-    pi: -> @data(pi.API_DATA_KEY),
     piecify: -> pi.piecify @
+    pi_call: (target, action) ->
+      if !@_pi_call or @_pi_action != action
+        @_pi_action = action
+        @_pi_call = pi.str_to_fun action, target
+      @_pi_call.call null 
     )
 
   # handle all pi clicks
 
-#  $ ->
-#    $('body').on 'click', 'a', (e) ->
-#      if @getAttribute("href")[0] == "@"
-#        utils.debug "handle pi click: #{@getAttribute('href')}"
-#        pi.str_to_fun(@getAttribute("href"), $(e.target).pi())()
-#        e.preventDefault()
-#        e.stopImmediatePropagation()
-#      return
+  Nod.root.ready ->
+    Nod.root.listen(
+      'a', 
+      'click', 
+      (e) ->
+        if e.target.attr("href")[0] == "@"
+          utils.debug "handle pi click: #{e.target.attr("href")}"
+          e.target.pi_call e.target, e.target.attr("href")
+          e.cancel()
+        return
+      )
 
    # export functions 
   context.curry = utils.curry
   context.delayed = utils.delayed
   context.after = utils.after
   context.debounce = utils.debounce
+
+  # find shortcut
+
+  context.$ = (q) ->
+    if q[0] is '@'
+      pi.find q[1..]
+    else if utils.is_html q
+      Nod.create q
+    else
+      Nod.root.find q
 
   return

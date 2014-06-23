@@ -1,8 +1,12 @@
 describe "selectable list component", ->
+  Nod = pi.Nod
+  root = Nod.create 'div'
+  Nod.root.append root.node
+
   beforeEach ->
-    @test_div = $(document.createElement('div'))
-    @test_div.css position:'relative'
-    $('body').append(@test_div)
+    @test_div = Nod.create 'div'
+    @test_div.style position:'relative'
+    root.append @test_div 
     @test_div.append """
         <div class="pi" data-component="list" data-plugins="selectable" data-pi="test" style="position:relative">
           <ul class="list">
@@ -13,7 +17,7 @@ describe "selectable list component", ->
         </div>
       """
     pi.piecify()
-    @list = $('@test').pi()
+    @list = $('@test')
 
   afterEach ->
     @test_div.remove()
@@ -22,49 +26,49 @@ describe "selectable list component", ->
 
     it "should select one item when radio", (done)->
       
-      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'item_click', (event) =>
         expect(@list.selected()[0].key).to.equal "anyone"
         done()
 
-      TestHelpers.clickElement $('@test .item[data-id="3"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="3"]').node
 
     it "should select several items when check", (done)->
       @list.selectable.type = 'check'
 
-      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'selected', (event) =>
         expect(@list.selected().length).to.equal 2
         done()
 
-      TestHelpers.clickElement $('@test .item[data-id="3"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="3"]').node
 
 
     it "should select new item", (done)->
-      item = $('<li class="item" data-id="4" data-key="new">New</li>')
+      item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       @list.add_item item
 
       @list.on 'selected', (event) =>
         expect(@list.selected()[0].key).to.equal 'new'
         done()
 
-      TestHelpers.clickElement $('@test .item[data-id="4"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="4"]').node
       
     it "should send cleared event when all items are deselected", (done)->
       @list.selectable.type = 'check'
 
-      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'selection_cleared', (event) =>
         expect(@list.selected().length).to.equal 0
         done()
 
-      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
     it "should send cleared when selected item is removed", (done) ->
-      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'selection_cleared', (event) =>
         expect(@list.selected().length).to.equal 0
@@ -73,7 +77,7 @@ describe "selectable list component", ->
       @list.remove_item_at 0
 
     it "should send cleared when list completely cleared", (done) ->
-      TestHelpers.clickElement $('@test .item[data-id="1"]').get(0)
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'selection_cleared', (event) =>
         expect(@list.selected().length).to.equal 0
@@ -84,7 +88,7 @@ describe "selectable list component", ->
     it "should not send cleared on item added", (done) ->
 
       @list.item_renderer = (data) ->
-        nod = $("<div>#{ data.name }</div>")
+        nod = Nod.create ("<div>#{ data.name }</div>")
         nod.addClass 'item'
         nod.append "<span class='author'>#{ data.author }</span>"
         data.nod = nod

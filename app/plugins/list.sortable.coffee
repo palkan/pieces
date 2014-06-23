@@ -1,7 +1,6 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 

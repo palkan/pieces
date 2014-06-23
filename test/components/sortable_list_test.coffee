@@ -1,8 +1,12 @@
 describe "sortable list component", ->
+  Nod = pi.Nod
+  root = Nod.create 'div'
+  Nod.root.append root.node
+
   beforeEach ->
-    @test_div = $(document.createElement('div'))
-    @test_div.css position:'relative'
-    $('body').append(@test_div)
+    @test_div = Nod.create 'div'
+    @test_div.style position:'relative'
+    root.append @test_div 
     @test_div.append """
         <div class="pi" data-component="list" data-plugins="sortable" data-pi="test" style="position:relative">
           <ul class="list">
@@ -13,7 +17,7 @@ describe "sortable list component", ->
         </div>
       """
     pi.piecify()
-    @list = $('@test').pi()
+    @list = $('@test')
 
   afterEach ->
     @test_div.remove()
@@ -22,11 +26,11 @@ describe "sortable list component", ->
 
     it "should sort by key", ->  
       @list.sort 'val', true
-      expect($('@test .item').first().text()).to.equal 'Two'
+      expect($('@test').first('.item').text()).to.equal 'Two'
 
     it "should sort by many keys", ->
       @list.sort ['key','val'], [false, false]
-      expect($('@test .item').first().text()).to.equal 'One'
+      expect($('@test').first('.item').text()).to.equal 'One'
 
     it "should dispatch sort event", (done)->
       @list.on 'sort_update', (event) =>

@@ -20,6 +20,8 @@ do (context = this) ->
       @canceled = true
 
 
+  _true = -> true
+
   # Event listener class
   # @private
 
@@ -28,13 +30,17 @@ do (context = this) ->
       @handler._uuid = "fun"+utils.uuid() if not @handler._uuid?
       @uuid = "#{@type}:#{@handler._uuid}"
 
+      unless typeof @conditions is 'function'
+        @conditions = _true
+
       if @context?
         @context._uuid = "obj"+utils.uuid() if not @context._uuid?
         @uuid+=":#{@context._uuid}"
       
     dispatch: (event) ->
-      if @disposed
+      if @disposed or !@conditions(event)
         return
+
       @handler.call(@context,event)
       @dispose() if @disposable
 
@@ -85,7 +91,7 @@ do (context = this) ->
     trigger: (event, data) ->
       event = new pi.Event(event) unless event instanceof pi.Event
       event.data = data if data?
-      event.target = this
+      event.currentTarget = this
       if @listeners[event.type]?
         utils.debug "Event: #{event.type}"
         for listener in @listeners[event.type]

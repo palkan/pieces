@@ -1,7 +1,6 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
@@ -11,15 +10,27 @@ do (context = this) ->
   # Basic list component
 
   class pi.List extends pi.Base
+
+    @string_matcher = (string) ->
+      if string.indexOf(":") > 0
+        [path, query] = string.split ":"
+        regexp = new RegExp(query,'i')
+        (item) ->
+          !!item.nod.find(path).text().match(regexp)
+      else
+        regexp = new RegExp(string,'i')
+        (item) ->
+          !!item.nod.text().match(regexp)
+
     initialize: () ->
-      @items_cont = @nod.find(".#{ list_klass }")
-      @items_cont = @nod unless @items_cont.length
+      @items_cont = @find(".#{ list_klass }")
+      @items_cont = @ unless @items_cont
       @item_renderer = @options.renderer
       
       unless @item_renderer?
         @item_renderer = (nod) -> 
           item = {}
-          (item[utils.snakeCase(key)]=val) for own key,val of nod.data()
+          (item[utils.snake_case(key)]=utils.serialize(val)) for own key,val of nod.data()
           item.nod = nod
           item
 
@@ -30,11 +41,13 @@ do (context = this) ->
 
       @_check_empty()
 
-      @nod.on "click", ".#{ item_klass }", (e) =>  
-        @_item_clicked($(` this `),e) unless e.target.href?
+      @listen ".#{ item_klass }", "click", (e) =>  
+        @_item_clicked e.target
+      super
 
     parse_html_items: () ->
-      @add_item($(nod)) for nod in @items_cont.find(".#{ item_klass }")
+      @items_cont.each ".#{ item_klass }", (node) =>   
+        @add_item pi.Nod.create(node)
       @_flush_buffer false
 
     # Set list elements
@@ -58,9 +71,9 @@ do (context = this) ->
       @_check_empty()
 
       # save item index in DOM element
-      item.nod.data('list-index',@items.length-1)
+      item.nod.data('listIndex',@items.length-1)
       
-      if update then @items_cont.append(item.nod) else @buffer.appendChild(item.nod.get(0))
+      if update then @items_cont.append(item.nod) else @buffer.appendChild(item.nod.node)
 
       @trigger('update', {type:'item_added',item:item}) if update
       
@@ -75,9 +88,8 @@ do (context = this) ->
       _after = @items[index+1]
       
       # save item index in DOM element
-      item.nod.data('list-index',index)
-
-      item.nod.insertBefore(_after.nod)
+      item.nod.data('listIndex',index)
+      _after.nod.insertBefore item.nod
 
       @_need_update_indeces = true
 
@@ -90,7 +102,7 @@ do (context = this) ->
       if index > -1
         @items.splice(index,1)
         @_destroy_item(item)
-        item.nod.data('list-index','')
+        item.nod.data('listIndex',null)
 
         @_check_empty()
 
@@ -118,8 +130,8 @@ do (context = this) ->
     # @example Find by string query = find by nod content
     #   list.find(".title:keyword") // match all items for which item.nod.find('.title').text().search(/keyword/) > -1
 
-    find: (query) ->
-      matcher = if typeof query == "string" then utils.string_matcher(query) else utils.object_matcher(query)
+    where: (query) ->
+      matcher = if typeof query == "string" then @constructor.string_matcher(query) else utils.object_matcher(query)
       item for item in @items when matcher(item)
 
 
@@ -132,26 +144,27 @@ do (context = this) ->
       @trigger 'update'
 
     clear: () ->
-      @items_cont.children().detach()
+      @items_cont.detach_children()
       @items.length = 0
       @trigger 'update', {type:'clear'}
 
     _update_indeces: ->
-      item.nod.data('list-index',i) for item,i in @items
+      item.nod.data('listIndex',i) for item,i in @items
       @_need_update_indeces = false
+
     _check_empty: ->
       if !@empty and @items.length is 0
-        @nod.addClass 'is-empty'
+        @addClass 'is-empty'
         @empty = true
-        @changed 'empty'
+        @trigger 'empty'
       else if @empty and @items.length > 0
-        @nod.removeClass 'is-empty'
+        @removeClass 'is-empty'
         @empty = false
-        @changed 'empty'
+        @trigger 'full'
       
 
     _create_item: (data) ->
-      return data if data.nod instanceof $ 
+      return data if data.nod instanceof pi.Nod
       @item_renderer data
 
     _destroy_item: (item) ->
@@ -159,9 +172,9 @@ do (context = this) ->
 
     _flush_buffer: (append = true) ->
       @items_cont.append @buffer if append
-      @buffer = document.createDocumentFragment()
+      @buffer.innerHTML = ''
 
     _item_clicked: (target,e) ->
-      return unless target.data('list-index')?
-      item = @items[target.data('list-index')]
-      @trigger 'item_click', { item: item}
+      return unless target.data('listIndex')?
+      item = @items[target.data('listIndex')]
+      @trigger 'item_click', {item: item}

@@ -1,7 +1,6 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
@@ -9,19 +8,11 @@ do (context = this) ->
   # Dispatch 'scroll_end' event when list is scrolled to bottom
   #
 
-  _document =
-    scrollTop: ->
-      $(window).scrollTop()
-    scrollHeight: ->
-      document.documentElement.scrollHeight
-    height: ->
-      $(window).height()
-
   class pi.ScrollEnd
     constructor: (@list) ->
 
-      @scroll_object = if @list.options.scroll_object == 'window' then _document else @list.items_cont
-      @scroll_native_listener = if @list.options.scroll_object == 'window' then $(window) else @list.items_cont
+      @scroll_object = if @list.options.scroll_object == 'window' then pi.Nod.root else @list.items_cont
+      @scroll_native_listener = if @list.options.scroll_object == 'window' then pi.Nod.root else @list.items_cont
       @list.scroll_end = this
 
       @_prev_top = @scroll_object.scrollTop()

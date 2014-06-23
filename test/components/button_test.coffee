@@ -1,12 +1,16 @@
 describe "button component", ->
+  Nod = pi.Nod
+  root = Nod.create 'div'
+  Nod.root.append root.node
+
   beforeEach ->
-    @test_div = $(document.createElement('div'))
-    @test_div.css position:'relative'
-    $('body').append(@test_div)
+    @test_div = Nod.create 'div'
+    @test_div.style position:'relative'
+    root.append @test_div 
 
   afterEach ->
-    @test_div.remove()
-
+    root.empty()
+  
   describe "click option", ->
     beforeEach  ->
       @test_div.append('<div class="pi" data-pi="test" style="position:relative"></div>')
@@ -14,5 +18,5 @@ describe "button component", ->
       pi.piecify()
 
     it "should call method on click", ->
-      TestHelpers.clickElement $('@btn').get(0)
-      expect($('@test').pi().visible).to.be.false
+      TestHelpers.clickElement $('@btn').node
+      expect($('@test').visible).to.be.false

@@ -1,7 +1,7 @@
  do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
+  $ = context.$
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
@@ -10,14 +10,16 @@
   VERSION = pi.config.swf_version? || '11.0.0'
 
   class pi.SwfPlayer extends pi.Base
+    
     initialize: ->
-      cont = document.createElement('div')
+      cont = document.createElement 'div'
 
       @player_id = "swf_player_" + (++_swf_count)
       cont.id = @player_id
-      @nod.append cont
+      @append cont
       
       @load(@options.url) if @options.url? and @enabled
+      super
 
     load: (url, params={}) ->
       url ||= @options.url
@@ -25,7 +27,7 @@
       swfobject.embedSWF(url, @player_id, "100%", "100%", VERSION, "", params, {allowScriptAccess:true, wmode:'transparent'})
     
     clear: ->
-      @nod.empty()
+      @empty()
 
     as3_call: (method,args...)->
       obj = swfobject.getObjectById @player_id

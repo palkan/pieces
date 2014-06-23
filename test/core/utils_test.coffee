@@ -9,7 +9,7 @@ describe "pieces utils", ->
     it "should fail with stupid email", ->
       expect(pi.utils.is_email("123,122@fff,ff")).to.be.false
 
-    it "should not fail with dot-ended name email (though it is invalud due to RFC)", ->
+    it "should not fail with dot-ended name email (though it is invalid due to RFC)", ->
       expect(pi.utils.is_email("some.dot.ted.@email.com")).to.be.true
 
     it "should work with normal email with dots and digital domain", ->
@@ -24,12 +24,10 @@ describe "pieces utils", ->
 
   describe "snake case", ->
     it "should work with a few words", ->
-      expect(pi.utils.snakeCase("CamelSong")).to.equal("camel_song")
+      expect(pi.utils.snake_case("CamelSong")).to.equal("camel_song")
 
     it "should work with non-capitalized word", ->
-      expect(pi.utils.snakeCase("camelSong")).to.equal("camel_song")
-
-
+      expect(pi.utils.snake_case("camelSong")).to.equal("camel_song")
 
 
   describe "serialize", ->

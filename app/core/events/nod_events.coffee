@@ -8,11 +8,9 @@ do (context = this) ->
 
   class pi.NodEvent extends pi.Event
 
-    @aliases: 
-      mousewheel: "DOMMouseScroll"
-
-    @reversed_aliases:
-      "DOMMouseScroll": "mousewheel"
+    @aliases: {}
+    @reversed_aliases: {}
+    @delegates: {}
 
     @add: ( -> 
       if typeof Element::addEventListener is "undefined" 
@@ -31,11 +29,28 @@ do (context = this) ->
           nod.removeEventListener(event, handler)
       )()
 
+    @register_delegate: (type, delegate) ->
+      @delegates[type] = delegate
+
+    @has_delegate: (type) ->
+      !!@delegates[type]
+
+    @register_alias: (from, to) ->
+      @aliases[from] = to
+      @reversed_aliases[to] = from
+
+    @has_alias: (type) ->
+      !!@aliases[type]
+
+    @is_aliased: (type) ->
+      !!@reversed_aliases[type]
+
     constructor: (event) ->
       @event = event || window.event  
 
-      @target = @event.target || @event.srcElement
-      @type = @constructor.reversed_aliases[event.type] || event.type
+      @event.target = @event.target || @event.srcElement
+      @target = pi.Nod.create @event.target
+      @type = if @constructor.is_aliased[event.type] then @constructor.reversed_aliases[event.type] else event.type
       @ctrlKey = @event.ctrlKey
       @shiftKey = @event.shiftKey
       @altKey = @event.altKey
@@ -66,10 +81,11 @@ do (context = this) ->
       @preventDefault()
       super
 
+  NodEvent = pi.NodEvent
 
   _mouse_regexp = /(click|mouse|contextmenu)/i
 
-  class pi.MouseEvent extends pi.NodEvent
+  class pi.MouseEvent extends NodEvent
     constructor: ->
       super
       
@@ -80,8 +96,8 @@ do (context = this) ->
         @pageY = @event.clientY + document.body.scrollTop + document.documentElement.scrollTop
 
       unless @offsetX?
-        @offsetX = @event.layerX - @target.offsetLeft
-        @offsetY = @event.layerY - @target.offsetTop
+        @offsetX = @event.layerX - @event.target.offsetLeft
+        @offsetY = @event.layerY - @event.target.offsetTop
 
       @wheelDelta = @event.wheelDelta
       unless @wheelDelta?
@@ -92,7 +108,22 @@ do (context = this) ->
     if _mouse_regexp.test e.type
       new pi.MouseEvent e
     else
-      new pi.NodEvent e
+      new NodEvent e
+
+  _selector_regexp = /[\.#]/
+
+  _selector = (s, parent) ->
+    ## when selector is tag (for links default behaviour preventing)
+    unless _selector_regexp.test s
+      (e) ->
+        return e.target.node.matches(s)
+    else
+      (e) ->
+        parent ||= document
+        node = e.target.node
+        return true if node.matches(s) 
+        while((node = node.parentNode) != parent)
+          return (e.target = pi.Nod.create(node)) if node.matches(s)
 
   class pi.NodEventDispatcher extends pi.EventDispatcher
 
@@ -100,27 +131,36 @@ do (context = this) ->
       super
       @native_event_listener = (event) => @trigger _prepare_event(event)  
 
+    listen: (selector, event, callback, context) ->
+      @on event, callback, context, _selector(selector)
+
     add_native_listener: (type) ->
-      pi.NodEvent.add @node, type, @native_event_listener 
+      if NodEvent.has_delegate type
+        NodEvent.delegates[type].add @node, @native_event_listener
+      else 
+        NodEvent.add @node, type, @native_event_listener 
 
     remove_native_listener: (type) ->
-      pi.NodEvent.remove @node, type, @native_event_listener
+      if NodEvent.has_delegate type
+        NodEvent.delegates[type].remove @node
+      else
+        NodEvent.remove @node, type, @native_event_listener
+
 
     add_listener: (listener) ->
       if !@listeners[listener.type]
         @add_native_listener listener.type
-        @add_native_listener pi.NodEvent.aliases[listener.type] if pi.NodEvent.aliases[listener.type]
+        @add_native_listener NodEvent.aliases[listener.type] if NodEvent.has_alias(listener.type)
       super
 
     remove_type: (type) ->
       @remove_native_listener type
-      @remove_native_listener pi.NodEvent.aliases[type] if pi.NodEvent.aliases[type]
+      @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
       super
 
     remove_all: ->
       for own type,list of @listeners
-        do ->
+        do =>
           @remove_native_listener type
-          @remove_native_listener pi.NodEvent.aliases[type] if pi.NodEvent.aliases[type]
-     
-    
+          @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
+      super

@@ -1,13 +1,17 @@
 describe "event dispatcher", ->
+    Nod = pi.Nod
+    root = Nod.create 'div'
+    Nod.root.append root.node
+
     beforeEach  ->
-      @test_div = $(document.createElement('div'))
-      @test_div.css position:'relative'
-      $('body').append(@test_div)
+      @test_div = Nod.create 'div'
+      @test_div.style position:'relative'
+      root.append @test_div
       @test_div.append('<div class="pi" data-component="test_component" data-pi="test" style="position:relative"></div>')
       pi.piecify()
 
     afterEach ->
-      @test_div.remove()
+      root.html ''
 
 
     it "should parse dom and add event handlers", ->
@@ -16,57 +20,54 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn' data-event-click='@test.hide' data-event-custom='@test.show'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      expect($("@btn").pi().listeners).to.have.keys(['click','custom'])
+      Nod.root.find("#cont").piecify()
+      expect(pi.find("btn").listeners).to.have.keys(['click','custom'])
 
-    it "should add native events and call handlers", (done)->
+    it "should add native events and call handlers", ->
       @test_div.append """
         <div id='cont'>
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find("btn")
       count = 0
-      el.on 'click', (event) =>
-        count++
-  
-      el.on 'click', (event) =>
-        count++
-      
-      after 500, =>
-        done() if count == 2
 
-      TestHelpers.clickElement $("@btn").get(0)
+      dummy =
+        fn: -> true
 
-    it "should add custom events and call handlers", (done)->
+      spy = sinon.spy(dummy,"fn")
+
+      el.on 'click', dummy.fn, dummy
+      el.on 'click', dummy.fn, dummy
+
+      TestHelpers.clickElement el.node
+      expect(spy.callCount).to.equal 2
+
+    it "should add custom events and call handlers", ->
       @test_div.append """
         <div id='cont'>
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find("btn")
       
-      count = 
-        total: 0
-        value: 0
+      dummy =
+        fn: -> true
+        fn2: -> false
 
+      spy = sinon.spy(dummy,"fn")
+      spy2 = sinon.spy(dummy,"fn2")
 
-      el.on 'enabled', (event) =>
-        count.total++
-        if el.enabled then count.value++ else count.value--
-
-      el.on 'enabled', (event) =>
-        count.total++
-        if el.enabled then count.value++ else count.value--
-
-      after 500, =>
-        if count.total == 4 and count.value == 0
-          done()
+      el.on 'enabled', dummy.fn, dummy
+      el.on 'disabled', dummy.fn2, dummy
 
       el.disable()
       el.enable()
+
+      expect(spy.callCount).to.equal 1
+      expect(spy2.callCount).to.equal 1
 
     it "should remove all events on off", ->
       @test_div.append """
@@ -74,8 +75,8 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-event-click='@test.hide' data-event-custom='@test.show' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find("btn")
       el.off()
       expect(el.listeners).to.eql({})
 
@@ -85,8 +86,8 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-event-click='@test.hide' data-event-custom='@test.show' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find("btn")
       
       count = 0
 
@@ -102,7 +103,7 @@ describe "event dispatcher", ->
 
       el.off()
         
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
       el.disable()
       el.enable()
 
@@ -112,10 +113,10 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find("btn")
 
-      spy = sinon.spy(el,"native_event_listener")
+      spy = sinon.spy(el,"add_native_listener")
 
       el.on "click", (event) => "hello"
 
@@ -124,12 +125,12 @@ describe "event dispatcher", ->
 
       el.on "click", dummy.kill, dummy
       
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
       
       el.off()
       
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
       
       expect(el.listeners).to.eql {}
       expect(spy.callCount).to.equal(1)
@@ -140,10 +141,10 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find('btn')
 
-      spy = sinon.spy(el,"native_event_listener")
+      spy = sinon.spy(el,"add_native_listener")
 
       el.on "click", (event) => "hello"
 
@@ -152,12 +153,12 @@ describe "event dispatcher", ->
 
       el.on "click", dummy.kill, dummy     
 
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
       
       el.off 'click'
       
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
       
       expect(el.listeners.click).to.be.undefined
       expect(spy.callCount).to.equal(1)
@@ -169,21 +170,21 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
-      spy = sinon.spy(el,"native_event_listener")
+      Nod.root.find("#cont").piecify()
+      el = pi.find('btn')
+      spy = sinon.spy(el,"add_native_listener")
       
       dummy =
         kill: -> pi.utils.debug('kill')
 
       el.on "click", dummy.kill, dummy
 
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
       
       el.off 'click', dummy.kill, dummy 
       
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
 
       expect(el.listeners.click).to.be.undefined
       expect(spy.callCount).to.equal(1)
@@ -194,8 +195,8 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find('btn')
       
       
       dummy =
@@ -205,9 +206,9 @@ describe "event dispatcher", ->
 
       el.one "click", dummy.kill, dummy
 
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
 
 #      expect(el.listeners.click).to.be.undefined
       expect(spy.callCount).to.equal(1)
@@ -218,19 +219,19 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find('btn')
       
-      spy = sinon.spy(el,"native_event_listener")
+      spy = sinon.spy(el,"add_native_listener")
       
       dummy =
         kill: -> pi.utils.debug('kill')
 
       el.one "click", dummy.kill, dummy
 
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
+      TestHelpers.clickElement el.node
 
       expect(el.listeners.click).to.be.undefined
       expect(spy.callCount).to.equal(1)
@@ -241,21 +242,21 @@ describe "event dispatcher", ->
           <button class='pi' data-component='base' data-pi='btn'>Button</button>
         </div>
           """
-      $("#cont").piecify()
-      el = $("@btn").pi()
+      Nod.root.find("#cont").piecify()
+      el = pi.find('btn')
       
-      spy = sinon.spy(el,"native_event_listener")
+      spy = sinon.spy(el,"add_native_listener")
       spy_fun = sinon.spy()
       
       el.on "click", spy_fun
       el.on "mouseover", spy_fun
 
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.clickElement el.node
       
       el.off "click"
 
-      TestHelpers.mouseEventElement $("@btn").get(0), "mouseover"
-      TestHelpers.clickElement $("@btn").get(0)
+      TestHelpers.mouseEventElement el.node, "mouseover"
+      TestHelpers.clickElement el.node
 
       expect(el.listeners.click).to.be.undefined
       expect(el.listeners.mouseover).to.have.length(1)

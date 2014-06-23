@@ -1,7 +1,6 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
@@ -13,7 +12,7 @@ do (context = this) ->
   #  To search within scope define 'options.search_scope'
   
 
-  _clear_mark_regexp = new RegExp("<mark>([^<>]*)<\/mark>","gim")
+  _clear_mark_regexp = /<mark>([^<>]*)<\/mark>/gim
 
   class pi.Searchable
     constructor: (@list) ->
@@ -26,7 +25,7 @@ do (context = this) ->
     _matcher_from_scope: (scope) ->
       @matcher_factory = 
         if not scope?
-          utils.string_matcher
+          pi.List.string_matcher
         else if (matches = scope.match(/^data:([\w\d\_]+)/))
           obj = {}
           key = matches[1]
@@ -42,7 +41,7 @@ do (context = this) ->
     _start_search: () ->
       return if @searching
       @searching = true
-      @nod.addClass 'is-searching'
+      @addClass 'is-searching'
       @_all_items = utils.clone(@items)
       @searchable._prevq = ''
       @trigger 'search_start'
@@ -50,14 +49,14 @@ do (context = this) ->
     _stop_search: () ->
       return unless @searching
       @searching = false
-      @nod.removeClass 'is-searching'
+      @removeClass 'is-searching'
       @data_provider @_all_items
       @_all_items = null
       @trigger 'search_stop'
 
     _highlight_item: (query, item) ->
       _raw_html = item.nod.html()
-      _regexp = new RegExp("((?:^|>)[^<>]*?)(#{ query })","gim")
+      _regexp = new RegExp "((?:^|>)[^<>]*?)(#{ query })", "gim"
       _raw_html = _raw_html.replace(_clear_mark_regexp,"$1")
       _raw_html = _raw_html.replace(_regexp,'$1<mark>$2</mark>') if query isnt ''
       item.nod.html(_raw_html)

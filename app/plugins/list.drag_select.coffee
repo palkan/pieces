@@ -1,7 +1,6 @@
 do (context = this) ->
   "use strict"
   # shortcuts
-  $ = context.jQuery
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
@@ -46,7 +45,7 @@ do (context = this) ->
 
     _item_match_point: (item, point) ->
       
-      {top: item_y, left: item_x} = item.position()
+      {top: item_y, left: item_x} = item.offset()
 
       pos = {x: item_x, y: item_y}
       param = if @_direction is 'y' then item.outerHeight() else item.outerWidth()
@@ -101,13 +100,13 @@ do (context = this) ->
           @list.on 'mousemove', @mouse_move_listener()
           @_dragging = true
         
-        $(document).on 'mouseup', @mouse_up_listener()
+        pi.Nod.root.on 'mouseup', @mouse_up_listener()
 
     mouse_up_listener: ->
       return @_mouse_up_listener if @_mouse_up_listener
       @_mouse_up_listener = (e) =>
         
-        $(document).off 'mouseup', @mouse_up_listener()
+        pi.Nod.root.off 'mouseup', @mouse_up_listener()
         
         if @_dragging
           @list.off 'mousemove', @mouse_move_listener()

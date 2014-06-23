@@ -4,27 +4,40 @@ describe "pieces nod", ->
 
   describe "class functions", ->
     it "should create element", ->
-      nod = Nod.create()
+      nod = Nod.create 'div'
       expect(nod.node.nodeName.toLowerCase()).to.equal 'div'
       expect(nod.node._nod).to.equal nod
 
     it "should create element only once", ->
-      nod = Nod.create()
-      nod2 = Nod.create(nod)
-      nod3 = Nod.create(nod.node)
+      nod = Nod.create 'div'
+      nod2 = Nod.create nod
+      nod3 = Nod.create nod.node
       expect(nod).to.equal nod2
       expect(nod2).to.equal nod3
       expect(nod3).to.equal nod
 
+    it "should return null argument passed but null", ->
+      nod = Nod.create null
+      expect(nod).to.be.null
+
+    it "should create element with tag", ->
+      nod = Nod.create 'a'
+      expect(nod.node.nodeName.toLowerCase()).to.equal 'a'
+
+    it "should create element with html content", ->
+      nod = Nod.create '<a href="@test">Test</a>'
+      expect(nod.node.nodeName.toLowerCase()).to.equal 'a'
+      expect(nod.attr('href')).to.equal '@test'
+      expect(nod.text()).to.equal 'Test'
 
 
   describe "instance functions", ->
 
-    test_root = Nod.create()
+    test_root = Nod.create 'div'
     Nod.root.append test_root.node
 
     beforeEach ->
-      @test_div = Nod.create()
+      @test_div = Nod.create 'div'
       test_root.node.appendChild(@test_div.node)
 
     afterEach ->
@@ -32,13 +45,13 @@ describe "pieces nod", ->
   
     it "should find element", ->
       @test_div.html('<a href="#">1</a><span class="a">2</span><span id="b">3</span>')
-      expect(@test_div.find('a').textContent).to.equal "1"
-      expect(@test_div.find('.a').textContent).to.equal "2"
-      expect(@test_div.find('#b').textContent).to.equal "3"
+      expect(@test_div.find('a').text()).to.equal "1"
+      expect(@test_div.find('.a').text()).to.equal "2"
+      expect(@test_div.find('#b').text()).to.equal "3"
 
     it "should find only one element", ->
       @test_div.html('<a href="#">1</a><a href="#">2</a>')
-      expect(@test_div.find('a').textContent).to.equal "1"
+      expect(@test_div.find('a').text()).to.equal "1"
 
     it "should return children (equal size)", ->
       @test_div.html('<a href="#">1</a><a href="#">2</a>')
@@ -99,3 +112,30 @@ describe "pieces nod", ->
       @test_div.insertAfter a
       @test_div.html '<span>Hello!</span>'
       expect(test_root.html()).to.equal '<div><span>Hello!</span></div><div><span>Hi!</span></div>'
+
+    describe 'hash functions', ->
+
+      beforeEach ->
+        @test_div = Nod.create """
+          <div data-a="1" data-b="2" data-long-name="3" style="color:black;position:relative" class="test example">
+            <input type="text" value="1"/>
+          </div>
+          """
+        test_root.node.appendChild(@test_div.node)
+
+      afterEach ->
+        test_root.html('')
+
+      it "should read data attributes", ->
+        expect(@test_div.data('a')).to.equal '1'
+        expect(@test_div.data('longName')).to.equal '3'
+        expect(@test_div.data()).to.eql {a: '1', b: '2', longName: '3'}
+
+      it "should write data attributes", ->
+        @test_div.data('a', '11')
+        expect(@test_div.data('a')).to.equal '11'
+        @test_div.data('c', '22')
+        expect(@test_div.data('c')).to.equal '22'
+        expect(@test_div.attr('data-c')).to.equal '22'
+
+
