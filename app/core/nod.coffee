@@ -169,17 +169,17 @@ do (context = this) ->
 
     value: (val) ->
       if val?
-        @node.attr('value',val)
+        @attr('value',val)
         @
       else
-        @node.attr('value')
+        @attr('value')
 
-    addClass: (c) ->
-      @node.classList.add c
+    addClass: () ->
+      @node.classList.add(c) for c in arguments
       @
 
-    removeClass: (c) ->
-      @node.classList.remove c
+    removeClass: () ->
+      @node.classList.remove(c) for c in arguments
       @
 
     toggleClass: (c) ->
@@ -191,16 +191,16 @@ do (context = this) ->
 
     x: ->
       offset = @node.offsetLeft
-      parent = @parent()
-      unless parent.node is document 
-        offset += parent.x()
+      node = @node
+      while (node = node.offsetParent)
+        offset += node.offsetLeft
       offset
 
     y: ->
       offset = @node.offsetTop
-      parent = @parent()
-      unless parent.node is document 
-        offset += parent.y()
+      node = @node
+      while (node = node.offsetParent) 
+        offset += node.offsetTop
       offset
 
     move: (x,y) ->
@@ -309,9 +309,17 @@ do (context = this) ->
     prop = "scroll#{ utils.capitalize(d) }"
     pi.Nod::[prop] = -> @node[prop]  
 
-  pi.Nod.root = new pi.Nod document.documentElement
 
-  utils.extend pi.Nod.root, 
+  #singleton class for document.documentElement
+
+  class pi.NodRoot extends pi.Nod
+    @instance: null
+
+    constructor: ->
+      throw "NodRoot is already defined!" if pi.NodRoot.instance
+      pi.NodRoot.instance = @
+      super document.documentElement
+
     initialize: ->
       @_loaded = document.readyState is 'complete'
       
@@ -392,4 +400,8 @@ do (context = this) ->
     width: ->
       window.innerWidth || @node.clientWidth
 
+  pi.Nod.root = new pi.NodRoot()
+  pi.Nod.win = new pi.Nod window
+  
   pi.Nod.root.initialize()
+

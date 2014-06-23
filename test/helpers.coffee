@@ -2,23 +2,24 @@ class pi.TestComponent extends pi.Base
   initialize: ->
     super
     @addClass 'test'
-    @btn = @find('.btn')
+    @btn = new pi.Base @find('.btn')?.node
 
 this.TestHelpers = 
-  mouseEventElement: (el,type) ->
+  mouseEventElement: (el,type, x=0, y=0) ->
     ev = document.createEvent "MouseEvent"
     ev.initMouseEvent(
       type,
       true, #bubble 
       true, #cancelable
       window, null,
-      0, 0, 0, 0, # coordinates
+      0, 0, x, y, # coordinates
       false, false, false, false,  # modifier keys 
       0 # left
       null
     )
     el.dispatchEvent ev 
     return
+
   clickElement: (el) ->
     TestHelpers.mouseEventElement el, "click"
     return

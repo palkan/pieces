@@ -33,10 +33,10 @@ do (context = this) ->
         super
       else
         if val? 
-          @input.value val
+          @input.node.value=val
           @
         else
-          @input.value()
+          @input.node.value
 
     clear: () ->
       @input.value ''

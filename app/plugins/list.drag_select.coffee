@@ -29,10 +29,10 @@ do (context = this) ->
       index = start+index_shift
 
       if index<0
-        return @list.items[0]
+        return 0
 
       if index>@_len-1
-        return @list.items[@_len-1]
+        return (@_len-1)
 
       item = @list.items[index]
 
@@ -45,10 +45,10 @@ do (context = this) ->
 
     _item_match_point: (item, point) ->
       
-      {top: item_y, left: item_x} = item.offset()
+      {x: item_x, y: item_y} = item.position()
 
-      pos = {x: item_x, y: item_y}
-      param = if @_direction is 'y' then item.outerHeight() else item.outerWidth()
+      pos = {x: item_x - @_offset.x, y: item_y - @_offset.y}
+      param = if @_direction is 'y' then item.height() else item.width()
 
       if (point[@_direction] >= pos[@_direction] and pos[@_direction] + param > point[@_direction])
         0  
@@ -86,7 +86,7 @@ do (context = this) ->
     mouse_down_listener: ->
       return @_mouse_down_listener if @_mouse_down_listener
       @_mouse_down_listener = (e) =>
-        {top: _y, left: _x} = @list.items_cont.offset()
+        {x: _x, y: _y} = @list.items_cont.position()
         @_offset = x: _x, y: _y
         @_start_point = x: e.pageX-_x, y: e.pageY-_y
 
@@ -95,7 +95,7 @@ do (context = this) ->
           @_len = @list.items.length
           @_start_index = @_item_under_point @_start_point
           @_last_index = @_start_index
-          @list._select(@list.items[@_start_index])
+          @list._select @list.items[@_start_index]
           @list.trigger 'selected' if @list.selected().length
           @list.on 'mousemove', @mouse_move_listener()
           @_dragging = true
