@@ -13,27 +13,36 @@ do (context = this) ->
   
 
   _clear_mark_regexp = /<mark>([^<>]*)<\/mark>/gim
+  _selector_regexp = /[\.#a-z\s\[\]=\"-_]/i
+
 
   class pi.Searchable
     constructor: (@list) ->
-      @matcher_factory = @_matcher_from_scope(@list.options.search_scope)
+      @update_scope @list.options.search_scope
       @list.searchable = this
       @list.delegate ['search','_start_search','_stop_search', '_highlight_item'], 'searchable'
       @list.searching = false
       return
 
+    update_scope: (scope) -> 
+      @matcher_factory = @_matcher_from_scope(scope)
+      if (scope && _selector_regexp.test(scope))
+        @list._highlight_element = (item) -> item.nod.find(scope) 
+      else 
+        @list._highlight_element = (item) -> item.nod 
+
     _matcher_from_scope: (scope) ->
       @matcher_factory = 
         if not scope?
           pi.List.string_matcher
-        else if (matches = scope.match(/^data:([\w\d\_]+)/))
+        else if (matches = scope.match(/^data:([\w\d_]+)/))
           obj = {}
           key = matches[1]
           (value) -> 
             obj[key] = value
             utils.object_matcher(obj) 
         else 
-          (value) -> utils.string_matcher(scope+':'+value) 
+          (value) -> pi.List.string_matcher(scope+':'+value) 
 
     _is_continuation: (query) ->
       query.match(@_prevq)?.index == 0
@@ -55,12 +64,17 @@ do (context = this) ->
       @trigger 'search_stop'
 
     _highlight_item: (query, item) ->
-      _raw_html = item.nod.html()
+      nod = @_highlight_element item
+      _raw_html = nod.html()
       _regexp = new RegExp "((?:^|>)[^<>]*?)(#{ query })", "gim"
       _raw_html = _raw_html.replace(_clear_mark_regexp,"$1")
       _raw_html = _raw_html.replace(_regexp,'$1<mark>$2</mark>') if query isnt ''
-      item.nod.html(_raw_html)
+      nod.html(_raw_html)
 
+    # Local search thru items.
+    # @param q query (string ot object)
+    # @param highlight [optional] defines whether to highlight matches with <mark> tag. Can be boolean or highlight scope (highlited element selector) 
+    #
 
     search: (q = '', highlight = false) ->
       if q is ''

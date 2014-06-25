@@ -42,7 +42,7 @@ do (context = this) ->
       @_check_empty()
 
       @listen ".#{ item_klass }", "click", (e) =>  
-        @_item_clicked e.target
+        @_item_clicked(e.target) unless e.origTarget.nodeName is 'A'
       super
 
     parse_html_items: () ->

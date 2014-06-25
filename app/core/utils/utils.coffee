@@ -83,7 +83,7 @@ do (context = this) ->
         flags += 'y' if obj.sticky?
         return new RegExp(obj.source, flags) 
 
-      if obj instanceof Node
+      if obj instanceof Element
         return obj.cloneNode(true)
 
       newInstance = new obj.constructor()

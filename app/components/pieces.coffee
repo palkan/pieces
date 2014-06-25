@@ -189,7 +189,7 @@ do (context = this) ->
 
 
   pi.str_to_fun = (callstr, host = null) ->
-    matches = callstr.match(/@([\w\d_]+)(?:\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),'"]+)\))?)?/)
+    matches = callstr.match(/@([\w\d_]+)(?:\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),'"-_]+)\))?)?/)
     target = if matches[1] == 'this' then host else matches[1]
     if matches[2]
       curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])

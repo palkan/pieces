@@ -7,7 +7,7 @@ do (context = this) ->
   class pi.TextInput extends pi.Base
 
     initialize: ->
-      @input = if @node.nodeName.toLowerCase() is 'input' then @ else @find('input')
+      @input = if @node.nodeName is 'INPUT' then @ else @find('input')
       @editable = true
       @make_readonly() if (@options.readonly || @hasClass('is-readonly'))
       super

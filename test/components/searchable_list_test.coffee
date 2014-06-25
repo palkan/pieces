@@ -75,6 +75,11 @@ describe "searchable list component", ->
       @list.search 'p', true
       expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,<mark>p</mark>uppy</span>'
 
+    it "should highlight within search scope", ->  
+      @list.searchable.update_scope '.tags'
+      @list.search 'e', true
+      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">kill<mark>e</mark>r,puppy</span>'
+
     it "should clear previous highlight on reduction", ->  
       @list.search 'e', true
       @list.search 'er', true

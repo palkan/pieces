@@ -48,8 +48,8 @@ do (context = this) ->
     constructor: (event) ->
       @event = event || window.event  
 
-      @event.target = @event.target || @event.srcElement
-      @target = pi.Nod.create @event.target
+      @origTarget = @event.target || @event.srcElement
+      @target = pi.Nod.create @origTarget
       @type = if @constructor.is_aliased[event.type] then @constructor.reversed_aliases[event.type] else event.type
       @ctrlKey = @event.ctrlKey
       @shiftKey = @event.shiftKey
@@ -96,8 +96,8 @@ do (context = this) ->
         @pageY = @event.clientY + document.body.scrollTop + document.documentElement.scrollTop
 
       unless @offsetX?
-        @offsetX = @event.layerX - @event.target.offsetLeft
-        @offsetY = @event.layerY - @event.target.offsetTop
+        @offsetX = @event.layerX - @origTarget.offsetLeft
+        @offsetY = @event.layerY - @origTarget.offsetTop
 
       @wheelDelta = @event.wheelDelta
       unless @wheelDelta?

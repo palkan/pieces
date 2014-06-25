@@ -60,7 +60,7 @@ do (context = this) ->
       switch 
         when !node then null
         when node instanceof @ then node
-        when node.hasOwnProperty("_nod") then node._nod
+        when (typeof node["_nod"] isnt "undefined") then node._nod
         when utils.is_html(node) then @create_html(node)
         when typeof node is "string" then new @(document.createElement node)
         else new @(node)
@@ -321,6 +321,8 @@ do (context = this) ->
       super document.documentElement
 
     initialize: ->
+      _ready_state = if document.attachEvent then 'complete' else 'interactive'
+
       @_loaded = document.readyState is 'complete'
       
       unless @_loaded
@@ -335,7 +337,7 @@ do (context = this) ->
       unless @_ready
         if document.addEventListener
           
-          @_ready = document.readyState is 'interactive'
+          @_ready = document.readyState is _ready_state
           return if @_ready
 
           @_ready_callbacks = []
@@ -347,12 +349,12 @@ do (context = this) ->
           document.addEventListener 'DOMContentLoaded', ready_handler
         else
 
-          @_ready = document.readyState is 'complete'
+          @_ready = document.readyState is _ready_state
           return if @_ready
 
           @_ready_callbacks = []
           ready_handler = =>
-            if document.readyState is 'complete'
+            if document.readyState is _ready_state
               utils.debug 'DOM ready'
               @_ready = true
               @fire_ready()

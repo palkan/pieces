@@ -87,6 +87,7 @@ describe "pieces core", ->
       @test_div.append('<a id="call2" href="@test2.text(@test1.text)">Text</div>')
       @test_div.append('<a id="call3" href="@test2.btn.hide">Hide</div>')
       @test_div.append('<a id="call4" href="@test1.text(ABC)">ABC</div>')
+      @test_div.append('<a id="call5" href="@test1.addClass(\'A\',\'B\',\'is-dead\')">ABC</div>')
       @test_div.find('.test2').append('<a class="btn" data-component="base" href="@test1.hide">Hide</div>')
       pi.piecify()
 
@@ -105,6 +106,12 @@ describe "pieces core", ->
     it "should work with self bound call", ->
       TestHelpers.clickElement $('@test1').node
       expect($('@test1').text()).to.equal '13'
+
+    it "should work with several args in call", ->
+      TestHelpers.clickElement $('a#call5').node
+      expect($('@test1').hasClass('A')).to.be.true
+      expect($('@test1').hasClass('B')).to.be.true
+      expect($('@test1').hasClass('is-dead')).to.be.true
     
 
   describe "pi base events", ->
