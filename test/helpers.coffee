@@ -3,6 +3,9 @@ class pi.TestComponent extends pi.Base
     super
     @addClass 'test'
     @btn = new pi.Base @find('.btn')?.node
+  name: ->
+    @options.name || 'test'
+
 
 this.TestHelpers = 
   mouseEventElement: (el,type, x=0, y=0) ->

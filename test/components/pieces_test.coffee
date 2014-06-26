@@ -81,13 +81,14 @@ describe "pieces core", ->
   describe "pi complex call queries", ->
     beforeEach  ->
       @test_div.append('<div class="pi" data-component="test_component" data-event-click="@this.text(@this.data(\'value\'))" data-value="13" data-pi="test1" style="position:relative">ping</div>')
-      @test_div.append('<div class="pi test2" data-component="test_component" data-pi="test2" style="position:relative"></div>')
+      @test_div.append('<div class="pi test2" data-component="test_component" data-option-name="test2" data-pi="test2" style="position:relative"></div>')
 
       @test_div.append('<a id="call1" href="@test1.text(pong)">Text</div>')
       @test_div.append('<a id="call2" href="@test2.text(@test1.text)">Text</div>')
       @test_div.append('<a id="call3" href="@test2.btn.hide">Hide</div>')
       @test_div.append('<a id="call4" href="@test1.text(ABC)">ABC</div>')
       @test_div.append('<a id="call5" href="@test1.addClass(\'A\',\'B\',\'is-dead\')">ABC</div>')
+      @test_div.append('<a id="call6" href="@test1.addClass(@test2.name(),\'B\')">ABC</div>')
       @test_div.find('.test2').append('<a class="btn" data-component="base" href="@test1.hide">Hide</div>')
       pi.piecify()
 
@@ -112,6 +113,11 @@ describe "pieces core", ->
       expect($('@test1').hasClass('A')).to.be.true
       expect($('@test1').hasClass('B')).to.be.true
       expect($('@test1').hasClass('is-dead')).to.be.true
+
+    it "should work with several args and nested call", ->
+      TestHelpers.clickElement $('a#call6').node
+      expect($('@test1').hasClass('test2')).to.be.true
+      expect($('@test1').hasClass('B')).to.be.true
     
 
   describe "pi base events", ->
