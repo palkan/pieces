@@ -13,14 +13,38 @@ do (context = this) ->
 
     @string_matcher = (string) ->
       if string.indexOf(":") > 0
-        [path, query] = string.split ":"
+        [selectors, query] = string.split ":"
         regexp = new RegExp(query,'i')
+        selectors = selectors.split ','
         (item) ->
-          !!item.nod.find(path).text().match(regexp)
+          for selector in selectors
+            return true if !!item.nod.find(selector)?.text().match(regexp)
+          return false
       else
         regexp = new RegExp(string,'i')
         (item) ->
           !!item.nod.text().match(regexp)
+
+    @object_matcher = (obj, all = true) ->
+      for key,val of obj
+        do (key,val) ->
+          if typeof val is "string"
+            obj[key] = (value) -> 
+              !!value.match new RegExp(val,'i')
+          else if !(typeof val is 'function')
+            obj[key] = (value) ->
+              val == value
+
+      (item) ->
+        _any = false
+        for key,matcher of obj
+          if item[key]?
+            if matcher(item[key])
+              _any = true
+              return _any unless all
+            else
+              return false if all
+        return _any
 
     initialize: () ->
       @items_cont = @find(".#{ list_klass }")
@@ -131,7 +155,7 @@ do (context = this) ->
     #   list.find(".title:keyword") // match all items for which item.nod.find('.title').text().search(/keyword/) > -1
 
     where: (query) ->
-      matcher = if typeof query == "string" then @constructor.string_matcher(query) else utils.object_matcher(query)
+      matcher = if typeof query == "string" then @constructor.string_matcher(query) else @constructor.object_matcher(query)
       item for item in @items when matcher(item)
 
 

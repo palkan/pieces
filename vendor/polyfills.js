@@ -30,6 +30,12 @@ if ( !Array.prototype.forEach ) {
   };
 }
 
+if(!Array.isArray) {
+  Array.isArray = function(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
+
 if (!Array.prototype.filter)
 {
   Array.prototype.filter = function(fun /*, thisArg */)

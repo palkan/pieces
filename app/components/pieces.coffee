@@ -55,12 +55,14 @@ do (context = this) ->
       for event, handler of @options.events
         @on event, pi.str_to_fun(handler, this)
 
+    # delegate methods to another object or nested object (then to is string key)
+
     delegate: (methods, to) ->
+      to = if typeof to is 'string' then @[to] else to
       for method in methods
-        do (method) =>
-          @[method] = (args...) =>
-            @[to][method].apply(this, args)
-          return
+        do (method) => 
+          @[method] = (args...) ->
+            to[method].apply(to, args)
       return
 
     ## event dispatcher ##

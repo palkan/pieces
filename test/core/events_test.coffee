@@ -210,8 +210,29 @@ describe "event dispatcher", ->
       TestHelpers.clickElement el.node
       TestHelpers.clickElement el.node
 
-#      expect(el.listeners.click).to.be.undefined
       expect(spy.callCount).to.equal(1)
+
+    it "should handle multiple events", ->
+      @test_div.append """
+        <div id='cont'>
+          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+        </div>
+          """
+      Nod.root.find("#cont").piecify()
+      el = pi.find('btn')
+            
+      dummy =
+        kill: -> pi.utils.debug('kill')
+
+      spy = sinon.spy(dummy,"kill")
+
+      el.on "click,hidden,shown", dummy.kill, dummy
+
+      TestHelpers.clickElement el.node
+      el.hide()
+      el.show()
+
+      expect(spy.callCount).to.equal(3)
 
     it "should remove native listener after event if one(event)", ->
       @test_div.append """

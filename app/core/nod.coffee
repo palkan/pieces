@@ -232,10 +232,10 @@ do (context = this) ->
       return
 
     show: ->
-      @nod.style.display = "block"
+      @node.style.display = "block"
 
     hide: ->
-      @nod.style.display = "none"
+      @node.style.display = "none"
 
     focus: ->
       @node.focus()

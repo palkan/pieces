@@ -11,7 +11,7 @@ do (context = this) ->
   class pi.Sortable
     constructor: (@list) ->
       @list.sortable = this
-      @list.delegate ['sort'], 'sortable'
+      @list.delegate ['sort'], @
       return
 
     
@@ -20,6 +20,6 @@ do (context = this) ->
     # @see pi.utils.sort 
 
     sort: (fields, reverse = false) ->
-      if typeof fields is 'object' then utils.sort(@items,fields,reverse) else utils.sort_by(@items,fields,reverse)
-      @data_provider @items.slice()
-      @trigger 'sort_update', {fields: fields, reverse: reverse}
+      if typeof fields is 'object' then utils.sort(@list.items,fields,reverse) else utils.sort_by(@list.items,fields,reverse)
+      @list.data_provider @list.items.slice()
+      @list.trigger 'sort_update', {fields: fields, reverse: reverse}

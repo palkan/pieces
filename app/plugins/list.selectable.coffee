@@ -21,7 +21,7 @@ do (context = this) ->
         @list.items[ pi.Nod.create(node).data('listIndex') ].selected = true
 
       @list.selectable = this
-      @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], 'selectable'
+      @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], @
 
       return
 
@@ -59,19 +59,19 @@ do (context = this) ->
       if item.selected then @_deselect(item) else @_select(item)
 
     clear_selection: (silent = false) ->
-      @_deselect(item) for item in @items
-      @trigger('selection_cleared') unless silent
+      @_deselect(item) for item in @list.items
+      @lsit.trigger('selection_cleared') unless silent
     
     select_all: () ->
-      @_select(item) for item in @items
-      @trigger('selected') if @selected().length
+      @_select(item) for item in @lsit.items
+      @list.trigger('selected') if @selected().length
 
 
     # Return selected items
     # @returns [Array]
   
     selected: () ->
-      item for item in @items when item.selected
+      item for item in @list.items when item.selected
 
     selected_item: ()->
       _ref = @selected()

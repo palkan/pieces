@@ -48,6 +48,15 @@ do (context = this) ->
       @handler = @context = @conditions = null 
       @disposed = true
 
+
+  _types = (types) ->
+    if typeof types is 'string'
+      types.split ','
+    else if Array.isArray(types)
+      types
+    else
+      [null]
+
   # Base Event Dispatcher class for all components
   # Wrapper for underlying native events api (jQuery) and custom events
   # @private
@@ -59,13 +68,13 @@ do (context = this) ->
 
     # Attach listener
 
-    on: (event, callback, context, conditions) ->
-      @add_listener new pi.EventListener(event, callback, context, false, conditions) 
+    on: (types, callback, context, conditions) ->
+      @add_listener(new pi.EventListener(type, callback, context, false, conditions)) for type in _types(types)
     
     # Attach disposable (= one-time) listener
 
-    one: (event, callback, context, conditions) ->
-      @add_listener new pi.EventListener(event, callback, context, true, conditions) 
+    one: (type, callback, context, conditions) ->
+      @add_listener new pi.EventListener(type, callback, context, true, conditions)
 
     # Remove listeners
     # 
@@ -80,8 +89,8 @@ do (context = this) ->
     #     element.off('event')  
     # 
 
-    off: (event, callback, context, conditions) ->
-      @remove_listener event, callback, context, conditions
+    off: (types, callback, context, conditions) ->
+      @remove_listener(type, callback, context, conditions) for type in _types(types)
 
 
     # Trigger event

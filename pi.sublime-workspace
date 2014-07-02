@@ -4,6 +4,102 @@
 		"selected_items":
 		[
 			[
+				"cr",
+				"created"
+			],
+			[
+				"_re",
+				"_ready_status"
+			],
+			[
+				"query",
+				"querySelectorAll"
+			],
+			[
+				"child",
+				"children"
+			],
+			[
+				"pa",
+				"parentNode"
+			],
+			[
+				"inde",
+				"indexOf"
+			],
+			[
+				"proto",
+				"prototype"
+			],
+			[
+				"index",
+				"indexOf"
+			],
+			[
+				"prot",
+				"prototype"
+			],
+			[
+				"update",
+				"update_scope"
+			],
+			[
+				"sear",
+				"searchable"
+			],
+			[
+				"sea",
+				"search_scope"
+			],
+			[
+				"upda",
+				"update_scope"
+			],
+			[
+				"ma",
+				"matcher_factory"
+			],
+			[
+				"_sele",
+				"_selector_regexp"
+			],
+			[
+				"sc",
+				"scroll_end"
+			],
+			[
+				"Nod",
+				"NodRoot"
+			],
+			[
+				"off",
+				"offsetLeft"
+			],
+			[
+				"se",
+				"select"
+			],
+			[
+				"lis",
+				"list"
+			],
+			[
+				"mou",
+				"mouseup"
+			],
+			[
+				"mouse",
+				"mousedown"
+			],
+			[
+				"_se",
+				"_selector_regexp"
+			],
+			[
+				"docum",
+				"document"
+			],
+			[
 				"is",
 				"is_html"
 			],
@@ -104,20 +200,12 @@
 				"callback"
 			],
 			[
-				"off",
-				"offsetTop"
-			],
-			[
 				"of",
 				"offsetLeft"
 			],
 			[
 				"Ee",
 				"EventDispatcher"
-			],
-			[
-				"_re",
-				"_ready"
 			],
 			[
 				"load",
@@ -172,10 +260,6 @@
 				"attributes"
 			],
 			[
-				"lis",
-				"listener"
-			],
-			[
 				"mo",
 				"mousewheel"
 			],
@@ -204,10 +288,6 @@
 				"NodEventDispatcher"
 			],
 			[
-				"mouse",
-				"mousewheel"
-			],
-			[
 				"can",
 				"cancel"
 			],
@@ -222,10 +302,6 @@
 			[
 				"pi",
 				"piecify"
-			],
-			[
-				"mou",
-				"mouseup"
 			],
 			[
 				"sto",
@@ -246,10 +322,6 @@
 			[
 				"tp",
 				"type"
-			],
-			[
-				"Nod",
-				"NodEvent"
 			],
 			[
 				"li",
@@ -442,78 +514,6 @@
 			[
 				"laod",
 				"load_meetings"
-			],
-			[
-				"remoe",
-				"removeClass"
-			],
-			[
-				"reme",
-				"remember_cb"
-			],
-			[
-				"che",
-				"checked"
-			],
-			[
-				"chec",
-				"checkbox_input"
-			],
-			[
-				"pdf_",
-				"pdf_to_swf_thumbs"
-			],
-			[
-				"strea",
-				"streams"
-			],
-			[
-				"mee",
-				"meeting"
-			],
-			[
-				"tea",
-				"teachbase_response"
-			],
-			[
-				"sou",
-				"source_file_name"
-			],
-			[
-				"grab",
-				"grab_list"
-			],
-			[
-				"conve",
-				"converting"
-			],
-			[
-				"conv",
-				"conversion"
-			],
-			[
-				"Co",
-				"Config"
-			],
-			[
-				"config",
-				"config_path"
-			],
-			[
-				"curr",
-				"current_role"
-			],
-			[
-				"ass",
-				"assignment"
-			],
-			[
-				"cu",
-				"current_user"
-			],
-			[
-				"user",
-				"user_assignment"
 			]
 		]
 	},
@@ -584,6 +584,27 @@
 	},
 	"file_history":
 	[
+		"/Users/palkan/Dev/pieces/test/components/pieces_test.coffee",
+		"/Users/palkan/Dev/pieces/test/helpers.coffee",
+		"/Users/palkan/Dev/pieces/app/core/events/nod_events.coffee",
+		"/Users/palkan/Dev/pieces/app/components/list.coffee",
+		"/Users/palkan/Dev/pieces/app/components/pieces.coffee",
+		"/Users/palkan/Dev/pieces/public/demo/index.html",
+		"/Users/palkan/Dev/pieces/vendor/polyfills.js",
+		"/Users/palkan/Dev/pieces/app/core/utils/utils.coffee",
+		"/Users/palkan/Dev/pieces/app/core/nod.coffee",
+		"/Users/palkan/Dev/pieces/app/components/textinput.coffee",
+		"/Users/palkan/Dev/pieces/app/components/textarea.coffee",
+		"/Users/palkan/Dev/formerjs/test/former_test.coffee",
+		"/Users/palkan/Dev/formerjs/app/former.coffee",
+		"/Users/palkan/Dev/pieces/public/javascripts/pieces.js",
+		"/Users/palkan/Dev/pieces/app/plugins/list.searchable.coffee",
+		"/Users/palkan/Dev/pieces/test/components/searchable_list_test.coffee",
+		"/Users/palkan/Dev/pieces/app/plugins/list.scrollend.coffee",
+		"/Users/palkan/Dev/pieces/test/components/dragselect_list_test.coffee",
+		"/Users/palkan/Dev/pieces/app/plugins/list.selectable.coffee",
+		"/Users/palkan/Dev/pieces/app/plugins/list.drag_select.coffee",
+		"/Users/palkan/Dev/pieces/test/components/list_test.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/application.js",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/date_input.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/time_input.coffee",
@@ -618,14 +639,9 @@
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/form.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/load_progress.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/search_input.coffee",
-		"/Users/palkan/Dev/pieces/app/components/pieces.coffee",
-		"/Users/palkan/Dev/pieces/test/components/list_test.coffee",
 		"/Users/palkan/Dev/pieces/test/components/jst_list_test.coffee",
-		"/Users/palkan/Dev/pieces/test/helpers.coffee",
-		"/Users/palkan/Dev/pieces/app/core/nod.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/select_all.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/sort.coffee",
-		"/Users/palkan/Dev/pieces/app/plugins/list.selectable.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/hooks/main_progress.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/hooks/pi.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/hooks/pickadate_locale.coffee",
@@ -634,37 +650,25 @@
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/confirm_modal.coffee",
 		"/Users/palkan/Dev/teachbase2/src/app/assets/javascripts/components/checkbox.coffee",
 		"/Users/palkan/Dev/pieces/README.md",
-		"/Users/palkan/Dev/pieces/app/core/utils/utils.coffee",
-		"/Users/palkan/Dev/pieces/app/plugins/list.drag_select.coffee",
-		"/Users/palkan/Dev/pieces/test/components/searchable_list_test.coffee",
 		"/Users/palkan/Dev/pieces/test/components/selectable_list_test.coffee",
 		"/Users/palkan/Dev/pieces/app/plugins/list.sortable.coffee",
 		"/Users/palkan/Dev/pieces/test/components/sortable_list_test.coffee",
-		"/Users/palkan/Dev/pieces/app/plugins/list.searchable.coffee",
-		"/Users/palkan/Dev/pieces/test/components/pieces_test.coffee",
-		"/Users/palkan/Dev/pieces/app/components/textinput.coffee",
 		"/Users/palkan/Dev/pieces/app/components/swf_player.coffee",
-		"/Users/palkan/Dev/pieces/app/components/list.coffee",
 		"/Users/palkan/Dev/pieces/app/plugins/list.jst_renderer.coffee",
-		"/Users/palkan/Dev/pieces/app/plugins/list.scrollend.coffee",
 		"/Users/palkan/Dev/pieces/test/components/scrollend_list_test.coffee",
-		"/Users/palkan/Dev/pieces/app/components/textarea.coffee",
 		"/Users/palkan/Dev/pieces/app/components/button.coffee",
 		"/Users/palkan/Dev/pieces/test/components/button_test.coffee",
 		"/Users/palkan/Dev/pieces/package.json",
-		"/Users/palkan/Dev/pieces/app/core/events/nod_events.coffee",
 		"/Users/palkan/Dev/pieces/app/core/events/events.coffee",
 		"/Users/palkan/Dev/pieces/test/core/events_test.coffee",
 		"/Users/palkan/Dev/pieces/test/core/nod_test.coffee",
 		"/Users/palkan/Dev/pieces/app/core/events/aliases.coffee",
-		"/Users/palkan/Dev/pieces/public/demo/index.html",
 		"/Users/palkan/Dev/pieces/test/core/utils_time_test.coffee",
 		"/Users/palkan/Dev/pieces/test/core/utils_test.coffee",
 		"/Users/palkan/Dev/pieces/test/assets/test/index.html",
 		"/Users/palkan/Dev/pieces/config.coffee",
 		"/Users/palkan/Dev/pieces/app/core/events/mouse.coffee",
 		"/Users/palkan/Dev/pieces/app/core/utils/time.coffee",
-		"/Users/palkan/Dev/pieces/public/javascripts/pieces.js",
 		"/Users/palkan/Dev/pieces/app/core/pieces.coffee",
 		"/Users/palkan/Dev/pieces/public/test/index.html",
 		"/Users/palkan/Dev/pieces/public/javascripts/jquery.js.map",
@@ -707,21 +711,18 @@
 		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/Capfile",
 		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/config/sidekiq.yml",
 		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/Gemfile",
-		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/app/models/document.rb",
-		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/app/controllers/meetings_controller.rb",
-		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/app/controllers/recordings_controller.rb",
-		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/config/initializers/active_model_serializers.rb",
-		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/spec/controllers/recordings_controller_spec.rb"
+		"/Users/palkan/Dev/tb-meetings-vm/src/meetings-web/app/models/document.rb"
 	],
 	"find":
 	{
-		"height": 25.0
+		"height": 35.0
 	},
 	"find_in_files":
 	{
 		"height": 93.0,
 		"where_history":
 		[
+			""
 		]
 	},
 	"find_state":
@@ -729,6 +730,19 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"toLowerCase()",
+			"_ready_status",
+			"document.readyState is ",
+			"is 'interactive'",
+			"e.event.target",
+			"var __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },\n",
+			"event.target",
+			"_highlight_element",
+			"highlight_element",
+			"item.nod",
+			"while (parent = node.offsetParent) isnt document \n        offset += parent.",
+			"Left",
+			"<li",
 			"@form.data",
 			"nod.",
 			"@constructor",
@@ -843,20 +857,7 @@
 			"callback_host",
 			"host",
 			"ulitos:binary_to_hex(crypto:hash(md5, ?Config(auth_pass, \"\")))",
-			"]",
-			"[:",
-			"dpo_server",
-			"last_dts",
-			"Authorable",
-			"token",
-			"Authorization",
-			"JsonResponse,",
-			"proplists:get_value(<<\"error_message\">>,JsonResponse)",
-			"proplists:get_value(<<\"data\">>,JsonResponse)",
-			"proplists:get_value(<<\"status\">>,JsonResponse)",
-			"[{\"Content-Type\", \"application/x-www-form-urlencoded\"}]",
-			"auth.key",
-			"key"
+			"]"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -868,7 +869,7 @@
 			"$1",
 			""
 		],
-		"reverse": true,
+		"reverse": false,
 		"show_context": true,
 		"use_buffer2": true,
 		"whole_word": false,

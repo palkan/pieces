@@ -40,7 +40,6 @@ do (context = this) ->
     is_html: (str) ->
       _html_regexp.test str
 
-
     camelCase: (string) ->
       string = string + ""
       if string.length then (pi.utils.capitalize(word) for word in string.split('_')).join('') else string
@@ -100,24 +99,6 @@ do (context = this) ->
     sort_by: (arr, key, reverse = false) ->
       arr.sort curry(_key_compare,[key,reverse],null,true)
           
-
-    object_matcher: (obj) ->
-      for key,val of obj
-        if typeof val == "string"
-          obj[key] = (value) -> 
-            !!value.match new RegExp(val,'i')
-        else if val instanceof Object
-          obj[key] = object_matcher val
-        else
-          obj[key] = (value) ->
-            val == value
-
-      (item) ->
-        for key,matcher of obj
-          unless item[key]? and matcher(item[key])
-            return false
-        return true
-
     debounce: (period, fun, ths = null) ->
       _wait = false
       _buf = null
