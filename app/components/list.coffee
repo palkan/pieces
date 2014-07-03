@@ -4,9 +4,6 @@ do (context = this) ->
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
-  list_klass = pi.config.list?.list_klass? || 'list'
-  item_klass = pi.config.list?.item_klass? || 'item'
-
   # Basic list component
 
   class pi.List extends pi.Base
@@ -47,7 +44,11 @@ do (context = this) ->
         return _any
 
     initialize: () ->
-      @items_cont = @find(".#{ list_klass }")
+
+      @list_klass = @options.list_klass || 'list'
+      @item_klass = @options.item_klass || 'item'
+
+      @items_cont = @find(".#{ @list_klass }")
       @items_cont = @ unless @items_cont
       @item_renderer = @options.renderer
       
@@ -65,12 +66,12 @@ do (context = this) ->
 
       @_check_empty()
 
-      @listen ".#{ item_klass }", "click", (e) =>  
+      @listen ".#{ @item_klass }", "click", (e) =>  
         @_item_clicked(e.target) unless e.origTarget.nodeName is 'A'
       super
 
     parse_html_items: () ->
-      @items_cont.each ".#{ item_klass }", (node) =>   
+      @items_cont.each ".#{ @item_klass }", (node) =>   
         @add_item pi.Nod.create(node)
       @_flush_buffer false
 
@@ -189,7 +190,9 @@ do (context = this) ->
 
     _create_item: (data) ->
       return data if data.nod instanceof pi.Nod
-      @item_renderer data
+      item = @item_renderer data
+      item.nod = pi.init_component item.nod if @options.pi_items?
+      item
 
     _destroy_item: (item) ->
       item.nod?.remove?()

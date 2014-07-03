@@ -134,6 +134,11 @@ do (context = this) ->
     else
       throw new ReferenceError('unknown or initialized component: ' + component_name)
     
+  pi.dispose_component = (component) ->
+    component = target = if typeof component is 'object' then component else pi.find(component)
+    return unless component?
+    component.dispose()
+    delete pi._storage[component.pid] if component.pid?
 
   pi.piecify = (context) ->
     context = if context instanceof Nod then context else new Nod(context || document.documentElement)
@@ -215,7 +220,8 @@ do (context = this) ->
       if !@_pi_call or @_pi_action != action
         @_pi_action = action
         @_pi_call = pi.str_to_fun action, target
-      @_pi_call.call null 
+      @_pi_call.call null
+    dispose: -> pi.dispose_component @
     )
 
   # handle all pi clicks

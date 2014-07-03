@@ -111,3 +111,11 @@ describe "list component", ->
       [item1,item2] = @list.where('.tags:\\bpuppy\\b')
       expect(item1.key).to.equal 'one'
       expect(item2.key).to.equal 'someone'
+
+  describe "list with components", ->
+    it "should create items nods as components", ->
+      @list.dispose()
+      $('.pi').data('optionPiItems',true)
+      pi.piecify()
+      @list = $('@test')
+      expect(@list.items[0].nod).to.be.an.instanceof pi.Base

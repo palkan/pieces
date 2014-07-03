@@ -245,6 +245,15 @@ do (context = this) ->
       @node.blur()
       @
 
+    # remove event listeners and internal links
+    # GC should collect thid Nod if there is no external links
+
+    dispose: ->
+      @off()
+      delete @node._nod
+      delete @node 
+
+
   _prop_hash(
     "data", 
     (-> 
