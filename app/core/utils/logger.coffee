@@ -24,8 +24,8 @@ do (context = this) ->
       _log_levels[pi.log_level].sort <= _log_levels[level].sort
 
 
-  utils.log = (level, message) ->
-      _show_log(level) && console.log("%c #{ utils.time.now('%H:%M:%S:%L') } [#{ level }]", "color: #{_log_levels[level].color}", message)
+  utils.log = (level, messages...) ->
+      _show_log(level) && console.log("%c #{ utils.time.now('%H:%M:%S:%L') } [#{ level }]", "color: #{_log_levels[level].color}", messages)
 
   #log levels aliases
 

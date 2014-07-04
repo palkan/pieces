@@ -102,7 +102,7 @@ do (context = this) ->
       event.data = data if data?
       event.currentTarget = this
       if @listeners[event.type]?
-        utils.debug "Event: #{event.type}"
+        utils.debug "Event: #{event.type}", event
         for listener in @listeners[event.type]
           listener.dispatch event
           break if event.canceled is true

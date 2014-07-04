@@ -7,8 +7,6 @@ do (context = this) ->
   pi.config = {}
   Nod = pi.Nod
 
-  pi.API_DATA_KEY = "js_piece"
-
   pi._storage = {}
 
   class pi.Base extends pi.Nod
@@ -18,6 +16,7 @@ do (context = this) ->
       return unless @node
 
       @pid = @data('pi')
+      pi._storage[@pid] = @ if @pid
 
       @visible = @enabled = true
       @active = false
@@ -48,7 +47,6 @@ do (context = this) ->
     ## internal ##
 
     initialize: -> 
-      pi._storage[@pid] = @ if @pid
       @_initialized = true
 
     setup_events: ->
@@ -128,24 +126,28 @@ do (context = this) ->
     component_name = utils.camelCase(nod.data('component')||'base')
     component = pi[component_name]
 
-    if component? and not nod.data(pi.API_DATA_KEY)
+    unless component?
+      throw new ReferenceError('unknown or initialized component: ' + component_name)
+    else if nod instanceof component
+      return nod 
+    else
       utils.debug "component created: #{component_name}"
       new pi[component_name](nod.node,pi.gather_options(nod))
-    else
-      throw new ReferenceError('unknown or initialized component: ' + component_name)
-    
+
+
   pi.dispose_component = (component) ->
     component = target = if typeof component is 'object' then component else pi.find(component)
     return unless component?
     component.dispose()
     delete pi._storage[component.pid] if component.pid?
 
-  pi.piecify = (context) ->
-    context = if context instanceof Nod then context else new Nod(context || document.documentElement)
-    context.each(".pi", (nod) ->
-      pi.init_component new Nod(nod)
+  pi.piecify = (context_) ->
+    context = if context_ instanceof Nod then context_ else Nod.create(context_ || document.documentElement)
+
+    context.each(".pi", (node) ->
+      pi.init_component Nod.create(node)
     )
-    pi.event.trigger 'piecified', {context: context}
+    pi.event.trigger 'piecified' unless context_?
   
   pi.gather_options = (el) ->
     el = if el instanceof Nod then el else new Nod(el)

@@ -60,10 +60,10 @@ do (context = this) ->
 
     clear_selection: (silent = false) ->
       @_deselect(item) for item in @list.items
-      @lsit.trigger('selection_cleared') unless silent
+      @list.trigger('selection_cleared') unless silent
     
     select_all: () ->
-      @_select(item) for item in @lsit.items
+      @_select(item) for item in @list.items
       @list.trigger('selected') if @selected().length
 
 

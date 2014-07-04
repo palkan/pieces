@@ -113,9 +113,27 @@ describe "list component", ->
       expect(item2.key).to.equal 'someone'
 
   describe "list with components", ->
-    it "should create items nods as components", ->
+
+    beforeEach ->
       @list.dispose()
       $('.pi').data('optionPiItems',true)
       pi.piecify()
       @list = $('@test')
+
+    it "should create items nods as components", ->
       expect(@list.items[0].nod).to.be.an.instanceof pi.Base
+
+    it "should peicify items nods", ->
+      @list.item_renderer = (data) ->
+        nod = Nod.create("<div>#{ data.name }</div>")
+        nod.addClass 'item'
+        nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
+        data.nod = nod
+        data
+
+      @list.add_item {name: 'coffee', author: 'john'}
+
+      item = @list.where(name: 'coffee')[0]
+
+      expect(item.nod).to.be.an.instanceof pi.Base
+      expect(item.nod.find('.author')).to.be.an.instanceof pi.Button

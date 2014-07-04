@@ -50,10 +50,8 @@ do (context = this) ->
 
       @items_cont = @find(".#{ @list_klass }")
       @items_cont = @ unless @items_cont
-      @item_renderer = @options.renderer
-      
-      unless @item_renderer?
-        @item_renderer = (nod) -> 
+     
+      @item_renderer = (nod) -> 
           item = {}
           (item[utils.snake_case(key)]=utils.serialize(val)) for own key,val of nod.data()
           item.nod = nod
@@ -66,8 +64,11 @@ do (context = this) ->
 
       @_check_empty()
 
-      @listen ".#{ @item_klass }", "click", (e) =>  
-        @_item_clicked(e.target) unless e.origTarget.nodeName is 'A'
+      unless @options.noclick?
+        @listen ".#{ @item_klass }", "click", (e) =>  
+          unless e.origTarget.nodeName is 'A'
+            @_item_clicked(e.target) 
+            e.cancel()
       super
 
     parse_html_items: () ->
@@ -191,7 +192,9 @@ do (context = this) ->
     _create_item: (data) ->
       return data if data.nod instanceof pi.Nod
       item = @item_renderer data
-      item.nod = pi.init_component item.nod if @options.pi_items?
+      if @options.pi_items?
+        item.nod = pi.init_component(item.nod) 
+        item.nod.piecify()
       item
 
     _destroy_item: (item) ->

@@ -10,11 +10,11 @@ do (context = this) ->
  
   class pi.JstRenderer
     constructor: (list) ->
-      unless typeof list.item_renderer is 'string'
+      unless typeof list.options.renderer is 'string'
         utils.error 'JST renderer name undefined'
         return
 
-      list.jst_renderer = JST[list.item_renderer]
+      list.jst_renderer = JST[list.options.renderer]
 
       list.item_renderer = (data) ->
         item = utils.clone data
