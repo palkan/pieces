@@ -28,6 +28,7 @@ do (context = this) ->
     item_click_handler: ->
       return @_item_click_handler if @_item_click_handler
       @_item_click_handler = (e) =>
+        ## todo: add bool vars (is_radio and is_check) instead of matching
         if @type.match('radio') and not e.data.item.selected
           @list.clear_selection(true)
           @list._select e.data.item

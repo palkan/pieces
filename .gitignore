@@ -12,6 +12,10 @@
 *.iml
 .idea/
 
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
 # OS or Editor folders
 .DS_Store
 .cache

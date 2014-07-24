@@ -14,7 +14,7 @@ do (context = this) ->
 
     autosizer: ->
       @_autosizer ||= =>
-        @input.style 'height', @input.node.scrollHeight
+        @input.height @input.node.scrollHeight
 
     enable_autosize: ->
       unless @_autosizing
