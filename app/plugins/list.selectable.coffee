@@ -32,10 +32,10 @@ do (context = this) ->
         if @type.match('radio') and not e.data.item.selected
           @list.clear_selection(true)
           @list._select e.data.item
-          @list.trigger 'selected'
+          @list.trigger 'selected', e.data.item
         else if @type.match('check')
           @list._toggle_select e.data.item
-          if @list.selected().length then @list.trigger('selected') else @list.trigger('selection_cleared')
+          if @list.selected().length then @list.trigger('selected', @selected()) else @list.trigger('selection_cleared')
         return      
 
     update_handler: ->
@@ -49,11 +49,13 @@ do (context = this) ->
     _select: (item) ->
       if not item.selected
         item.selected = true
+        @_selected = null 
         item.nod.addClass 'is-selected'
 
     _deselect: (item) ->
       if item.selected
         item.selected = false
+        @_selected = null
         item.nod.removeClass 'is-selected'
     
     _toggle_select: (item) ->
@@ -65,14 +67,16 @@ do (context = this) ->
     
     select_all: () ->
       @_select(item) for item in @list.items
-      @list.trigger('selected') if @selected().length
+      @list.trigger('selected', @selected()) if @selected().length
 
 
     # Return selected items
     # @returns [Array]
   
     selected: () ->
-      item for item in @list.items when item.selected
+      unless @_selected?
+        @_selected = (item for item in @list.items when item.selected)
+      @_selected
 
     selected_item: ()->
       _ref = @selected()

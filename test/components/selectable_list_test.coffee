@@ -41,6 +41,7 @@ describe "selectable list component", ->
 
       @list.on 'selected', (event) =>
         expect(@list.selected().length).to.equal 2
+        expect(event.data.length).to.equal 2
         done()
 
       TestHelpers.clickElement $('@test').find('[data-id="3"]').node
@@ -52,6 +53,7 @@ describe "selectable list component", ->
 
       @list.on 'selected', (event) =>
         expect(@list.selected()[0].key).to.equal 'new'
+        expect(event.data.key).to.equal 'new'
         done()
 
       TestHelpers.clickElement $('@test').find('[data-id="4"]').node
