@@ -3,9 +3,15 @@ class pi.TestComponent extends pi.Base
     super
     @addClass 'test'
     @btn = new pi.Base @find('.btn')?.node
-  name: ->
-    @options.name || 'test'
 
+  name: (val) ->
+    if val?
+      @options.name = val
+    else
+      @options.name || 'test'
+
+  value_trigger: (val)->
+    @trigger "value", val
 
 this.TestHelpers = 
   mouseEventElement: (el,type, x=0, y=0) ->

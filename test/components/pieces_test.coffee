@@ -122,9 +122,15 @@ describe "pieces core", ->
 
   describe "pi base events", ->
     beforeEach  ->
-      @test_div.append('<div class="pi" data-option-disabled="true" data-component="test_component" data-pi="test" style="position:relative"></div>')
+      @test_div.append('<div class="pi" data-option-disabled="true" data-event-value="@this.text; @this.name" data-component="test_component" data-pi="test" style="position:relative"></div>')
       pi.piecify()
       @example = $('@test')
+
+    it "should send enabled event", (done) ->
+      @example.on 'enabled', (event) => 
+        expect(@example.enabled).to.be.true
+        done()
+      @example.enable()
 
     it "should send enabled event", (done) ->
       @example.on 'enabled', (event) => 
@@ -147,3 +153,9 @@ describe "pieces core", ->
         expect(@example.size()).to.include width:100, height: 50
         done()
       @example.size(100,50)
+
+    it "should pass event data as arg to multiple handlers", ->
+      @example.enable()
+      @example.value_trigger "abc"
+      expect(@example.text()).to.equal("abc")
+      expect(@example.name()).to.equal("abc")

@@ -50,8 +50,9 @@ do (context = this) ->
       @_initialized = true
 
     setup_events: ->
-      for event, handler of @options.events
-        @on event, pi.str_to_fun(handler, this)
+      for event, handlers of @options.events
+        for handler in handlers.split(/;\s*/)
+          @on event, pi.str_to_event_handler(handler, this)
 
     # delegate methods to another object or nested object (then to is string key)
 
@@ -162,11 +163,13 @@ do (context = this) ->
         opts[utils.snake_case(matches[1])] = utils.serialize val
         continue
       if matches = key.match event_re
-        opts.events[utils.snake_case(matches[1])] = utils.serialize val
+        opts.events[utils.snake_case(matches[1])] = val
 
     opts
 
-  pi.call = (component, method_chain, args = []) ->   
+  _method_reg = /([\w\._]+)\.([\w_]+)/
+
+  pi.call = (component, method_chain, args...) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
       target = if typeof component is 'object' then component else pi.find(component)
@@ -175,7 +178,7 @@ do (context = this) ->
         if method_chain.indexOf(".") < 0
           [method_chain, target]
         else
-          [_void, target_chain, method_] = method_chain.match(/([\w\d\._]+)\.([\w\d_]+)/)
+          [_void, target_chain, method_] = method_chain.match _method_reg
           target_ = target
           for key_ in target_chain.split('.') 
             do (key_) ->
@@ -197,11 +200,13 @@ do (context = this) ->
       if _str_reg.test(arg) then arg[1...-1] else utils.serialize arg
 
 
-  pi.str_to_fun = (callstr, host = null) ->
-    matches = callstr.match(/@([\w\d_]+)(?:\.([\w\d_\.]+)(?:\(([@\w\d\.\(\),'"-_]+)\))?)?/)
+  _fun_reg = /@([\w]+)(?:\.([\w\.]+)(?:\(([@\w\.\(\),'"-_]+)\))?)?/
+
+  pi.str_to_fun = (callstr, host) ->
+    matches = callstr.match _fun_reg
     target = if matches[1] == 'this' then host else matches[1]
     if matches[2]
-      curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
+      curry(pi.call,[target, matches[2]].concat(if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else []))
     else
       if typeof target is 'object'       
         -> 
@@ -210,6 +215,13 @@ do (context = this) ->
         ->
           pi.find target
 
+
+  # the same as pi.str_to_fun, but accept only one argument and extract 'data' from it
+
+  pi.str_to_event_handler = (callstr, host) ->
+    _f = pi.str_to_fun callstr, host
+    (e) ->
+      _f e.data
 
   # Global Event Dispatcher
 
