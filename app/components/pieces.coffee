@@ -19,7 +19,6 @@ do (context = this) ->
       pi._storage[@pid] = @ if @pid
 
       @initialize()
-      @setup_events()
       @init_plugins()
 
       @visible = @enabled = true
@@ -27,6 +26,8 @@ do (context = this) ->
       @disable() if (@options.disabled || @hasClass('is-disabled'))
       @hide() if (@options.hidden || @hasClass('is-hidden'))
       @activate() if (@options.active || @hasClass('is-active'))
+
+      @setup_events()
 
     init_nod: (target) ->
       if typeof target is "string"

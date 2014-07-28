@@ -169,10 +169,10 @@ do (context = this) ->
 
     value: (val) ->
       if val?
-        @attr('value',val)
+        @node.value = val
         @
       else
-        @attr('value')
+        @node.value
 
     addClass: () ->
       @node.classList.add(c) for c in arguments
