@@ -106,6 +106,23 @@ describe "pieces nod", ->
       @test_div.wrap()
       expect(test_root.html()).to.equal '<div><div></div></div>'
 
+    it "should find parent", ->
+      @test_div.html('<span>0</span>')
+      sp = @test_div.find('span')
+      expect(sp.parent()).to.eq @test_div
+
+    it "should find parent by selector", ->
+      @test_div.html('<div class="a"><div class="b"><span>1</span></div></div>')
+      @test_div.addClass 'pi'
+      sp = @test_div.find('span')
+      dv = @test_div.find('.a')
+      dv2 = @test_div.find('.b')
+      expect(sp.parent('.a')).to.eq dv
+      expect(sp.parent('.b')).to.eq dv2
+      expect(sp.parent('.pi')).to.eq @test_div
+
+
+
     it "should clone", ->
       @test_div.html '<span>Hi!</span>'
       a = @test_div.clone()
@@ -126,16 +143,14 @@ describe "pieces nod", ->
       afterEach ->
         test_root.html('')
 
-      it "should read data attributes", ->
-        expect(@test_div.data('a')).to.equal '1'
-        expect(@test_div.data('longName')).to.equal '3'
-        expect(@test_div.data()).to.eql {a: '1', b: '2', longName: '3'}
+      it "should read serialized data attributes", ->
+        expect(@test_div.data('a')).to.equal 1
+        expect(@test_div.data('long_name')).to.equal 3
+        expect(@test_div.data()).to.eql {a: 1, b: 2, long_name: 3}
 
       it "should write data attributes", ->
         @test_div.data('a', '11')
         expect(@test_div.data('a')).to.equal '11'
         @test_div.data('c', '22')
         expect(@test_div.data('c')).to.equal '22'
-        expect(@test_div.attr('data-c')).to.equal '22'
-
 

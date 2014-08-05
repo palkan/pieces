@@ -159,3 +159,19 @@ describe "pieces core", ->
       @example.value_trigger "abc"
       expect(@example.text()).to.equal("abc")
       expect(@example.name()).to.equal("abc")
+
+  describe "events bubbling", ->
+    beforeEach  ->
+      @test_div.append '<div class="pi" data-option-disabled="true" data-component="test_component" data-pid="test">
+                          <a class="pi" data-pid="btn" href="#">clicko</a>
+                        </div>'
+      pi.piecify()
+      @example = $('@test')
+
+    it "should bubble event", (done) ->
+      @example.listen '.a', 'enabled', (event) => 
+        expect(event.target).to.eq(@example.btn)
+        expect(event.currentTarget).to.eq(@example)
+        expect(@example.btn).to.be.true
+        done()
+      @example.btn.enable()

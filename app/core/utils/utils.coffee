@@ -130,7 +130,7 @@ do (context = this) ->
     after: (delay, fun, ths) ->
       delayed(delay, fun, [], ths)()
 
-    # create new object with properties merged
+    # create new object with properties merged (=overwritten)
 
     merge: (to, from) ->
       obj = pi.utils.clone to
@@ -138,11 +138,18 @@ do (context = this) ->
           obj[key]=prop
       obj
 
-    # extend target with data (skip existing props)
-
-    extend: (target, data) ->
+    # extend target with data
+    # if overwrite set to true - overwrite existing props
+    
+    extend: (target, data, overwrite = false) ->
       for own key,prop of data
-        unless target[key]?
+        if (!target[key]? || overwrite)
           target[key] = prop
       target
+
+  # export functions 
+  context.curry = pi.utils.curry
+  context.delayed = pi.utils.delayed
+  context.after = pi.utils.after
+  context.debounce = pi.utils.debounce
   return 

@@ -4,72 +4,60 @@ do (context = this) ->
   # shortcuts
   pi = context.pi  = context.pi || {}
   utils = pi.utils
-  pi.config = {}
   Nod = pi.Nod
 
-  pi._storage = {}
+  utils.extend pi.Nod::,
+    find_cut: (selector) ->
+      rest = []
+      acc = []
+
+      el = @node.firstChild
+        
+      while(el)
+        if el.nodeType != 1
+          el = el.nextSibling || rest.shift()
+          continue
+        
+        if el.matches(selector)
+          acc.push el
+          nod = el.querySelector selector
+          if nod?
+            rest.push nod
+        else        
+          if (nod = el.querySelector(selector))
+            el.nextSibling && rest.unshift(el.nextSibling)
+            el = nod
+            continue
+        el = el.nextSibling || rest.shift()        
+    
+      acc
+
 
   class pi.Base extends pi.Nod
 
-    constructor: (@node, @options = {}) ->
-      super
+    constructor: (@node, @host, @options = {}) ->
       return unless @node
 
-      @pid = @data('pi')
-      pi._storage[@pid] = @ if @pid
+      @node._nod.dispose() if @node._nod?
+      super
 
+      @pid = @data('pid')
+
+      @preinitialize()
+      
       @initialize()
+      
       @init_plugins()
-
-      @visible = @enabled = true
-      @active = false
-      @disable() if (@options.disabled || @hasClass('is-disabled'))
-      @hide() if (@options.hidden || @hasClass('is-hidden'))
-      @activate() if (@options.active || @hasClass('is-active'))
-
+      @init_children()
       @setup_events()
 
-    init_nod: (target) ->
-      if typeof target is "string"
-        target = Nod.root.find(target) || target
-      Nod.create target
-    
-    init_plugins: ->
-      if @options.plugins?
-        @attach_plugin name for name in @options.plugins
-        
-    attach_plugin: (name) ->
-      name = utils.camelCase name
-      if pi[name]?
-        utils.debug "plugin attached #{name}"
-        new pi[name] this
-
-
-    ## internal ##
-
-    initialize: -> 
-      @_initialized = true
-
-    setup_events: ->
-      for event, handlers of @options.events
-        for handler in handlers.split(/;\s*/)
-          @on event, pi.str_to_event_handler(handler, this)
-
-    # delegate methods to another object or nested object (then to is string key)
-
-    delegate: (methods, to) ->
-      to = if typeof to is 'string' then @[to] else to
-      for method in methods
-        do (method) => 
-          @[method] = (args...) ->
-            to[method].apply(to, args)
-      return
+      @postinitialize()
 
     ## event dispatcher ##
 
-    trigger: (event, data) ->
+    trigger: (event, data, bubbles) ->
       if @enabled or event is 'disabled'
-        super event, data
+        super event, data, bubbles
 
     ## public interface ##
 
@@ -117,14 +105,68 @@ do (context = this) ->
         @trigger 'inactive'
       @
 
-  options_re = new RegExp('option(\\w+)', 'i');
-  event_re = new RegExp('event(\\w+)', 'i');
+    ## internal ##
+
+    # define instance vars here
+    preinitialize: ->
+      @visible = @enabled = true
+      @active = false
+
+    # setup instance initial state (but not children)
+    initialize: ->       
+      @disable() if (@options.disabled || @hasClass('is-disabled'))
+      @hide() if (@options.hidden || @hasClass('is-hidden'))
+      @activate() if (@options.active || @hasClass('is-active'))
+      @_initialized = true
+      @trigger 'initialized', true, false
+
+    init_plugins: ->
+      if @options.plugins?
+        @attach_plugin @find_plugin(name) for name in @options.plugins
+        
+    attach_plugin: (plugin) ->
+      if plugin?
+        utils.debug "plugin attached #{plugin.class_name()}"
+        @include plugin
+
+    find_plugin: (name) ->
+      name = utils.camelCase name
+      klass = @constructor
+      while(klass?)
+        if klass[name]?
+          return klass[name]
+        klass = klass.__super__
+      return null
+
+    init_children: ->
+      for node in @find_cut('.pi')
+        child = pi.init_component node, @
+        if child.pid?
+          @[child.pid] = child
+
+    setup_events: ->
+      for event, handlers of @options.events
+        for handler in handlers.split(/;\s*/)
+          @on event, pi.str_to_event_handler(handler, this)
+
+    postinitialize: ->
+      @trigger 'creation_complete', true, false
+
+    dispose: ->
+      super
+      if @pid? && @host?
+        delete @host[@pid]
+      return
 
 
-  pi.find = (pid) ->
-    pi._storage[pid]
+  options_re = /option(\\w+)/i
+  event_re = /event(\\w+)/i
 
-  pi.init_component = (nod) ->
+
+  pi.find = (pid_path) ->
+    null
+
+  pi.init_component = (nod, host) ->
     component_name = utils.camelCase(nod.data('component')||'base')
     component = pi[component_name]
 
@@ -134,23 +176,8 @@ do (context = this) ->
       return nod 
     else
       utils.debug "component created: #{component_name}"
-      new pi[component_name](nod.node,pi.gather_options(nod))
+      new pi[component_name](nod.node,host,pi.gather_options(nod))
 
-
-  pi.dispose_component = (component) ->
-    component = target = if typeof component is 'object' then component else pi.find(component)
-    return unless component?
-    component.dispose()
-    delete pi._storage[component.pid] if component.pid?
-
-  pi.piecify = (context_) ->
-    context = if context_ instanceof Nod then context_ else Nod.create(context_ || document.documentElement)
-
-    context.each(".pi", (node) ->
-      pi.init_component Nod.create(node)
-    )
-    pi.event.trigger 'piecified' unless context_?
-  
   pi.gather_options = (el) ->
     el = if el instanceof Nod then el else new Nod(el)
 
@@ -230,13 +257,12 @@ do (context = this) ->
 
   utils.extend(
     Nod::, 
-    piecify: -> pi.piecify @
+    piecify: -> pi.init_component @, @parent('.pi')
     pi_call: (target, action) ->
       if !@_pi_call or @_pi_action != action
         @_pi_action = action
         @_pi_call = pi.str_to_fun action, target
       @_pi_call.call null
-    dispose: -> pi.dispose_component @
     )
 
   # handle all pi clicks
@@ -253,14 +279,7 @@ do (context = this) ->
         return
       )
 
-   # export functions 
-  context.curry = utils.curry
-  context.delayed = utils.delayed
-  context.after = utils.after
-  context.debounce = utils.debounce
-
-  # find shortcut
-
+  # magic function
   context.$ = (q) ->
     if q[0] is '@'
       pi.find q[1..]

@@ -13,6 +13,32 @@ class pi.TestComponent extends pi.Base
   value_trigger: (val)->
     @trigger "value", val
 
+class pi.TestComponent.Renameable extends pi.Plugin
+  world: (name = "my world") ->
+    name
+
+class pi.Base.Helloable extends pi.Plugin
+  hello: (phrase = "ciao") ->
+    phrase
+
+class pi.Test extends pi.Core
+  @alias "hallo", "hello"
+   
+  hello: ->
+    "hello"
+  world: ->
+    "world"
+
+  hello_world: ->
+    "#{@hello()} #{@world()}"
+
+class pi.Test2 extends pi.Test
+  @include pi.TestComponent.Renameable
+
+class pi.Test3 extends pi.Test
+  @include pi.TestComponent.Renameable, pi.Base.Helloable
+
+
 this.TestHelpers = 
   mouseEventElement: (el,type, x=0, y=0) ->
     ev = document.createEvent "MouseEvent"

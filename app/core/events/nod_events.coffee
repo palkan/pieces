@@ -56,6 +56,7 @@ do (context = this) ->
       @altKey = @event.altKey
       @metaKey = @event.metaKey
       @detail = @event.detail
+      @bubbles = @event.bubbles
 
     stopPropagation: ->
       if @event.stopPropagation 

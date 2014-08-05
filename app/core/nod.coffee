@@ -31,15 +31,30 @@ do (context = this) ->
       return _fragment n
     n
 
-  #data case is: 'word1-word2-word3'...
+  _data_reg = /^data-\w[\w\-]*$/
 
+  # data case is: 'word1-word2-word3'
+  # returns snake_case: 'word1_word2_word3'
   _from_dataCase = (str) ->
     words = str.split '-'
-    words[0]+(utils.capitalize(w) for w in words[1..]).join('')
+    words[0]+words[1..].join('_')
 
-  _to_dataCase = (str) ->
-    utils.snake_case(str).replace '_', '-'
-    
+  _dataset = 
+    (-> 
+      if typeof DOMStringMap is "undefined" 
+        (node) ->  
+          dataset = {}
+          for attr in node.attributes
+            if _data_reg.test(attr.name)
+              dataset[_from_dataCase(attr.name[5..])] = utils.serialize attr.value
+          return dataset
+      else
+        (node) ->
+          dataset = {}
+          for own key,val of node.dataset
+            dataset[utils.snake_case(key)] = utils.serialize val
+          dataset
+    )()
 
   # generate document fragment from html string
 
@@ -51,30 +66,43 @@ do (context = this) ->
     f
 
   class pi.Nod extends pi.NodEventDispatcher
-    constructor: (node) ->
+    constructor: (@node) ->
       super
-      @node = node
-      @node._nod = @ if @node
+      return unless @node?
+
+      # virtual data element
+      @_data = _dataset(node)
+
+      @node._nod = @ unless @node._nod?
+
+    # create new Nod from HTMLElement, HTML string, tag name or even another Nod (just returns it)
 
     @create: (node) ->
       switch 
         when !node then null
         when node instanceof @ then node
         when (typeof node["_nod"] isnt "undefined") then node._nod
-        when utils.is_html(node) then @create_html(node)
+        when utils.is_html(node) then @_create_html(node)
         when typeof node is "string" then new @(document.createElement node)
         else new @(node)
 
-    @create_html: (html) ->
+    @_create_html: (html) ->
       temp = document.createElement 'div'
       temp.innerHTML = html
       new @(temp.firstChild)
 
+    # return first matching element as Nod
+
     find: (selector) ->
       pi.Nod.create @node.querySelector(selector)
 
+    # return all matching Elements without modifying 
+
     all: (selector) ->
       @node.querySelectorAll selector
+
+
+    # invoke callback on each matching Element (not Nod!)
 
     each: (selector, callback) ->
       i=0
@@ -91,9 +119,21 @@ do (context = this) ->
     nth: (selector, n) ->
       @find "#{selector}:nth-child(#{n})"
 
-    parent: ->
-      pi.Nod.create @node.parentNode
-    
+
+    # return parent Element as Nod
+
+    parent: (selector) ->
+      unless selector?
+        pi.Nod.create @node.parentNode
+      else
+        p = @node
+        while((p = p.parentNode) && (p != document.documentElement))
+          if p.matches(selector)
+            return pi.Nod.create p
+        return null
+
+    # return children Elements without modifying 
+
     children: (callback) ->
       if typeof callback is 'function'
         i=0
@@ -104,16 +144,23 @@ do (context = this) ->
       else
         @node.children
 
-    wrap: ->
-      wrapper = pi.Nod.create 'div'  
+    # wrap node in a DIV with klasses
+
+    wrap: (klasses...) ->
+      wrapper = pi.Nod.create 'div'
+      wrapper.addClass.apply wrapper, klasses
+
       @node.parentNode.insertBefore wrapper.node, @node
       wrapper.append @node
-      pi.Nod.create wrapper
+
+    # prepend node children with HTMLElement or HTML string
 
     prepend: (node) -> 
       node = _node node
       @node.insertBefore node, @node.firstChild
       @
+
+    # append HTMLElement or HTML string to node children
     
     append: (node) ->
       node = _node node
@@ -130,20 +177,29 @@ do (context = this) ->
       @node.parentNode.insertBefore node, @node.nextSibling
       @
 
+    # remove node from parent node
+
     detach: ->
       @node.parentNode.removeChild @node
       @
+
+    # detach all node children
 
     detach_children: ->
       while @node.children.length
         @node.removeChild @node.children[0]
       @
 
+    # detach and dispose
+    # return null
+
     remove: ->
       @detach()
       @html('')
-      @
+      @dispose()
+      null
 
+    # clear contents of node (equals html(''))
     empty: ->
       @html ''
       @
@@ -152,6 +208,15 @@ do (context = this) ->
       c = document.createElement @node.nameNode
       c.innerHTML = @node.outerHTML
       new pi.Nod c.firstChild
+
+    # remove event listeners and internal links
+    # GC should collect thid Nod if there is no external links
+
+    dispose: ->
+      @off()
+      delete @node._nod
+      delete @node
+      @_data = null
 
     html: (val) ->
       if val?
@@ -245,53 +310,21 @@ do (context = this) ->
       @node.blur()
       @
 
-    # remove event listeners and internal links
-    # GC should collect thid Nod if there is no external links
-
-    dispose: ->
-      @off()
-      delete @node._nod
-      delete @node 
-
-
   _prop_hash(
     "data", 
-    (-> 
-      if typeof DOMStringMap is "undefined" 
-        (prop, val) ->  
-          if prop is undefined
-            dataset = {}
-            for attr in @node.attributes
-              if attr.name.indexOf('data-') is 0
-                dataset[_from_dataCase(attr.name[5..])] = attr.value
-            return dataset
-
-          prop = "data-" + _to_dataCase(prop);
-          unless val?
-            _val = @attr prop
-            if _val is null 
-              _val = undefined
-            if val is undefined 
-              return _val
-            @attr prop, null
-            _val
-          else
-            @attr prop, val
-        
+    (prop, val) ->
+      return @_data if prop is undefined
+      
+      if val is undefined 
+        return @_data[prop]
+      if val is null
+        val = @_data[prop]
+        delete @_data[prop]
+        val
       else
-        (prop, val) ->
-          return @node.dataset if prop is undefined
-
-          data = @node.dataset
-          if val is undefined 
-            return data[prop]
-          if val is null
-            val = data[prop]
-            delete data[prop]
-            val
-          else
-            data[prop] = val
-    )())
+        @_data[prop] = val
+        @
+  )
 
   _prop_hash(
     "style", 

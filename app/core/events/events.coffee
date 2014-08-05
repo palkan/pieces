@@ -7,17 +7,19 @@ do (context = this) ->
 
   # Extend Nod
    
-  class pi.Event
-    constructor: (event) ->
+  class pi.Event extends pi.Core
+    constructor: (event, bubbles = true) ->
       if event? and typeof event is "object"
         utils.extend @, event
       else 
         @type = event
 
+      @bubbles = bubbles
       @canceled = false
 
     cancel: ->
       @canceled = true
+
 
 
   _true = -> true
@@ -25,7 +27,7 @@ do (context = this) ->
   # Event listener class
   # @private
 
-  class pi.EventListener
+  class pi.EventListener extends pi.Core
     constructor: (@type, @handler, @context = null, @disposable = false, @conditions) ->
       @handler._uuid = "fun"+utils.uuid() if not @handler._uuid?
       @uuid = "#{@type}:#{@handler._uuid}"
@@ -58,10 +60,10 @@ do (context = this) ->
       [null]
 
   # Base Event Dispatcher class for all components
-  # Wrapper for underlying native events api (jQuery) and custom events
+  # Wrapper for underlying native events and custom events
   # @private
 
-  class pi.EventDispatcher
+  class pi.EventDispatcher extends pi.Core
     constructor: ->
       @listeners = {} # event_type to listener hash
       @listeners_by_key = {} # key is event_type:handler_uuid:context_uuid
@@ -96,9 +98,10 @@ do (context = this) ->
     # Trigger event
     # @params [String] event
     # @params [Object, Null] data data that will be passed with event as 'event.data'
+    # @params [Boolean] bubbles 
 
-    trigger: (event, data) ->
-      event = new pi.Event(event) unless event instanceof pi.Event
+    trigger: (event, data, bubbles = true) ->
+      event = new pi.Event(event, bubbles) unless event instanceof pi.Event
       event.data = data if data?
       event.currentTarget = this
       if @listeners[event.type]?
@@ -107,9 +110,15 @@ do (context = this) ->
           listener.dispatch event
           break if event.canceled is true
         @remove_disposed_listeners()
+        @bubble_event event
       return
 
     ## internal
+    
+
+    bubble_event: (event) ->
+      # overwrite for custom events
+      return
 
     add_listener: (listener) ->
       @listeners[listener.type] ||= []
