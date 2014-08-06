@@ -1,7 +1,7 @@
 describe "pieces core", ->
   Nod = pi.Nod
   root = Nod.create 'div'
-  Nod.root.append root.node
+  Nod.body.append root.node
 
   beforeEach ->
     @test_div = Nod.create 'div'
@@ -11,36 +11,59 @@ describe "pieces core", ->
   afterEach ->
     root.html ''
 
+  describe "Nod extensions", ->
+    it "should find cut", ->
+      el = Nod.create('''
+        <div>
+          <div id="a" class="x">
+            <div id="b" class="x"></div>
+          </div>
+          <div>
+            <div>
+              <div id="c" class="x"></div>
+            </div>
+          </div>
+          <div id="d" class="x"></div>
+          <div>
+            <div id="e" class="x"></div>
+            <div id="f" class="x">
+              <div id="g" class="x"></div>
+            </div>
+          </div>
+        </div>
+        ''')
+      expect(el.find_cut('.x').map( (el) -> el.id ).join("")).to.eq "acdef"
+
   describe "global functions", ->
     it "should correctly parse options", ->
-      el = Nod.create_html('<div data-component="test" data-option-hidden="true" data-option-collection-id="13" data-plugins="autoload search filter"></div>')
-      options = pi.gather_options el
+      el = Nod.create('<div data-component="test" data-hidden="true" data-collection-id="13" data-plugins="autoload search filter"></div>')
+      options = pi._gather_options el
       expect(options).to.include({component:"test",hidden:true,collection_id:13}).and.to.have.property('plugins').with.length(3)
     it "should correctly init base component", ->
-      el = Nod.create_html('<div data-component="test_component" data-option-hidden="true"></div>')
+      el = Nod.create('<div data-component="test_component" data-hidden="true"></div>')
       component = pi.init_component el
       expect(component).to.be.an.instanceof pi.TestComponent
       expect(component.visible).to.be.false
     it "should throw error on undefined component", ->
-      el = Nod.create_html('<div data-component="testtt" data-option-hidden="true"></div>')
+      el = Nod.create('<div data-component="testtt" data-hidden="true"></div>')
       expect(curry(pi.init_component,el)).to.throw(ReferenceError)
 
   describe "pi piecify and click hanlder", ->
     beforeEach  ->
-      @test_div.append('<div class="pi" data-component="test_component" data-pi="test" style="position:relative"></div>')
+      @test_div.append('<div class="pi" data-component="test_component" data-pid="test" style="position:relative"></div>')
       @test_div.append('<a id="hide" href="@test.hide">Hide</div>')
       @test_div.append('<a id="show" href="@test.show">Show</div>')
       @test_div.append('<a id="text" href="@test.text(hello_test)">Text</div>')
       @test_div.append('<a id="move" href="@test.move(20,30)">Move</div>')
       @test_div.append('<a id="append" href="@test.append(@span)">Append</div>')
-      @test_div.append('<span id="append_click" class="pi" data-event-click="@test.append(@span)">Append</div>')
+      @test_div.append('<span id="append_click" class="pi" data-on-click="@test.append(@span)">Append</div>')
       @test_div.append('<a id="append_self" class="pi" href="@test.append(@this)">Append self</div>')
-      @test_div.append('<span class="pi" data-pi="span">Append me</span>')
+      @test_div.append('<span class="pi" data-pid="span">Append me</span>')
       @test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
-      pi.piecify()
+      pi.app.view.piecify()
 
     it "should create piece", ->
-      expect(pi.find('test')).to.be.an.instanceof pi.TestComponent
+      expect(pi.app.view.test).to.be.an.instanceof pi.TestComponent
 
     it "should work with simple function call", ->
       TestHelpers.clickElement $('a#hide').node
@@ -66,64 +89,39 @@ describe "pieces core", ->
 
     it "should work with only component (without method)", ->
       TestHelpers.clickElement $('a#append').node
-      expect($('@test').find('.pi').text()).to.equal 'Append me'
+      expect($('@test').find("span").text()).to.equal 'Append me'
 
     it "should work with only component (without method) on event", ->
       TestHelpers.clickElement $('span#append_click').node
-      expect($('@test').find('.pi').text()).to.equal 'Append me'
+      expect($('@test').find("span").text()).to.equal 'Append me'
 
     it "should work with only component self (without method)", ->
       TestHelpers.clickElement $('a#append_self').node
-      expect($('@test').find('.pi').text()).to.equal 'Append self'
+      expect($('@test').find('#append_self').text()).to.equal 'Append self'
 
+    describe "piecify", ->
+      it "should init children", ->
+        test = $("@test")
+        test.append "<div class='pi' data-pid='some'>Some</div>"
+        test.piecify()
+        expect(test.some.text()).to.eq 'Some'
+        expect(test.some.host).to.eq test
 
-
-  describe "pi complex call queries", ->
-    beforeEach  ->
-      @test_div.append('<div class="pi" data-component="test_component" data-event-click="@this.text(@this.data(\'value\'))" data-value="13" data-pi="test1" style="position:relative">ping</div>')
-      @test_div.append('<div class="pi test2" data-component="test_component" data-option-name="test2" data-pi="test2" style="position:relative"></div>')
-
-      @test_div.append('<a id="call1" href="@test1.text(pong)">Text</div>')
-      @test_div.append('<a id="call2" href="@test2.text(@test1.text)">Text</div>')
-      @test_div.append('<a id="call3" href="@test2.btn.hide">Hide</div>')
-      @test_div.append('<a id="call4" href="@test1.text(ABC)">ABC</div>')
-      @test_div.append('<a id="call5" href="@test1.addClass(\'A\',\'B\',\'is-dead\')">ABC</div>')
-      @test_div.append('<a id="call6" href="@test1.addClass(@test2.name(),\'B\')">ABC</div>')
-      @test_div.find('.test2').append('<a class="btn" data-component="base" href="@test1.hide">Hide</div>')
-      pi.piecify()
-
-    it "should work with nested component", ->
-      TestHelpers.clickElement $('a#call3').node
-      expect($('@test2').btn.visible).to.be.false
-
-    it "should work with bound call", ->
-      TestHelpers.clickElement $('a#call2').node
-      expect($('@test2').text()).to.equal('ping')
-      
-      TestHelpers.clickElement $('a#call1').node
-      TestHelpers.clickElement $('a#call2').node
-      expect($('@test2').text()).to.equal('pong')
-
-    it "should work with self bound call", ->
-      TestHelpers.clickElement $('@test1').node
-      expect($('@test1').text()).to.equal '13'
-
-    it "should work with several args in call", ->
-      TestHelpers.clickElement $('a#call5').node
-      expect($('@test1').hasClass('A')).to.be.true
-      expect($('@test1').hasClass('B')).to.be.true
-      expect($('@test1').hasClass('is-dead')).to.be.true
-
-    it "should work with several args and nested call", ->
-      TestHelpers.clickElement $('a#call6').node
-      expect($('@test1').hasClass('test2')).to.be.true
-      expect($('@test1').hasClass('B')).to.be.true
-    
+      it "should init grandchildren", ->
+        test = $("@test")
+        test.append "<div class='pi' data-pid='some'>Some</div>"
+        test.piecify()
+        test.some.append "<div class='pi' data-pid='any'>Any</div>"
+        test.piecify()
+        expect(test.some.text()).to.eq 'SomeAny'
+        expect(test.some.host).to.eq test
+        expect(test.some.any.text()).to.eq 'Any'
+        expect(test.some.any.host).to.eq test.some
 
   describe "pi base events", ->
     beforeEach  ->
-      @test_div.append('<div class="pi" data-option-disabled="true" data-event-value="@this.text; @this.name" data-component="test_component" data-pi="test" style="position:relative"></div>')
-      pi.piecify()
+      @test_div.append('<div class="pi" data-disabled="true" data-on-value="@this.text; @this.name" data-component="test_component" data-pid="test" style="position:relative"></div>')
+      pi.app.view.piecify()
       @example = $('@test')
 
     it "should send enabled event", (done) ->
@@ -162,16 +160,16 @@ describe "pieces core", ->
 
   describe "events bubbling", ->
     beforeEach  ->
-      @test_div.append '<div class="pi" data-option-disabled="true" data-component="test_component" data-pid="test">
-                          <a class="pi" data-pid="btn" href="#">clicko</a>
+      @test_div.append '<div class="pi" data-component="test_component" data-pid="test">
+                          <a class="pi" data-disabled="true" data-pid="btn" href="#">clicko</a>
                         </div>'
-      pi.piecify()
+      pi.app.view.piecify()
       @example = $('@test')
 
     it "should bubble event", (done) ->
-      @example.listen '.a', 'enabled', (event) => 
+      @example.listen 'a', 'enabled', (event) => 
         expect(event.target).to.eq(@example.btn)
         expect(event.currentTarget).to.eq(@example)
-        expect(@example.btn).to.be.true
+        expect(@example.btn.enabled).to.be.true
         done()
       @example.btn.enable()

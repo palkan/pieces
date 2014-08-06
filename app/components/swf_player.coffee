@@ -7,8 +7,6 @@
 
   _swf_count = 0
 
-  VERSION = pi.config.swf_version? || '11.0.0'
-
   class pi.SwfPlayer extends pi.Base
     
     initialize: ->
@@ -18,13 +16,15 @@
       cont.id = @player_id
       @append cont
       
+      @options.version ||= "11.0.0"
+
       @load(@options.url) if @options.url? and @enabled
       super
 
     load: (url, params={}) ->
       url ||= @options.url
       (params[key] = val) for key,val of @options when not params[key] 
-      swfobject.embedSWF(url, @player_id, "100%", "100%", VERSION, "", params, {allowScriptAccess:true, wmode:'transparent'})
+      swfobject.embedSWF(url, @player_id, "100%", "100%", @options.version, "", params, {allowScriptAccess:true, wmode:'transparent'})
     
     clear: ->
       @empty()

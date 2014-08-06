@@ -1,8 +1,7 @@
 class pi.TestComponent extends pi.Base
   initialize: ->
-    super
     @addClass 'test'
-    @btn = new pi.Base @find('.btn')?.node
+    super
 
   name: (val) ->
     if val?

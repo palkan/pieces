@@ -1,14 +1,14 @@
-describe "scroll_end list component", ->
+describe "scroll_end list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'
-  Nod.root.append root.node
+  Nod.body.append root.node
 
   beforeEach ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="scroll_end" data-pi="test" style="position:relative; height: 30px;">
+        <div class="pi" data-component="list" data-plugins="scroll_end" data-pid="test" style="position:relative; height: 30px;">
           <ul class="list" style="overflow-y:scroll;height:30px;">
             <li class="item" data-id="1" style="height:40px;" data-key="one">One<span class="tags">killer,puppy</span></li>
             <li class="item" data-id="2" style="height:40px;" data-key="someone">Two<span class="tags">puppy, coward</span></li>
@@ -16,7 +16,7 @@ describe "scroll_end list component", ->
           </ul>
         </div>
       """
-    pi.piecify()
+    pi.app.view.piecify()
     @list = $('@test')
 
   afterEach ->

@@ -1,14 +1,14 @@
-describe "drag-selectable list component", ->
+describe "drag-selectable list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'
-  Nod.root.append root.node
+  Nod.body.append root.node
 
   beforeEach ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="selectable drag_select" data-pi="test" data-options-select="check" style="position:relative">
+        <div class="pi" data-component="list" data-plugins="selectable drag_select" data-pid="test" data-select="check" style="position:relative">
           <ul class="list">
             <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
             <li class="item" data-id="2" data-key="someone">Two<span class="tags">puppy, coward</span></li>
@@ -16,7 +16,7 @@ describe "drag-selectable list component", ->
           </ul>
         </div>
       """
-    pi.piecify()
+    pi.app.view.piecify()
     @list = $('@test')
 
   afterEach ->

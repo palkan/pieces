@@ -43,33 +43,31 @@ do (context = this) ->
               return false if all
         return _any
 
-    initialize: () ->
-
+    preinitialize: () ->
+      super
       @list_klass = @options.list_klass || 'list'
       @item_klass = @options.item_klass || 'item'
 
-      @items_cont = @find(".#{ @list_klass }")
-      @items_cont = @ unless @items_cont
-     
-      @item_renderer = (nod) -> 
-          item = {}
-          (item[utils.snake_case(key)]=utils.serialize(val)) for own key,val of nod.data()
-          item.nod = nod
-          item
-
       @items = []
       @buffer = document.createDocumentFragment()
-    
+
+    initialize: () ->
+      @items_cont = @find(".#{ @list_klass }") || @
+
+    postinitialize: () ->
       @parse_html_items()
-
       @_check_empty()
-
       unless @options.noclick?
         @listen ".#{ @item_klass }", "click", (e) =>  
           unless e.origTarget.nodeName is 'A'
             @_item_clicked(e.target) 
             e.cancel()
-      super
+    
+    item_renderer: (nod) -> 
+      item = {}
+      (item[utils.snake_case(key)]=utils.serialize(val)) for own key,val of nod.data()
+      item.nod = nod
+      item
 
     parse_html_items: () ->
       @items_cont.each ".#{ @item_klass }", (node) =>   
@@ -97,7 +95,7 @@ do (context = this) ->
       @_check_empty()
 
       # save item index in DOM element
-      item.nod.data('listIndex',@items.length-1)
+      item.nod.data('list-index',@items.length-1)
       
       if update then @items_cont.append(item.nod) else @buffer.appendChild(item.nod.node)
 
@@ -114,7 +112,7 @@ do (context = this) ->
       _after = @items[index+1]
       
       # save item index in DOM element
-      item.nod.data('listIndex',index)
+      item.nod.data('list-index',index)
       _after.nod.insertBefore item.nod
 
       @_need_update_indeces = true
@@ -128,7 +126,6 @@ do (context = this) ->
       if index > -1
         @items.splice(index,1)
         @_destroy_item(item)
-        item.nod.data('listIndex',null)
 
         @_check_empty()
 
@@ -175,7 +172,7 @@ do (context = this) ->
       @trigger 'update', {type:'clear'}
 
     _update_indeces: ->
-      item.nod.data('listIndex',i) for item,i in @items
+      item.nod.data('list-index',i) for item,i in @items
       @_need_update_indeces = false
 
     _check_empty: ->
@@ -205,6 +202,6 @@ do (context = this) ->
       @buffer.innerHTML = ''
 
     _item_clicked: (target,e) ->
-      return unless target.data('listIndex')?
-      item = @items[target.data('listIndex')]
+      return unless target.data('list-index')?
+      item = @items[target.data('list-index')]
       @trigger 'item_click', {item: item}

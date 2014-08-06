@@ -122,6 +122,10 @@ describe "pieces nod", ->
       expect(sp.parent('.pi')).to.eq @test_div
 
 
+     it "should not find parent by selector", ->
+      expect(@test_div.parent('.abcd')).to.be.null
+
+
 
     it "should clone", ->
       @test_div.html '<span>Hi!</span>'
@@ -145,7 +149,7 @@ describe "pieces nod", ->
 
       it "should read serialized data attributes", ->
         expect(@test_div.data('a')).to.equal 1
-        expect(@test_div.data('long_name')).to.equal 3
+        expect(@test_div.data('long-name')).to.equal 3
         expect(@test_div.data()).to.eql {a: 1, b: 2, long_name: 3}
 
       it "should write data attributes", ->
@@ -153,4 +157,6 @@ describe "pieces nod", ->
         expect(@test_div.data('a')).to.equal '11'
         @test_div.data('c', '22')
         expect(@test_div.data('c')).to.equal '22'
+        @test_div.data('is-d', '22')
+        expect(@test_div.data('is_d')).to.equal '22'
 

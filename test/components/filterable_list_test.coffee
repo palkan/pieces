@@ -1,7 +1,7 @@
 describe "filterable list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'
-  Nod.root.append root.node
+  Nod.body.append root.node
 
   beforeEach ->
     @test_div = Nod.create 'div'
@@ -16,12 +16,12 @@ describe "filterable list plugin", ->
       nod  
 
     @test_div.append """
-        <div class="pi" data-component="list" data-option-renderer="test/item" data-plugins="jst_renderer filterable" data-pi="test" style="position:relative">
+        <div class="pi" data-component="list" data-renderer="test/item" data-plugins="jst_renderer filterable" data-pid="test" style="position:relative">
           <ul class="list">
           </ul>
         </div>
       """
-    pi.piecify()
+    pi.app.view.piecify()
 
     @list = $('@test')
     @list.data_provider [ 

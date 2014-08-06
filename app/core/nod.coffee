@@ -62,14 +62,16 @@ do (context = this) ->
     temp = document.createElement 'div'
     temp.innerHTML = html
     f = document.createDocumentFragment()
-    f.appendChild(node) for node in temp.children
+    while(temp.firstChild)
+      f.appendChild temp.firstChild 
     f
 
   class pi.Nod extends pi.NodEventDispatcher
     constructor: (@node) ->
       super
-      return unless @node?
+      throw Error("Node is undefined!") unless @node?
 
+      @_disposed = false
       # virtual data element
       @_data = _dataset(node)
 
@@ -119,6 +121,31 @@ do (context = this) ->
     nth: (selector, n) ->
       @find "#{selector}:nth-child(#{n})"
 
+    # breadth-first selector find
+    find_bf: (selector) ->
+      rest = []
+      acc = []
+
+      el = @node.firstChild
+        
+      while(el)
+        if el.nodeType != 1
+          el = el.nextSibling || rest.shift()
+          continue
+        
+        if el.matches(selector)
+          acc.push el
+          nod = el.querySelector selector
+          if nod?
+            rest.push nod
+        else        
+          if (nod = el.querySelector(selector))
+            el.nextSibling && rest.unshift(el.nextSibling)
+            el = nod
+            continue
+        el = el.nextSibling || rest.shift()        
+    
+      acc
 
     # return parent Element as Nod
 
@@ -127,7 +154,7 @@ do (context = this) ->
         pi.Nod.create @node.parentNode
       else
         p = @node
-        while((p = p.parentNode) && (p != document.documentElement))
+        while((p = p.parentNode) && (p != document))
           if p.matches(selector)
             return pi.Nod.create p
         return null
@@ -207,7 +234,8 @@ do (context = this) ->
     clone: ->
       c = document.createElement @node.nameNode
       c.innerHTML = @node.outerHTML
-      new pi.Nod c.firstChild
+      new pi.Nod(c.firstChild)
+
 
     # remove event listeners and internal links
     # GC should collect thid Nod if there is no external links
@@ -217,6 +245,8 @@ do (context = this) ->
       delete @node._nod
       delete @node
       @_data = null
+      @_disposed = true
+      return
 
     html: (val) ->
       if val?
@@ -315,6 +345,8 @@ do (context = this) ->
     (prop, val) ->
       return @_data if prop is undefined
       
+      prop = prop.replace("-","_")
+
       if val is undefined 
         return @_data[prop]
       if val is null
@@ -446,6 +478,7 @@ do (context = this) ->
 
   pi.Nod.root = new pi.NodRoot()
   pi.Nod.win = new pi.Nod window
+  pi.Nod.body = new pi.Nod document.body
   
   pi.Nod.root.initialize()
 

@@ -1,14 +1,14 @@
-describe "sortable list component", ->
+describe "sortable list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'
-  Nod.root.append root.node
+  Nod.body.append root.node
 
   beforeEach ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="sortable" data-pi="test" style="position:relative">
+        <div class="pi" data-component="list" data-plugins="sortable" data-pid="test" style="position:relative">
           <ul class="list">
             <li class="item" data-val="10" data-key="one">One</li>
             <li class="item" data-val="5" data-key="one">Two</li>
@@ -16,7 +16,7 @@ describe "sortable list component", ->
           </ul>
         </div>
       """
-    pi.piecify()
+    pi.app.view.piecify()
     @list = $('@test')
 
   afterEach ->

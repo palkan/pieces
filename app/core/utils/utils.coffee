@@ -85,6 +85,9 @@ do (context = this) ->
       if obj instanceof Element
         return obj.cloneNode(true)
 
+      if typeof obj.clone is 'function' 
+        return obj.clone()
+
       newInstance = new obj.constructor()
 
       for key of obj when (key not in except)
@@ -98,7 +101,7 @@ do (context = this) ->
 
     sort_by: (arr, key, reverse = false) ->
       arr.sort curry(_key_compare,[key,reverse],null,true)
-          
+
     debounce: (period, fun, ths = null) ->
       _wait = false
       _buf = null
@@ -141,9 +144,9 @@ do (context = this) ->
     # extend target with data
     # if overwrite set to true - overwrite existing props
     
-    extend: (target, data, overwrite = false) ->
+    extend: (target, data, overwrite = false, except=[]) ->
       for own key,prop of data
-        if (!target[key]? || overwrite)
+        if (!target[key]? || overwrite) && !(key in except)
           target[key] = prop
       target
 

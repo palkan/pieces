@@ -8,18 +8,12 @@ do (context = this) ->
   #
   #  Add 'sort(field,order)' method to list
 
-  class pi.Sortable
-    constructor: (@list) ->
-      @list.sortable = this
-      @list.delegate ['sort'], @
-      return
-
-    
+  class pi.List.Sortable extends pi.Plugin
     # @params [Array,String] fields
     # @params [Boolean] reverse if true then 'asc' else 'desc'
     # @see pi.utils.sort 
 
     sort: (fields, reverse = false) ->
-      if typeof fields is 'object' then utils.sort(@list.items,fields,reverse) else utils.sort_by(@list.items,fields,reverse)
-      @list.data_provider @list.items.slice()
-      @list.trigger 'sort_update', {fields: fields, reverse: reverse}
+      if typeof fields is 'object' then utils.sort(@items,fields,reverse) else utils.sort_by(@items,fields,reverse)
+      @data_provider @items.slice()
+      @trigger 'sort_update', {fields: fields, reverse: reverse}

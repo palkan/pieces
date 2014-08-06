@@ -116,3 +116,15 @@ describe "pieces utils", ->
       expect(pi.utils.extend(target,{b:3,c:4}).b).to.equal 2
       expect(target.b).to.equal 2
       expect(target.c).to.equal 4 
+
+    it "should extend object with overwrite", ->
+      target = {a:1,b:2}
+      expect(pi.utils.extend(target,{b:3,c:4},true).b).to.equal 3
+      expect(target.b).to.equal 3
+      expect(target.c).to.equal 4 
+
+    it "should extend object with except", ->
+      target = {a:1,b:2}
+      expect(pi.utils.extend(target,{b:3,c:4},false,["c"]).b).to.equal 2
+      expect(target.b).to.equal 2
+      expect(target.c).to.be.undefined

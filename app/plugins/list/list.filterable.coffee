@@ -36,43 +36,37 @@ do (context = this) ->
 
   _key_operand = /^([\w\d_]+)(\?&|>|<|\?)$/
 
-  class pi.Filterable
-    constructor: (@list) ->
-      @list.filterable = this
-      @list.delegate ['filter'], @
-      @list.filtered = false
-      return
+  _matcher = (params) ->
+    obj = {}
+    for own key, val of params
+      if (matches = key.match(_key_operand))
+        obj[matches[1]] = _operands[matches[2]] val
+      else
+        obj[key] = val
+    pi.List.object_matcher obj
 
-    _matcher: (params) ->
-      obj = {}
-      for own key, val of params
-        if (matches = key.match(_key_operand))
-          obj[matches[1]] = _operands[matches[2]] val
-        else
-          obj[key] = val
-      pi.List.object_matcher obj
+  _is_continuation = (prev, params) ->
+    for own key,val of prev
+      if params[key] != val
+        return false
+    return true
 
-    _is_continuation: (params) ->
-      for own key,val of @_prevf
-        if params[key] != val
-          return false
-      return true
-
+  class pi.List.Filterable extends pi.Plugin
     _start_filter: () ->
       return if @filtered
       @filtered = true
-      @list.addClass 'is-filtered'
-      @_all_items = utils.clone(@list.items)
+      @addClass 'is-filtered'
+      @_all_filter_items = utils.clone(@items)
       @_prevf = {}
-      @list.trigger 'filter_start'
+      @trigger 'filter_start'
 
     _stop_filter: () ->
       return unless @filtered
       @filtered = false
-      @list.removeClass 'is-filtered'
-      @list.data_provider @_all_items
-      @_all_items = null
-      @list.trigger 'filter_stop'
+      @removeClass 'is-filtered'
+      @data_provider @_all_filter_items
+      @_all_filter_items = null
+      @trigger 'filter_stop'
 
 
     # Filter list items.
@@ -84,13 +78,13 @@ do (context = this) ->
 
       @_start_filter() unless @filtered
 
-      scope = if @_is_continuation(params) then @list.items.slice() else utils.clone(@_all_items)
+      scope = if _is_continuation(@_prevf, params) then @items.slice() else utils.clone(@_all_filter_items)
 
       @_prevf = params
 
-      matcher = @_matcher params
+      matcher = _matcher params
 
       _buffer = (item for item in scope when matcher(item))
-      @list.data_provider _buffer
+      @data_provider _buffer
 
-      @list.trigger 'filter_update'
+      @trigger 'filter_update'

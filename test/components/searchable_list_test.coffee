@@ -1,14 +1,14 @@
-describe "searchable list component", ->
+describe "searchable list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'
-  Nod.root.append root.node
+  Nod.body.append root.node
 
   beforeEach ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="searchable" data-pi="test" style="position:relative">
+        <div class="pi" data-component="list" data-plugins="searchable" data-pid="test" style="position:relative">
           <ul class="list">
             <li class="item" data-id="1" data-key="one" data-val="truth">One<span class="tags">killer,puppy</span><span class="notes">bulk</span></li>
             <li class="item" data-id="2" data-key="someone" data-val="truth">Two<span class="tags">puppy, coward</span></li>
@@ -16,7 +16,7 @@ describe "searchable list component", ->
           </ul>
         </div>
       """
-    pi.piecify()
+    pi.app.view.piecify()
     @list = $('@test')
 
   afterEach ->

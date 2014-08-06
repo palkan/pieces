@@ -8,7 +8,7 @@ do (context = this) ->
   # Extend Nod
    
   class pi.Event extends pi.Core
-    constructor: (event, bubbles = true) ->
+    constructor: (event, @target, bubbles = true) ->
       if event? and typeof event is "object"
         utils.extend @, event
       else 
@@ -101,16 +101,17 @@ do (context = this) ->
     # @params [Boolean] bubbles 
 
     trigger: (event, data, bubbles = true) ->
-      event = new pi.Event(event, bubbles) unless event instanceof pi.Event
+      event = new pi.Event(event, @, bubbles) unless event instanceof pi.Event
       event.data = data if data?
-      event.currentTarget = this
+      event.currentTarget = @
       if @listeners[event.type]?
         utils.debug "Event: #{event.type}", event
         for listener in @listeners[event.type]
           listener.dispatch event
           break if event.canceled is true
         @remove_disposed_listeners()
-        @bubble_event event
+      else
+        @bubble_event(event) if event.bubbles
       return
 
     ## internal

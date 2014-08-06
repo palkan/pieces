@@ -1,14 +1,14 @@
 describe "event dispatcher", ->
     Nod = pi.Nod
     root = Nod.create 'div'
-    Nod.root.append root.node
+    Nod.body.append root.node
 
     beforeEach  ->
       @test_div = Nod.create 'div'
       @test_div.style position:'relative'
       root.append @test_div
-      @test_div.append('<div class="pi" data-component="test_component" data-pi="test" style="position:relative"></div>')
-      pi.piecify()
+      @test_div.append('<div class="pi" data-component="test_component" data-pid="test" style="position:relative"></div>')
+      pi.app.view.piecify()
 
     afterEach ->
       root.html ''
@@ -17,19 +17,19 @@ describe "event dispatcher", ->
     it "should parse dom and add event handlers", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn' data-event-click='@test.hide' data-event-custom='@test.show'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn' data-on-click='@test.hide' data-on-custom='@test.show'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       expect(pi.find("btn").listeners).to.have.keys(['click','custom'])
 
     it "should add native events and call handlers", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find("btn")
       count = 0
 
@@ -47,10 +47,10 @@ describe "event dispatcher", ->
     it "should add custom events and call handlers", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find("btn")
       
       dummy =
@@ -61,10 +61,10 @@ describe "event dispatcher", ->
       spy2 = sinon.spy(dummy,"fn2")
 
       el.on 'enabled', dummy.fn, dummy
-      el.on 'disabled', dummy.fn2, dummy
+      el.on 'hidden', dummy.fn2, dummy
 
+      el.hide()
       el.disable()
-      el.enable()
 
       expect(spy.callCount).to.equal 1
       expect(spy2.callCount).to.equal 1
@@ -72,10 +72,10 @@ describe "event dispatcher", ->
     it "should remove all events on off", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-event-click='@test.hide' data-event-custom='@test.show' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-on-click='@test.hide' data-on-custom='@test.show' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find("btn")
       el.off()
       expect(el.listeners).to.eql({})
@@ -83,10 +83,10 @@ describe "event dispatcher", ->
     it "should not call removed events", (done)->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-event-click='@test.hide' data-event-custom='@test.show' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-on-click='@test.hide' data-on-custom='@test.show' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find("btn")
       
       count = 0
@@ -110,10 +110,10 @@ describe "event dispatcher", ->
     it "should remove native listener on off()", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find("btn")
 
       spy = sinon.spy(el,"add_native_listener")
@@ -138,10 +138,10 @@ describe "event dispatcher", ->
     it "should remove native listener on off(event)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find('btn')
 
       spy = sinon.spy(el,"add_native_listener")
@@ -167,10 +167,10 @@ describe "event dispatcher", ->
     it "should remove native listener on off(event,callback,context)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find('btn')
       spy = sinon.spy(el,"add_native_listener")
       
@@ -192,10 +192,10 @@ describe "event dispatcher", ->
     it "should call once if one(event)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find('btn')
       
       
@@ -215,10 +215,10 @@ describe "event dispatcher", ->
     it "should handle multiple events", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find('btn')
             
       dummy =
@@ -237,10 +237,10 @@ describe "event dispatcher", ->
     it "should remove native listener after event if one(event)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find('btn')
       
       spy = sinon.spy(el,"add_native_listener")
@@ -260,10 +260,10 @@ describe "event dispatcher", ->
     it "should work with several native events", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pi='btn'>Button</button>
+          <button class='pi' data-component='base' data-pid='btn'>Button</button>
         </div>
           """
-      Nod.root.find("#cont").piecify()
+      pi.app.view.piecify()
       el = pi.find('btn')
       
       spy = sinon.spy(el,"add_native_listener")

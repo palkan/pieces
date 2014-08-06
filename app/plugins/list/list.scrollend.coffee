@@ -8,7 +8,7 @@ do (context = this) ->
   # Dispatch 'scroll_end' event when list is scrolled to bottom
   #
 
-  class pi.ScrollEnd
+  class pi.List.ScrollEnd extends pi.Plugin
     constructor: (@list) ->
 
       @scroll_object = if @list.options.scroll_object == 'window' then pi.Nod.root else @list.items_cont

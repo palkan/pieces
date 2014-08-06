@@ -17,7 +17,7 @@ do(context = this) ->
     # extend class with mixin methods
     @include = (mixins...) ->
       for mixin in mixins
-        utils.extend @::, mixin::, true
+        utils.extend @::, mixin::, true, ['constructor']
         mixin.included @::
 
     @class_name: ->
@@ -35,7 +35,7 @@ do(context = this) ->
     # extend instance with mixin methods
     include: (mixins...) ->
       for mixin in mixins
-        utils.extend @, mixin::, true
+        utils.extend @, mixin::, true, ['constructor']
         mixin.included @
 
     # delegate methods to another object or nested object/method (then to is string key)

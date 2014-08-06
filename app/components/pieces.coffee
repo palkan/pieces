@@ -20,9 +20,6 @@ do (context = this) ->
         
         if el.matches(selector)
           acc.push el
-          nod = el.querySelector selector
-          if nod?
-            rest.push nod
         else        
           if (nod = el.querySelector(selector))
             el.nextSibling && rest.unshift(el.nextSibling)
@@ -36,12 +33,7 @@ do (context = this) ->
   class pi.Base extends pi.Nod
 
     constructor: (@node, @host, @options = {}) ->
-      return unless @node
-
-      @node._nod.dispose() if @node._nod?
       super
-
-      @pid = @data('pid')
 
       @preinitialize()
       
@@ -53,11 +45,22 @@ do (context = this) ->
 
       @postinitialize()
 
+    # re-init children (grandchildren and so on)
+    # = init_children() + __components__.all -> piecify()
+
+    piecify: ->
+      @init_children()
+      for _,c in @__components__
+        c.piecify()
+
     ## event dispatcher ##
 
     trigger: (event, data, bubbles) ->
-      if @enabled or event is 'disabled'
+      if @enabled or event is 'enabled'
         super event, data, bubbles
+
+    bubble_event: (event) ->
+      @host.trigger(event) if @host?
 
     ## public interface ##
 
@@ -65,14 +68,14 @@ do (context = this) ->
       unless @visible
         @removeClass 'is-hidden'
         @visible = true
-        @trigger 'shown'
+        @trigger 'hidden', false
       @
 
     hide: ->
       if @visible
         @addClass 'is-hidden'
         @visible = false
-        @trigger 'hidden'
+        @trigger 'hidden', true
       @
 
     enable: ->
@@ -80,7 +83,7 @@ do (context = this) ->
         @removeClass 'is-disabled'
         @attr 'disabled',null
         @enabled = true
-        @trigger 'enabled'
+        @trigger 'enabled', true
       @
 
     disable: ->
@@ -88,32 +91,35 @@ do (context = this) ->
         @addClass 'is-disabled'
         @attr 'disabled', 'disabled'
         @enabled = false
-        @trigger 'disabled'
+        @trigger 'enabled', false
       @
 
     activate: ->
       unless @active 
         @addClass 'is-active'
         @active = true
-        @trigger 'active'
+        @trigger 'active', true
       @
 
     deactivate: ->
       if @active
         @removeClass 'is-active'
         @active = false
-        @trigger 'inactive'
+        @trigger 'active', false
       @
 
     ## internal ##
 
-    # define instance vars here
+    # define instance vars here and other props
     preinitialize: ->
+      @node._nod = @
+      @pid = @data('pid') || @node.id
       @visible = @enabled = true
       @active = false
 
     # setup instance initial state (but not children)
     initialize: ->       
+      @__components__ = {}
       @disable() if (@options.disabled || @hasClass('is-disabled'))
       @hide() if (@options.hidden || @hasClass('is-hidden'))
       @activate() if (@options.active || @hasClass('is-active'))
@@ -123,6 +129,8 @@ do (context = this) ->
     init_plugins: ->
       if @options.plugins?
         @attach_plugin @find_plugin(name) for name in @options.plugins
+        delete @options.plugins
+      return
         
     attach_plugin: (plugin) ->
       if plugin?
@@ -140,14 +148,19 @@ do (context = this) ->
 
     init_children: ->
       for node in @find_cut('.pi')
-        child = pi.init_component node, @
-        if child.pid?
-          @[child.pid] = child
+        do (node) =>
+          child = pi.init_component node, @
+          if child.pid?
+            @[child.pid] = child
+            @__components__[child.pid] = child
+      return
 
     setup_events: ->
       for event, handlers of @options.events
         for handler in handlers.split(/;\s*/)
           @on event, pi.str_to_event_handler(handler, this)
+      delete @options.events
+      return
 
     postinitialize: ->
       @trigger 'creation_complete', true, false
@@ -159,48 +172,45 @@ do (context = this) ->
       return
 
 
-  options_re = /option(\\w+)/i
-  event_re = /event(\\w+)/i
+  event_re = /^on_(.+)/i
 
+  pi._guess_component = (nod) ->
+    component_name = utils.camelCase(nod.data('component')||'base')
+    pi[component_name]
 
-  pi.find = (pid_path) ->
-    null
+  pi._gather_options = (el) ->
+    opts = utils.clone(el.data())
+
+    opts.plugins = if opts.plugins? then opts.plugins.split(/\s+/) else null
+    opts.events = {}
+
+    for key,val of opts
+      if matches = key.match event_re
+        opts.events[matches[1]] = val
+    opts
+
 
   pi.init_component = (nod, host) ->
-    component_name = utils.camelCase(nod.data('component')||'base')
-    component = pi[component_name]
+    nod = if nod instanceof Nod then nod else new Nod(nod)
+    component = pi._guess_component nod
 
     unless component?
       throw new ReferenceError('unknown or initialized component: ' + component_name)
     else if nod instanceof component
       return nod 
     else
-      utils.debug "component created: #{component_name}"
-      new pi[component_name](nod.node,host,pi.gather_options(nod))
+      utils.debug "component created: #{component.class_name()}"
+      new component(nod.node,host,pi._gather_options(nod))
 
-  pi.gather_options = (el) ->
-    el = if el instanceof Nod then el else new Nod(el)
-
-    opts =
-      component: el.data('component') || 'base'               
-      plugins: if el.data('plugins') then el.data('plugins').split(/\s+/) else null
-      events: {}
-
-    for key,val of el.data()
-      if matches = key.match options_re
-        opts[utils.snake_case(matches[1])] = utils.serialize val
-        continue
-      if matches = key.match event_re
-        opts.events[utils.snake_case(matches[1])] = val
-
-    opts
-
-  _method_reg = /([\w\._]+)\.([\w_]+)/
+  _method_reg = /([\w\.]+)\.(\w+)/
 
   pi.call = (component, method_chain, args...) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
-      target = if typeof component is 'object' then component else pi.find(component)
+      target = switch 
+        when typeof component is 'object' then component 
+        when component is 'e' then args[0]
+        else pi.find(component)
 
       [method,target] =
         if method_chain.indexOf(".") < 0
@@ -228,11 +238,61 @@ do (context = this) ->
       if _str_reg.test(arg) then arg[1...-1] else utils.serialize arg
 
 
-  _fun_reg = /@([\w]+)(?:\.([\w\.]+)(?:\(([@\w\.\(\),'"-_]+)\))?)?/
+  _condition_regexp = /^([\w\.\(\)@'"-=><]+)\s*\?\s*([\w\.\(\)@'"-]+)\s*(?:\:\s*([\w\.\(\)@'"-]+)\s*)$/
+  _fun_reg = /^@(\w+)(?:\.([\w\.]+)(?:\(([@\w\.\(\),'"-]+)\))?)?$/
+  _op_reg = /(>|<|=)/
+
+  _operators = 
+    # more
+    ">": (left, right) ->
+          (args...) ->
+            a = left.apply?(null,args) || left
+            b = right.apply?(null,args) || right
+            a > b
+    #less
+    "<": (left, right) ->
+          (args...) ->
+            a = left.apply?(null,args) || left
+            b = right.apply?(null,args) || right
+            a < b
+    #equals (non strict)
+    "=": (left, right) ->
+          (args...) ->
+            a = left.apply?(null,args) || left
+            b = right.apply?(null,args) || right
+            a == b
+
+  _conditional = (condition, resolve, reject) ->
+    (args...) ->
+      if condition.apply(null, args)
+        resolve.apply null, args
+      else
+        reject.apply null, args
+
+  _null = -> true
 
   pi.str_to_fun = (callstr, host) ->
+    if (matches = callstr.match(_condition_regexp))
+      condition = pi.compile_condition matches[1], host
+      resolve = pi.compile_fun matches[2], host
+      reject = if matches[3] then pi.compile_fun(matches[3],host) else _null
+      _conditional condition, resolve, reject
+    else
+      pi.compile_fun callstr, host
+
+  pi.compile_condition = (callstr, host) ->
+    if (matches=callstr.match(_op_reg))
+      parts = callstr.split _op_reg
+      _operators[matches[1]] pi.prepare_arg(parts[0]), pi.prepare_arg(parts[2])
+    else
+      pi.compile_fun callstr, host
+
+  pi.compile_fun = (callstr, host) ->
     matches = callstr.match _fun_reg
-    target = if matches[1] == 'this' then host else matches[1]
+    target = switch 
+      when matches[1] == 'this' then host 
+      when matches[1] == 'host' then host.host # TODO: make more readable
+      else matches[1]
     if matches[2]
       curry(pi.call,[target, matches[2]].concat(if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else []))
     else
@@ -244,20 +304,44 @@ do (context = this) ->
           pi.find target
 
 
-  # the same as pi.str_to_fun, but accept only one argument and extract 'data' from it
+
+  # the same as pi.str_to_fun, but call with event object
 
   pi.str_to_event_handler = (callstr, host) ->
+    callstr = callstr.replace /\be\b/, "@e"
     _f = pi.str_to_fun callstr, host
     (e) ->
-      _f e.data
+      _f e
+
+  # shortcut for 
+
+  pi.piecify = (nod) ->
+    pi.init_component nod, nod.parent('.pi')
 
   # Global Event Dispatcher
 
   pi.event = new pi.EventDispatcher()
 
+  # setup app view
+  pi.app.view = pi.piecify Nod.body
+
+  # return component by its path (relative to app.view)
+  # find('a.b.c') -> app.view.a.b.c
+
+  pi.find = (pid_path) ->
+    parts = pid_path.split "."
+    res = pi.app.view
+    
+    while(parts.length)
+      key = parts.shift()
+      if res[key]?
+        res = res[key]
+      else
+        return null
+    res
+
   utils.extend(
     Nod::, 
-    piecify: -> pi.init_component @, @parent('.pi')
     pi_call: (target, action) ->
       if !@_pi_call or @_pi_action != action
         @_pi_action = action
@@ -266,7 +350,6 @@ do (context = this) ->
     )
 
   # handle all pi clicks
-
   Nod.root.ready ->
     Nod.root.listen(
       'a', 

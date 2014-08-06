@@ -25,6 +25,10 @@ exports.config =
             'app/components/textinput.coffee',
             'test/helpers.coffee'
           ]
+        after:
+          [
+            /^app[\\/]plugins/,
+          ]
     stylesheets:
       defaultExtension: 'css'
       joinTo:
