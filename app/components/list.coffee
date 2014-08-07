@@ -15,12 +15,12 @@ do (context = this) ->
         selectors = selectors.split ','
         (item) ->
           for selector in selectors
-            return true if !!item.nod.find(selector)?.text().match(regexp)
+            return true if !!item.find(selector)?.text().match(regexp)
           return false
       else
         regexp = new RegExp(string,'i')
         (item) ->
-          !!item.nod.text().match(regexp)
+          !!item.text().match(regexp)
 
     @object_matcher = (obj, all = true) ->
       for key,val of obj
@@ -53,21 +53,22 @@ do (context = this) ->
 
     initialize: () ->
       @items_cont = @find(".#{ @list_klass }") || @
+      @parse_html_items()
 
     postinitialize: () ->
-      @parse_html_items()
       @_check_empty()
       unless @options.noclick?
         @listen ".#{ @item_klass }", "click", (e) =>  
-          unless e.origTarget.nodeName is 'A'
+          unless utils.clickable(e.origTarget)
             @_item_clicked(e.target) 
             e.cancel()
     
     item_renderer: (nod) -> 
-      item = {}
-      (item[utils.snake_case(key)]=utils.serialize(val)) for own key,val of nod.data()
-      item.nod = nod
-      item
+      unless nod instanceof pi.Base
+        nod = nod.piecify()
+      utils.extend nod, nod.data()
+      nod.addClass @item_klass
+      nod
 
     parse_html_items: () ->
       @items_cont.each ".#{ @item_klass }", (node) =>   
@@ -79,12 +80,9 @@ do (context = this) ->
 
     data_provider: (data = null) ->
       @clear() if @items.length  
-
-      unless data? and data.length
-        @_check_empty()
-        return
-
-      @add_item(item,false) for item in data
+  
+      if data?
+        @add_item(item,false) for item in data
       
       @update()
 
@@ -95,9 +93,9 @@ do (context = this) ->
       @_check_empty()
 
       # save item index in DOM element
-      item.nod.data('list-index',@items.length-1)
+      item.data('list-index',@items.length-1)
       
-      if update then @items_cont.append(item.nod) else @buffer.appendChild(item.nod.node)
+      if update then @items_cont.append(item) else @buffer.appendChild(item.node)
 
       @trigger('update', {type:'item_added',item:item}) if update
       
@@ -112,8 +110,8 @@ do (context = this) ->
       _after = @items[index+1]
       
       # save item index in DOM element
-      item.nod.data('list-index',index)
-      _after.nod.insertBefore item.nod
+      item.data('list-index',index)
+      _after.insertBefore item
 
       @_need_update_indeces = true
 
@@ -164,6 +162,7 @@ do (context = this) ->
     update: () ->
       @_flush_buffer()
       @_update_indeces() if @_need_update_indeces
+      @_check_empty()
       @trigger 'update'
 
     clear: () ->
@@ -172,7 +171,7 @@ do (context = this) ->
       @trigger 'update', {type:'clear'}
 
     _update_indeces: ->
-      item.nod.data('list-index',i) for item,i in @items
+      item.data('list-index',i) for item,i in @items
       @_need_update_indeces = false
 
     _check_empty: ->
@@ -183,19 +182,19 @@ do (context = this) ->
       else if @empty and @items.length > 0
         @removeClass 'is-empty'
         @empty = false
-        @trigger 'full'
+        @trigger 'is-full'
       
 
     _create_item: (data) ->
-      return data if data.nod instanceof pi.Nod
+      if data instanceof pi.Nod and data.is_list_item
+        return data
       item = @item_renderer data
-      if @options.pi_items?
-        item.nod = pi.init_component(item.nod) 
-        item.nod.piecify()
+      item.is_list_item = true
       item
 
     _destroy_item: (item) ->
-      item.nod?.remove?()
+      item.remove()
+      item.dispose()
 
     _flush_buffer: (append = true) ->
       @items_cont.append @buffer if append

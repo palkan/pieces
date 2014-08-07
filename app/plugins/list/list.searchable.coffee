@@ -15,26 +15,28 @@ do (context = this) ->
   #  - a CSS selector (or selectors separated by commas), e.g. '.title,.email' (no spaces between selectors!)
   #  - item object keys written as "data:key1,data:key2" to be matched (no spaces between keys!)
   #  
-  
 
   _clear_mark_regexp = /<mark>([^<>]*)<\/mark>/gim
   _selector_regexp = /[\.#a-z\s\[\]=\"-_,]/i
   _data_regexp = /data:([\w\d_]+)/gi
 
-  class pi.Searchable
-    constructor: (@list) ->
+  _is_continuation = (prev,query) ->
+    query.match(prev)?.index == 0
+
+  class pi.List.Searchable extends pi.Plugin
+    initialize: (@list) ->
+      super
       @update_scope @list.options.search_scope
-      @list.searchable = this
-      @list.delegate ['search','_start_search','_stop_search', '_highlight_item'], @
-      @list.searching = false
+      @list.delegate_to 'searchable', 'search'
+      @searching = false
       return
 
     update_scope: (scope) -> 
       @matcher_factory = @_matcher_from_scope(scope)
       if (scope && _selector_regexp.test(scope))
-        @_highlight_elements = (item) -> item.nod.find(selector) for selector in scope.split(',') 
+        @_highlight_elements = (item) -> item.find(selector) for selector in scope.split(',') 
       else 
-        @_highlight_elements = (item) -> [item.nod] 
+        @_highlight_elements = (item) -> [item] 
 
     _matcher_from_scope: (scope) ->
       @matcher_factory = 
@@ -51,26 +53,34 @@ do (context = this) ->
           (value) -> 
             pi.List.string_matcher(scope+':'+value) 
 
-    _is_continuation: (query) ->
-      query.match(@_prevq)?.index == 0
+    all_items: ->
+      @_all_items.filter((item) -> !item._disposed)
 
-    _start_search: () ->
+    start_search: () ->
       return if @searching
       @searching = true
       @list.addClass 'is-searching'
-      @_all_items = utils.clone(@list.items)
+      @_all_items = @list.items.slice()
       @_prevq = ''
       @list.trigger 'search_start'
 
-    _stop_search: () ->
+    stop_search: () ->
       return unless @searching
       @searching = false
       @list.removeClass 'is-searching'
-      @list.data_provider @_all_items
+      items = @all_items()
+      @clear_highlight items
+      @list.data_provider items
       @_all_items = null
       @list.trigger 'search_stop'
 
-    _highlight_item: (query, item) ->
+    clear_highlight: (nodes) ->
+      for nod in nodes
+        _raw_html = nod.html()
+        _raw_html = _raw_html.replace(_clear_mark_regexp,"$1")
+        nod.html(_raw_html)
+
+    highlight_item: (query, item) ->
       nodes = @_highlight_elements item
       for nod in nodes when nod?
         _raw_html = nod.html()
@@ -86,11 +96,11 @@ do (context = this) ->
 
     search: (q = '', highlight = false) ->
       if q is ''
-        return @_stop_search()
+        return @stop_search()
 
-      @_start_search() unless @searching
+      @start_search() unless @searching
 
-      scope = if @_is_continuation(q) then @list.items.slice() else utils.clone(@_all_items)
+      scope = if _is_continuation(@_prevq, q) then @list.items.slice() else @all_items()
 
       @_prevq = q
 
@@ -100,6 +110,6 @@ do (context = this) ->
       @list.data_provider _buffer
 
       if highlight
-        @_highlight_item(q,item) for item in _buffer
+        @highlight_item(q,item) for item in _buffer
 
       @list.trigger 'search_update'

@@ -71,3 +71,12 @@ describe "filterable list plugin", ->
       expect(@list.size()).to.equal 0
       @list.filter "labels?&": [3,4]
       expect(@list.size()).to.equal 2
+
+    it "should return all not-removed items on filter stop", ->
+      @list.filter gender: 0
+      expect(@list.size()).to.equal 2
+      @list.remove_item_at 0
+      expect(@list.size()).to.equal 1
+      @list.filter() 
+      expect(@list.size()).to.equal 3
+

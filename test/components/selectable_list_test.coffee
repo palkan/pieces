@@ -35,7 +35,7 @@ describe "selectable list plugin", ->
       TestHelpers.clickElement $('@test').find('[data-id="3"]').node
 
     it "should select several items when check", (done)->
-      @list.selectable.type = 'check'
+      @list.selectable.type 'check'
 
       TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
@@ -59,7 +59,7 @@ describe "selectable list plugin", ->
       TestHelpers.clickElement $('@test').find('[data-id="4"]').node
       
     it "should send cleared event when all items are deselected", (done)->
-      @list.selectable.type = 'check'
+      @list.selectable.type 'check'
 
       TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
@@ -93,8 +93,8 @@ describe "selectable list plugin", ->
         nod = Nod.create ("<div>#{ data.name }</div>")
         nod.addClass 'item'
         nod.append "<span class='author'>#{ data.author }</span>"
-        data.nod = nod
-        data
+        pi.utils.extend nod,data
+        nod
 
       @list.on 'selection_cleared', (event) =>
         expect(false).to.equal true

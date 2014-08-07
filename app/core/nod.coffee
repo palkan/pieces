@@ -234,17 +234,18 @@ do (context = this) ->
     clone: ->
       c = document.createElement @node.nameNode
       c.innerHTML = @node.outerHTML
-      new pi.Nod(c.firstChild)
-
+      nod = new pi.Nod(c.firstChild)
+      utils.extend nod, @, true, ['listeners', 'listeners_by_type', '__components__', 'native_event_listener', 'node']
 
     # remove event listeners and internal links
     # GC should collect thid Nod if there is no external links
 
     dispose: ->
+      return if @_disposed
       @off()
       delete @node._nod
-      delete @node
-      @_data = null
+      for own key,val of @
+        delete @[key]
       @_disposed = true
       return
 

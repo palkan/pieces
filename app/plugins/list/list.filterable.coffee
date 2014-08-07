@@ -52,21 +52,28 @@ do (context = this) ->
     return true
 
   class pi.List.Filterable extends pi.Plugin
-    _start_filter: () ->
+    initialize: (@list) ->
+      super
+      @list.delegate_to 'filterable', 'filter'
+
+    all_items: ->
+      @_all_items.filter((item) -> !item._disposed)
+
+    start_filter: () ->
       return if @filtered
       @filtered = true
-      @addClass 'is-filtered'
-      @_all_filter_items = utils.clone(@items)
+      @list.addClass 'is-filtered'
+      @_all_items = @list.items.slice()
       @_prevf = {}
-      @trigger 'filter_start'
+      @list.trigger 'filter_start'
 
-    _stop_filter: () ->
+    stop_filter: () ->
       return unless @filtered
       @filtered = false
-      @removeClass 'is-filtered'
-      @data_provider @_all_filter_items
-      @_all_filter_items = null
-      @trigger 'filter_stop'
+      @list.removeClass 'is-filtered'
+      @list.data_provider @all_items()
+      @_all_items = null
+      @list.trigger 'filter_stop'
 
 
     # Filter list items.
@@ -74,17 +81,17 @@ do (context = this) ->
 
     filter: (params) ->
       unless params?
-        return @_stop_filter()
+        return @stop_filter()
 
-      @_start_filter() unless @filtered
+      @start_filter() unless @filtered
 
-      scope = if _is_continuation(@_prevf, params) then @items.slice() else utils.clone(@_all_filter_items)
+      scope = if _is_continuation(@_prevf, params) then @list.items.slice() else @all_items()
 
       @_prevf = params
 
       matcher = _matcher params
 
       _buffer = (item for item in scope when matcher(item))
-      @data_provider _buffer
+      @list.data_provider _buffer
 
-      @trigger 'filter_update'
+      @list.trigger 'filter_update'

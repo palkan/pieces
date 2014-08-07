@@ -14,7 +14,7 @@ describe "pieces calls", ->
   
   describe "pi complex call queries", ->
     beforeEach  ->
-      @test_div.append('<div class="pi" data-component="test_component" data-on-click="@this.text(@this.data(\'value\'))" data-value="13" data-pid="test1" style="position:relative">ping</div>')
+      @test_div.append('<a class="pi" data-component="test_component" href="@this.text(@this.data(\'value\'))" data-value="13" data-pid="test1" style="position:relative">ping</a>')
       @test_div.append('<div class="pi test2" data-component="test_component" data-name="test2" data-pid="test2" style="position:relative"></div>')
 
       @test_div.append('<a id="call1" href="@test1.text(pong)">Text</div>')

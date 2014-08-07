@@ -1,4 +1,4 @@
-describe "drag-selectable list plugin", ->
+describe "move-select list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'
   Nod.body.append root.node
@@ -8,7 +8,7 @@ describe "drag-selectable list plugin", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="selectable drag_select" data-pid="test" data-select="check" style="position:relative">
+        <div class="pi" data-component="list" data-plugins="selectable move_select" data-pid="test" data-select="check" style="position:relative">
           <ul class="list">
             <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
             <li class="item" data-id="2" data-key="someone">Two<span class="tags">puppy, coward</span></li>
@@ -24,7 +24,10 @@ describe "drag-selectable list plugin", ->
 
   describe "selectable list with dragging select support", ->
 
-    it "should select one item on mousedown", (done)->
+    it "should select one item on mousedown and clear previous selection", (done)->
+      @list.select_all()
+
+      expect(@list.selected().length).to.eq 3
       
       @list.on 'selected', (event) =>
         expect(@list.selected()[0].key).to.equal "anyone"

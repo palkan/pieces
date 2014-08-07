@@ -9,11 +9,10 @@ do (context = this) ->
   #
 
   class pi.List.ScrollEnd extends pi.Plugin
-    constructor: (@list) ->
-
+    initialize: (@list) ->
+      super
       @scroll_object = if @list.options.scroll_object == 'window' then pi.Nod.root else @list.items_cont
       @scroll_native_listener = if @list.options.scroll_object == 'window' then pi.Nod.win else @list.items_cont
-      @list.scroll_end = this
 
       @_prev_top = @scroll_object.scrollTop()
 

@@ -96,39 +96,46 @@ describe "searchable list plugin", ->
   describe 'search result highlight', ->
     it "should highlight results", ->  
       @list.search 'kill', true
-      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags"><mark>kill</mark>er,puppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal 'One<span class="tags"><mark>kill</mark>er,puppy</span><span class="notes">bulk</span>'
 
     it "should highlight text (not within tags)", ->  
       @list.search 'on', true
-      expect(@list.items[0].nod.html()).to.equal '<mark>On</mark>e<span class="tags">killer,puppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal '<mark>On</mark>e<span class="tags">killer,puppy</span><span class="notes">bulk</span>'
 
     it "should not highlight within tags", ->  
       @list.search 'p', true
-      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,<mark>p</mark>uppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal 'One<span class="tags">killer,<mark>p</mark>uppy</span><span class="notes">bulk</span>'
 
     it "should highlight within search scope", ->  
       @list.searchable.update_scope '.tags'
       @list.search 'e', true
-      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">kill<mark>e</mark>r,puppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal 'One<span class="tags">kill<mark>e</mark>r,puppy</span><span class="notes">bulk</span>'
 
     it "should highlight within search scope with several selectors within one item", ->  
       @list.searchable.update_scope '.tags,.notes'
       @list.search 'zo', true
-      expect(@list.items[0].nod.html()).to.equal 'Tre<span class="tags">bully,<mark>zo</mark>mbopuppy</span><span class="notes"><mark>zo</mark>o</span>'
+      expect(@list.items[0].html()).to.equal 'Tre<span class="tags">bully,<mark>zo</mark>mbopuppy</span><span class="notes"><mark>zo</mark>o</span>'
 
     it "should clear previous highlight on reduction", ->  
       @list.search 'e', true
       @list.search 'er', true
-      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">kill<mark>er</mark>,puppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal 'One<span class="tags">kill<mark>er</mark>,puppy</span><span class="notes">bulk</span>'
 
     it "should remove all marks on search stop", ->  
       @list.search 'er', true
       @list.search '', true
-      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,puppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal 'One<span class="tags">killer,puppy</span><span class="notes">bulk</span>'
 
     it "should remove all marks on search stop after several steps", ->  
       @list.search 'e', true
       @list.search 'er', true
       @list.search 'e', true
       @list.search '', true
-      expect(@list.items[0].nod.html()).to.equal 'One<span class="tags">killer,puppy</span><span class="notes">bulk</span>'
+      expect(@list.items[0].html()).to.equal 'One<span class="tags">killer,puppy</span><span class="notes">bulk</span>'
+
+    it "should return all not removed items on search stop", ->  
+      @list.search 't', true
+      @list.remove_item_at 0
+      expect(@list.size()).to.eq 1
+      @list.search ''
+      expect(@list.size()).to.eq 2

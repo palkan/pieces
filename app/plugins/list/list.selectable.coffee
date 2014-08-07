@@ -9,32 +9,35 @@ do (context = this) ->
   # 
   # Highlights selected elements with 'is-selected' class 
 
-  class pi.Selectable
-    constructor: (@list) ->
-      @type = @list.options.select || 'radio' 
+  class pi.List.Selectable extends pi.Plugin
+    initialize: (@list) ->
+      super
+      @type(@list.options.select_type || 'radio') 
       
-      @list.on 'item_click', @item_click_handler()
+      @list.on 'item_click', @item_click_handler() # TODO: overwrite _item_clicked
 
       @list.on 'update', @update_handler()
 
-      @list.items_cont.each '.is-selected', (node) =>
-        @list.items[ pi.Nod.create(node).data('listIndex') ].selected = true
+      @list.items_cont.each '.is-selected', (nod) =>
+        nod.selected = true
 
-      @list.selectable = this
-      @list.delegate ['clear_selection','selected','selected_item','select_all','_select','_deselect','_toggle_select'], @
+      @list.delegate_to 'selectable', 'clear_selection','selected','selected_item','select_all','select_item','deselect_item','toggle_select'
 
       return
+
+    type: (value) ->
+      @is_radio = value.match 'radio'
+      @is_check = value.match 'check'
 
     item_click_handler: ->
       return @_item_click_handler if @_item_click_handler
       @_item_click_handler = (e) =>
-        ## todo: add bool vars (is_radio and is_check) instead of matching
-        if @type.match('radio') and not e.data.item.selected
+        if @is_radio and not e.data.item.selected
           @list.clear_selection(true)
-          @list._select e.data.item
+          @list.select_item e.data.item
           @list.trigger 'selected', e.data.item
-        else if @type.match('check')
-          @list._toggle_select e.data.item
+        else if @is_check
+          @list.toggle_select e.data.item
           if @list.selected().length then @list.trigger('selected', @selected()) else @list.trigger('selection_cleared')
         return      
 
@@ -44,29 +47,29 @@ do (context = this) ->
         @_check_selected() unless e.data?.type? and e.data.type is 'item_added'
 
     _check_selected: ->
-      @list.trigger('selection_cleared') if !@list.selected().length
+      @list.trigger('selection_cleared') unless @list.selected().length
 
-    _select: (item) ->
+    select_item: (item) ->
       if not item.selected
         item.selected = true
-        @_selected = null 
-        item.nod.addClass 'is-selected'
+        @_selected = null  #TODO: add more intelligent cache
+        item.addClass 'is-selected'
 
-    _deselect: (item) ->
+    deselect_item: (item) ->
       if item.selected
         item.selected = false
         @_selected = null
-        item.nod.removeClass 'is-selected'
+        item.removeClass 'is-selected'
     
-    _toggle_select: (item) ->
-      if item.selected then @_deselect(item) else @_select(item)
+    toggle_select: (item) ->
+      if item.selected then @deselect_item(item) else @select_item(item)
 
     clear_selection: (silent = false) ->
-      @_deselect(item) for item in @list.items
+      @deselect_item(item) for item in @list.items
       @list.trigger('selection_cleared') unless silent
     
     select_all: () ->
-      @_select(item) for item in @list.items
+      @select_item(item) for item in @list.items
       @list.trigger('selected', @selected()) if @selected().length
 
 
@@ -75,7 +78,7 @@ do (context = this) ->
   
     selected: () ->
       unless @_selected?
-        @_selected = (item for item in @list.items when item.selected)
+        @_selected = @list.where(selected: true)
       @_selected
 
     selected_item: ()->

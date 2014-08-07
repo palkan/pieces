@@ -126,6 +126,8 @@ do (context = this) ->
       @_initialized = true
       @trigger 'initialized', true, false
 
+    @register_callback 'initialize'
+
     init_plugins: ->
       if @options.plugins?
         @attach_plugin @find_plugin(name) for name in @options.plugins
@@ -135,7 +137,7 @@ do (context = this) ->
     attach_plugin: (plugin) ->
       if plugin?
         utils.debug "plugin attached #{plugin.class_name()}"
-        @include plugin
+        plugin.attached @
 
     find_plugin: (name) ->
       name = utils.camelCase name
@@ -164,6 +166,8 @@ do (context = this) ->
 
     postinitialize: ->
       @trigger 'creation_complete', true, false
+
+    @register_callback 'postinitialize', as: 'create' 
 
     dispose: ->
       super
@@ -204,7 +208,7 @@ do (context = this) ->
 
   _method_reg = /([\w\.]+)\.(\w+)/
 
-  pi.call = (component, method_chain, args...) ->   
+  pi.call = (component, method_chain, fixed_args, args...) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
       target = switch 
@@ -223,7 +227,7 @@ do (context = this) ->
               target_ = target_[key_]
           [method_, target_]
       if target[method]?.call?
-        target[method].apply(target, ((if typeof arg is 'function' then arg.call(null) else arg) for arg in args))
+        target[method].apply(target, ((if typeof arg is 'function' then arg.apply(null,args) else arg) for arg in fixed_args).concat(args))
       else
         target[method]
     catch error
@@ -294,7 +298,7 @@ do (context = this) ->
       when matches[1] == 'host' then host.host # TODO: make more readable
       else matches[1]
     if matches[2]
-      curry(pi.call,[target, matches[2]].concat(if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else []))
+      curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
     else
       if typeof target is 'object'       
         -> 
@@ -342,6 +346,7 @@ do (context = this) ->
 
   utils.extend(
     Nod::, 
+    piecify: -> pi.piecify @
     pi_call: (target, action) ->
       if !@_pi_call or @_pi_action != action
         @_pi_action = action

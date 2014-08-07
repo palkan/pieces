@@ -1,4 +1,7 @@
 class pi.TestComponent extends pi.Base
+  @after_initialize () -> @id = @options.id
+  @before_create () -> @on 'click', => @value_trigger(13)
+
   initialize: ->
     @addClass 'test'
     super
@@ -12,24 +15,34 @@ class pi.TestComponent extends pi.Base
   value_trigger: (val)->
     @trigger "value", val
 
-class pi.TestComponent.Renameable extends pi.Plugin
+class pi.TestComponent.Renameable
+  @included: ->
   world: (name = "my world") ->
     name
 
-class pi.Base.Helloable extends pi.Plugin
+class pi.Base.Helloable
+  @included: ->
   hello: (phrase = "ciao") ->
     phrase
 
 class pi.Test extends pi.Core
-  @alias "hallo", "hello"
-   
   hello: ->
     "hello"
   world: ->
     "world"
 
+  init: (@my_name='')->
+    @_inited = true
+    @
+
   hello_world: ->
     "#{@hello()} #{@world()}"
+
+  @alias "hallo", "hello"
+  @register_callback 'init'
+
+class pi.Test4 extends pi.Test
+  @after_init () -> @my_name += ' 2'
 
 class pi.Test2 extends pi.Test
   @include pi.TestComponent.Renameable

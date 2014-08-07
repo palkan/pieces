@@ -40,4 +40,4 @@ describe "jst renderer list plugin", ->
       ]
       expect(@list.all('.item').length).to.equal 3
       expect(@list.first('.author').text()).to.equal 'John'
-      expect(@list.items[2].nod.html()).to.equal 'Element 3<span class="author">John</span>'
+      expect(@list.items[2].html()).to.equal 'Element 3<span class="author">John</span>'

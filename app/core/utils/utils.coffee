@@ -5,6 +5,8 @@ do (context = this) ->
   
   _email_regexp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i
   _html_regexp = /^<.+>$/m
+  _esc_reg = /[-[\]{}()*+?.,\\^$|#]/g
+  _clickable_reg = /^(a|button|input|textarea)$/i
 
   _uniq_id = 100
 
@@ -31,7 +33,7 @@ do (context = this) ->
 
     #Escape regular expression characters (to use string in regexp)
     escapeRegexp: (str) -> 
-        str.replace(/[-[\]{}()*+?.,\\^$|#]/g, "\\$&")
+        str.replace(_esc_reg, "\\$&")
 
     
     is_email:(str) ->        
@@ -39,6 +41,9 @@ do (context = this) ->
 
     is_html: (str) ->
       _html_regexp.test str
+
+    clickable: (node) ->
+      _clickable_reg.test node.nodeName
 
     camelCase: (string) ->
       string = string + ""
@@ -58,6 +63,8 @@ do (context = this) ->
     serialize: (val) ->
       val = switch
         when not val? then null
+        when val is 'null' then null
+        when val is 'undefined' then undefined
         when val == 'true' then true
         when val == 'false' then false
         when isNaN(Number(val)) then val 

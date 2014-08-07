@@ -91,7 +91,7 @@ describe "pieces core", ->
       TestHelpers.clickElement $('a#append').node
       expect($('@test').find("span").text()).to.equal 'Append me'
 
-    it "should work with only component (without method) on event", ->
+    it "should work with only component on event", ->
       TestHelpers.clickElement $('span#append_click').node
       expect($('@test').find("span").text()).to.equal 'Append me'
 
@@ -120,7 +120,7 @@ describe "pieces core", ->
 
   describe "pi base events", ->
     beforeEach  ->
-      @test_div.append('<div class="pi" data-disabled="true" data-on-value="@this.text; @this.name" data-component="test_component" data-pid="test" style="position:relative"></div>')
+      @test_div.append('<div class="pi" data-disabled="true" data-on-value="@this.text(e.data); @this.name(e.data)" data-component="test_component" data-pid="test" style="position:relative"></div>')
       pi.app.view.piecify()
       @example = $('@test')
 
@@ -173,3 +173,20 @@ describe "pieces core", ->
         expect(@example.btn.enabled).to.be.true
         done()
       @example.btn.enable()
+
+  describe "callbacks", ->
+    beforeEach  ->
+      @test_div.append '<div class="pi" data-component="test_component" data-pid="test" data-id="2">
+                        </div>'
+      pi.app.view.piecify()
+      @example = $('@test')
+
+    it "should run before_create callback", (done) ->
+      @example.on 'value', (event) => 
+        expect(event.data).to.eq 13
+        done()
+      TestHelpers.clickElement @example.node
+
+    it "should run after_initialize callback", ->
+      expect(@example.id).to.eq 2
+

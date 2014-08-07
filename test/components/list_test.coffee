@@ -62,8 +62,8 @@ describe "list component", ->
         nod = Nod.create("<div>#{ data.name }</div>")
         nod.addClass 'item'
         nod.append "<span class='author'>#{ data.author }</span>"
-        data.nod = nod
-        data
+        pi.utils.extend nod, data
+        nod
       return
 
     it "should set data provider with new rendered elements", ->
@@ -93,6 +93,18 @@ describe "list component", ->
 
       TestHelpers.clickElement $("@test").find(".item:nth-child(2) .tags").node
 
+    it "should not trigger on clickable child element", (done) ->
+      @list.add_item Nod.create "<div class='item'>hi<a href='javscript:void();' class='linko'>click</a></div>"
+
+      @list.on 'item_click', (e) =>
+        expect(true).to.be.false
+        done()
+
+      after 500, ->
+        done()
+
+      TestHelpers.clickElement $("@test").find(".item .linko").node
+
   describe "list queries", ->
     it "should find by simple one-key object", ->
       item = @list.where(id:1)[0]
@@ -116,24 +128,24 @@ describe "list component", ->
 
     beforeEach ->
       @list.dispose()
-      $('.pi').data('pi-items',true)
       pi.app.view.piecify()
       @list = $('@test')
 
     it "should create items nods as components", ->
-      expect(@list.items[0].nod).to.be.an.instanceof pi.Base
+      expect(@list.items[0]).to.be.an.instanceof pi.Base
 
     it "should peicify items nods", ->
       @list.item_renderer = (data) ->
         nod = Nod.create("<div>#{ data.name }</div>")
         nod.addClass 'item'
         nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
-        data.nod = nod
-        data
+        nod = nod.piecify()
+        pi.utils.extend nod, data
+        nod
 
       @list.add_item {name: 'coffee', author: 'john'}
 
       item = @list.where(name: 'coffee')[0]
 
-      expect(item.nod).to.be.an.instanceof pi.Base
-      expect(item.nod.find('.author')).to.be.an.instanceof pi.Button
+      expect(item).to.be.an.instanceof pi.Base
+      expect(item.find('.author')).to.be.an.instanceof pi.Button

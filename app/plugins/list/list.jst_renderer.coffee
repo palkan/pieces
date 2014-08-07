@@ -9,7 +9,13 @@ do (context = this) ->
   # Setup JST template as renderer for list by name
  
   class pi.List.JstRenderer extends pi.Plugin
+    initialize: (@list) ->
+      super
+      @list.delegate_to 'jst_renderer', 'item_renderer'
+
     item_renderer: (data) ->
-      item = utils.clone data
-      item.nod = pi.Nod.create JST[@options.renderer](data)
+      data = utils.clone data
+      item = pi.Nod.create JST[@list.options.renderer](data)
+      item = item.piecify()
+      utils.extend item, data 
       item

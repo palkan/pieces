@@ -7,11 +7,11 @@ do (context = this) ->
   # [Plugin]
   # Select elements OS-like (mouse_down -> move -> mouse_up)
  
-  class pi.DragSelect
-    constructor: (@list) ->
-      if not @list.selectable?
-        utils.error 'Selectable plugin is required!'
-        return
+  class pi.List.MoveSelect extends pi.Plugin
+    initialize: (@list) ->
+      super
+      unless @list.has_selectable
+        @list.attach_plugin pi.List.Selectable
 
       @_direction = @list.options.direction || 'y'
       
@@ -36,7 +36,7 @@ do (context = this) ->
 
       item = @list.items[index]
 
-      match = @_item_match_point item.nod, point
+      match = @_item_match_point item, point
 
       if match is 0
         index
@@ -78,10 +78,10 @@ do (context = this) ->
       @_last_index = index
 
     _clear_range: (from, to) ->
-      @list._deselect(item) for item in @list.items[from..to]
+      @list.deselect_item(item) for item in @list.items[from..to]
 
     _select_range: (from, to) ->
-      @list._select(item) for item in @list.items[from..to]
+      @list.select_item(item) for item in @list.items[from..to]
 
     mouse_down_listener: ->
       return @_mouse_down_listener if @_mouse_down_listener
@@ -95,10 +95,14 @@ do (context = this) ->
           @_len = @list.items.length
           @_start_index = @_item_under_point @_start_point
           @_last_index = @_start_index
-          @list._select @list.items[@_start_index]
-          @list.trigger 'selected' if @list.selected().length
+          
+          @list.clear_selection(true)
+          @list.select_item @list.items[@_start_index]
+          
+          @list.trigger 'selected'
+
           @list.on 'mousemove', @mouse_move_listener()
-          @_dragging = true
+          @_moving = true
         
         pi.Nod.root.on 'mouseup', @mouse_up_listener()
 
@@ -108,9 +112,9 @@ do (context = this) ->
         
         pi.Nod.root.off 'mouseup', @mouse_up_listener()
         
-        if @_dragging
+        if @_moving
           @list.off 'mousemove', @mouse_move_listener()
-          @_dragging = false
+          @_moving = false
           e.stopImmediatePropagation()
           e.preventDefault()
         else clearTimeout(@_wait_drag)
