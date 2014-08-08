@@ -29,3 +29,5 @@ do (context = this) ->
         @input.off 'change', @autosizer()
         @_autosizing = false
       @
+
+  pi.Guesser.rules_for 'text_area', '', ['textarea']

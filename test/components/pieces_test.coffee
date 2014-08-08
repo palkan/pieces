@@ -160,7 +160,7 @@ describe "pieces core", ->
 
   describe "events bubbling", ->
     beforeEach  ->
-      @test_div.append '<div class="pi" data-component="test_component" data-pid="test">
+      @test_div.append '<div class="pi test" data-pid="test">
                           <a class="pi" data-disabled="true" data-pid="btn" href="#">clicko</a>
                         </div>'
       pi.app.view.piecify()
@@ -176,7 +176,7 @@ describe "pieces core", ->
 
   describe "callbacks", ->
     beforeEach  ->
-      @test_div.append '<div class="pi" data-component="test_component" data-pid="test" data-id="2">
+      @test_div.append '<div class="pi test" data-pid="test" data-id="2">
                         </div>'
       pi.app.view.piecify()
       @example = $('@test')

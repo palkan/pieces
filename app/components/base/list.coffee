@@ -204,3 +204,5 @@ do (context = this) ->
       return unless target.data('list-index')?
       item = @items[target.data('list-index')]
       @trigger 'item_click', {item: item}
+
+  pi.Guesser.rules_for 'list', ['list','list-container'], ['ul'], (nod) -> !!nod.find('ul')

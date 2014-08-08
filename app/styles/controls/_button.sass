@@ -1,0 +1,54 @@
+@mixin button($bg,$border,$color: $white)
+  +font($font-size-bold,$color)
+  cursor: pointer
+  height: 30px
+  line-height: 30px
+  text-decoration: none
+  padding: 0 10px
+  border: 1px solid
+  text-align: center
+  background: $bg
+  border-color: $border
+  transition: background 200ms
+  margin-left: 8px
+  &:hover
+    background: lighten($bg,5%)
+    transition: none
+  &:active
+    background: darken($bg,5%)
+    transition: none 
+  &.is-disabled
+    opacity: .5
+  &:focus
+    box-shadow: 0 0 2px 2px $grey-line
+
+@mixin button-rounded
+  border-radius: 2px
+
+%button-red
+  +button($red-button,$red-button-border)
+
+%button-grey
+  +button($grey-button,$grey-button-border,$grey-btn-text)
+
+%button-green
+  +button($green-button, $green-button-border)
+
+%button-blue
+  +button($blue-button, $blue-button-border)
+
+.button-cancel
+  +button-rounded
+  @extend %button-grey
+
+.button-save
+  +button-rounded
+  @extend %button-blue
+
+.button-enter
+  +button-rounded
+  @extend %button-green
+
+.button-finish
+  +button-rounded
+  @extend %button-grey

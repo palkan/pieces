@@ -86,6 +86,8 @@ do (context = this) ->
 
   _mouse_regexp = /(click|mouse|contextmenu)/i
 
+  _key_regexp = /(keyup|keydown|keypress)/i
+
   class pi.MouseEvent extends NodEvent
     constructor: ->
       super
@@ -104,10 +106,19 @@ do (context = this) ->
       unless @wheelDelta?
         @wheelDelta = -@event.detail*40
 
+  class pi.KeyEvent extends NodEvent
+    constructor: ->
+      super      
+      utils.debug 'I am a KEEEY!'
+      @keyCode = @event.keyCode || @event.which
+      @charCode = @event.charCode
+
     
   _prepare_event = (e) ->
     if _mouse_regexp.test e.type
       new pi.MouseEvent e
+    else if _key_regexp.test e.type
+      new pi.KeyEvent e
     else
       new NodEvent e
 

@@ -1,0 +1,39 @@
+.text-input-wrap
+  background: $white
+  border-radius: 2px
+  border: 1px solid $grey-line
+  height: 30px
+  display: inline-block
+  position: relative
+  .text-input
+    +font($font-size-bold,$menu-text)
+    user-select: text
+    padding: 0 10px
+    margin: 0
+    background: none
+    height: 30px
+    line-height: 30px
+    border: none
+    vertical-align: top
+    transition: box-shadow 300ms
+    &:focus
+      box-shadow: 0 0 2px 2px $grey-line
+    &::-ms-clear
+      width: 0
+      height: 0
+  &.is-readonly
+    background: $grey-bg
+    .text-input
+      color: $black
+      &:focus
+        box-shadow: none
+  &.is-transparent
+    background: none
+    border: none
+    .text-input
+      background: 0
+      font-size: $font-size-menu
+      color: $black
+      padding: 0
+      &:focus
+        box-shadow: none

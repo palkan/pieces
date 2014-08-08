@@ -32,18 +32,21 @@ do (context = this) ->
 
   class pi.Base extends pi.Nod
 
+    @include_plugins: (plugins...) ->
+      plugin.included(@) for plugin in plugins
+
     constructor: (@node, @host, @options = {}) ->
       super
 
       @preinitialize()
       
-      @initialize()
+      @__initialize()
       
       @init_plugins()
       @init_children()
       @setup_events()
 
-      @postinitialize()
+      @__postinitialize()
 
     # re-init children (grandchildren and so on)
     # = init_children() + __components__.all -> piecify()
@@ -117,6 +120,10 @@ do (context = this) ->
       @visible = @enabled = true
       @active = false
 
+    # [private] Use for callbacks (initialize can be overriden by sub-classs) 
+    __initialize: ->
+      @initialize()
+
     # setup instance initial state (but not children)
     initialize: ->       
       @__components__ = {}
@@ -126,7 +133,7 @@ do (context = this) ->
       @_initialized = true
       @trigger 'initialized', true, false
 
-    @register_callback 'initialize'
+    @register_callback '__initialize', as: 'initialize'
 
     init_plugins: ->
       if @options.plugins?
@@ -164,10 +171,14 @@ do (context = this) ->
       delete @options.events
       return
 
+     # [private] Use for callbacks (postinitialize can be overriden by sub-classs) 
+    __postinitialize: ->
+      @postinitialize()
+
     postinitialize: ->
       @trigger 'creation_complete', true, false
 
-    @register_callback 'postinitialize', as: 'create' 
+    @register_callback '__postinitialize', as: 'create' 
 
     dispose: ->
       super
@@ -179,7 +190,7 @@ do (context = this) ->
   event_re = /^on_(.+)/i
 
   pi._guess_component = (nod) ->
-    component_name = utils.camelCase(nod.data('component')||'base')
+    component_name = utils.camelCase(nod.data('component') || pi.Guesser.find(nod))
     pi[component_name]
 
   pi._gather_options = (el) ->
@@ -296,6 +307,7 @@ do (context = this) ->
     target = switch 
       when matches[1] == 'this' then host 
       when matches[1] == 'host' then host.host # TODO: make more readable
+      when matches[1] == 'view' then host.view() # TODO: if we don't use Views?? 
       else matches[1]
     if matches[2]
       curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])

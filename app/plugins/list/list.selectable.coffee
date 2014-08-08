@@ -30,8 +30,7 @@ do (context = this) ->
       @is_check = value.match 'check'
 
     item_click_handler: ->
-      return @_item_click_handler if @_item_click_handler
-      @_item_click_handler = (e) =>
+      @_item_click_handler ||= (e) =>
         if @is_radio and not e.data.item.selected
           @list.clear_selection(true)
           @list.select_item e.data.item
@@ -42,8 +41,7 @@ do (context = this) ->
         return      
 
     update_handler: ->
-      return @_update_handler if @_update_handler
-      @_update_handler = (e) =>
+      @_update_handler ||= (e) =>
         @_check_selected() unless e.data?.type? and e.data.type is 'item_added'
 
     _check_selected: ->

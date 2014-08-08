@@ -10,6 +10,6 @@ do (context = this) ->
     view: null
     initialize: ->
       return unless @view?
-      view.piecify() 
+      @view.piecify() 
 
   pi.app = new pi.App()

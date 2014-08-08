@@ -1,0 +1,52 @@
+header
+  top: 0
+  z-index: $header-z
+  width: 100%
+  user-select: none
+  background: $white
+  .header-top
+    @extend %centered
+    height: $header-height
+    position: relative
+    padding-top: 20px
+    .logo
+      float: left
+      margin-top: 10px 
+      margin-right: 20px
+    .description
+      +font($font-size-small,$black)
+      .name
+        +font($font-size-head,$black)
+    .social
+      margin-left: 100px
+      margin-right: auto
+      .social-link
+        color: $black
+        font-size: $font-size-large
+        margin: 0 10px
+        text-decoration: none
+        &:hover
+          color: $blue-link
+  .nav-content
+    background: $black  
+    height: $nav-height
+    nav
+      @extend %centered
+      .menu-link
+        +font($font-size-menu,$white)
+        width: auto
+        line-height: ($nav-height - 2)
+        padding: 0 20px
+        display: inline-block
+        text-decoration: none
+        transition: all 200ms
+        border-bottom: 2px solid $black
+        &:hover
+          border-color: darken($white,30%)
+          color: #ffffff
+          transition: none
+        &:active
+          border-color: $green
+        &.is-active
+          border-color: $green
+          pointer-events: none         

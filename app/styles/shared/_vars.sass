@@ -1,0 +1,149 @@
+// Font params
+
+$font-family: 'Helvetica', sans !default
+
+// Size
+$font-size-small: 10px !default
+$font-size-base: 13px !default
+$font-size-head: 20px !default
+$font-size-menu: 15px !default
+$font-size-bold: 12px !default
+$font-size-large: 26px !default
+// Colors
+
+$menu-text: #4b4b4b
+$grey-text: #858585
+$blue-link: #007fe3
+$grey2-text: #979797
+$grey-bg: #f3f3f3
+$grey-line: #d7d7d7
+$white: #ffffff
+$popup-grey: #FCFCFC
+$black: #111111
+$white: #e7e7e7
+$green: #346142
+$red: #ff1313
+$light-red: #FFC5C5
+$light-green: #BFD9BF
+// header
+
+$header-border-bg: #e8e8e8
+$alarm-bg: #ff1313
+
+// list
+
+$grey-list-border: #e8e8e8
+$item-running: #f6fbff
+$item-selected: #fffdd9
+$item-hover: #fffef2
+
+
+
+// buttons
+
+$red-button: #f10028
+$red-button-border: #d10033
+$grey-btn-text: #5a5a5a
+$grey-button: #f7f7f7
+$grey-button-border: #d7d7d7
+$green-button: #11b700
+$green-button-border: #10a100
+$blue-button: #0090ff
+$blue-button-border: #007de6
+
+
+// search
+
+$search-left-pad: 10px
+$search-right-pad: 30px
+$search-total-pad: ($search-right-pad + $search-left-pad)
+
+// overlays
+
+$overlay-alpha: .7
+$overlay-delay: .5s
+
+// Layout
+
+$main-width: 960px
+$main-pad-top: 28px
+
+$sidebar-width: 190px
+$sidebar-margin: 30px
+
+$leftbar-width: 560px
+$leftbar-pad: 40px
+
+$content-width: $main-width - $sidebar-width - $sidebar-margin
+
+$header-height: 60px
+
+$item-height: 40px
+$user-item-height: 30px
+$nav-height: 50px
+$popup-users-w: 740px
+$popup-users-min-h: 600px
+
+// Z-indeces
+
+$ground: 5
+$first: 10
+$second: 20
+$third: 30
+$fixed: 100
+$light-overlay-z: 300
+$light-overlay-content-z: 350
+$header-z: 400
+$dark-overlay-z: 500
+$dark-overlay-content-z: 550
+$flash-z: 700
+$heaven: 100000
+$hell: 0
+
+// Mixins
+
+@mixin font($size, $color: $black, $bold:false)
+  font-family: $font-family
+  color: $color
+  @if $bold
+    font-weight: bold
+  @else
+    font-weight: normal
+  font-size: $size
+
+@mixin dotted($color)
+  color: $color
+  cursor: pointer
+  border-bottom: 1px dotted $color
+  text-decoration: none
+  &:hover
+    border-width: 0
+
+@import 'easings'
+
+// placeholders
+
+%h1_title
+  +font($font-size-head)
+  user-select: text
+  margin: 0 0 $main-pad-top 0  
+
+
+%centered
+  width: $main-width
+  margin: 0 auto
+
+
+@mixin hidpi-image($path, $w, $h)
+  +image-size($w, $h, 2)
+  +hidpi-background($path, $w, $h)
+  background-repeat: no-repeat
+
+@mixin hidpi-background($path, $w, $h)
+  background-image: url($path)
+  background-size: ($w / 2) ($h / 2)
+
+@mixin image-size($w, $h, $factor: 1)
+  width: ($w / $factor)
+  height: ($h / $factor)
+

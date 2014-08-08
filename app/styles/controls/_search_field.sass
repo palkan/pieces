@@ -1,0 +1,20 @@
+.search-field
+  @extend .text-input-wrap
+  z-index: $second
+  .text-input
+    padding: 0 $search-left-pad 0 $search-right-pad
+  .fa
+    display: none
+    font-size: $font-size-bold
+    position: absolute
+    right: 10px
+    line-height: 30px
+    color: $menu-text
+    cursor: pointer
+    &:hover
+      color: lighten($menu-text,10%)
+    &:active
+      color: darken($menu-text,10%)
+  &.is-active
+    .fa
+      display: inline-block

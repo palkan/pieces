@@ -11,7 +11,8 @@ do (context = this) ->
   class pi.List.JstRenderer extends pi.Plugin
     initialize: (@list) ->
       super
-      @list.delegate_to 'jst_renderer', 'item_renderer'
+      if @list.options.renderer and JST[@list.options.renderer]
+        @list.delegate_to 'jst_renderer', 'item_renderer'
 
     item_renderer: (data) ->
       data = utils.clone data

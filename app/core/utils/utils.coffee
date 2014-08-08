@@ -157,6 +157,12 @@ do (context = this) ->
           target[key] = prop
       target
 
+    uniq: (arr) ->
+      res = []
+      for el in arr
+        res.push(el) if (el not in res)
+      res
+
   # export functions 
   context.curry = pi.utils.curry
   context.delayed = pi.utils.delayed

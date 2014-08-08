@@ -1,0 +1,49 @@
+.overlay
+  position: fixed
+  transition: opacity $overlay-delay, height 0
+  opacity: 1
+  width: 100%
+  top: 0
+  &.light
+    top: $header-height
+    bottom: 0
+    background: white($overlay-alpha)
+    z-index: $light-overlay-z
+  &.dark
+    width: 100%
+    height: 100%
+    background: black($overlay-alpha)
+    z-index: $dark-overlay-z
+  &.is-hidden
+    opacity: 0 
+    transition: opacity $overlay-delay, height 0 $overlay-delay
+    height: 0
+    display: block !important
+
+.overlay-dark-container
+  z-index: ($dark-overlay-content-z - 1) 
+  margin-top: 0
+  transition: margin $overlay-delay, height 0
+  &.is-hidden
+    left: 0
+    right: 0
+    position: absolute
+    margin-top: 100%
+    transition: margin $overlay-delay, height 0 $overlay-delay
+    height: 0
+    display: block !important
+  
+
+.is-popup
+  position: relative
+  z-index: $dark-overlay-content-z
+  top: $header-height
+  margin: 0 auto
+
+
+.is-overlayed
+  .main
+    overflow: hidden
+  &.dark
+    .leftbar
+      overflow: hidden

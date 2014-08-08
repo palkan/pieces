@@ -18,7 +18,7 @@ do(context = this) ->
     @include: (mixins...) ->
       for mixin in mixins
         utils.extend @::, mixin::, true, ['constructor']
-        mixin.included @::
+        mixin.included @
 
     @class_name: ->
       klass_name @

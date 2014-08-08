@@ -29,7 +29,6 @@ describe "pieces utils", ->
     it "should work with non-capitalized word", ->
       expect(pi.utils.snake_case("camelSong")).to.equal("camel_song")
 
-
   describe "serialize", ->
     it "should recognize bool", ->
       expect(pi.utils.serialize("true")).to.be.true

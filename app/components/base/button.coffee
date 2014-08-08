@@ -5,5 +5,6 @@ do (context = this) ->
   utils = pi.utils
 
   class pi.Button extends pi.Base
-    initialize: ->
-      super
+
+
+  pi.Guesser.rules_for 'button', ['button'], ['button','a','input[button]']

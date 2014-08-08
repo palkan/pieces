@@ -1,6 +1,6 @@
 {
   "name": "js-pieces",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "authors": [],
   "license": "MIT",
   "private":true,
@@ -12,5 +12,11 @@
     "test"
   ],
   "dependencies": {
+    "font-awesome": "~4"
+  },
+  "overrides": {
+    "font-awesome": {
+       "main": ["fonts", "css"]
+    } 
   }
 }

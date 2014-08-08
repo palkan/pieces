@@ -84,8 +84,7 @@ do (context = this) ->
       @list.select_item(item) for item in @list.items[from..to]
 
     mouse_down_listener: ->
-      return @_mouse_down_listener if @_mouse_down_listener
-      @_mouse_down_listener = (e) =>
+      @_mouse_down_listener ||= (e) =>
         {x: _x, y: _y} = @list.items_cont.position()
         @_offset = x: _x, y: _y
         @_start_point = x: e.pageX-_x, y: e.pageY-_y
@@ -107,8 +106,7 @@ do (context = this) ->
         pi.Nod.root.on 'mouseup', @mouse_up_listener()
 
     mouse_up_listener: ->
-      return @_mouse_up_listener if @_mouse_up_listener
-      @_mouse_up_listener = (e) =>
+      @_mouse_up_listener ||= (e) =>
         
         pi.Nod.root.off 'mouseup', @mouse_up_listener()
         
@@ -120,7 +118,6 @@ do (context = this) ->
         else clearTimeout(@_wait_drag)
     
     mouse_move_listener: ->
-      return @_mouse_move_listener if @_mouse_move_listener
-      @_mouse_move_listener = debounce 300, (e) =>
+      @_mouse_move_listener ||= debounce 300, (e) =>
         point = x: e.pageX-@_offset.x, y: e.pageY-@_offset.y
         @_update_range @_item_under_point(point)

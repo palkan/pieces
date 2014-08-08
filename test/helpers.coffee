@@ -15,6 +15,8 @@ class pi.TestComponent extends pi.Base
   value_trigger: (val)->
     @trigger "value", val
 
+pi.Guesser.rules_for 'test_component', ['test']
+
 class pi.TestComponent.Renameable
   @included: ->
   world: (name = "my world") ->
@@ -69,6 +71,13 @@ this.TestHelpers =
 
   clickElement: (el) ->
     TestHelpers.mouseEventElement el, "click"
+    return
+
+  keyEvent: (nod, type, code) ->
+    code = code.charCodeAt(0) if typeof code is 'string'
+    ev = document.createEvent "KeyboardEvent"
+    ev.initKeyboardEvent(type, true, true, null, 0, false, 0, false, code, 0) 
+    nod.native_event_listener ev
     return
 
   scrollEvent: (el) ->
