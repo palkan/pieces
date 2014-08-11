@@ -12,7 +12,8 @@
     "test"
   ],
   "dependencies": {
-    "font-awesome": "~4"
+    "font-awesome": "~4",
+    "bowser": "0.7.1"
   },
   "overrides": {
     "font-awesome": {

@@ -30,4 +30,4 @@ do (context = this) ->
         @_autosizing = false
       @
 
-  pi.Guesser.rules_for 'text_area', '', ['textarea']
+  pi.Guesser.rules_for 'text_area', ['pi-textarea'], ['textarea']

@@ -8,7 +8,7 @@ do(context = this) ->
     klass_name = (fun) ->
       fun.name
   else
-    klass_name = ->
+    klass_name =(fun) ->
       _regex = /function (.{1,})\(/
       results = _regex.exec fun.toString()
       results[1]

@@ -8,12 +8,12 @@ describe "text input component", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi text-input" data-pid="test" style="position:relative">
+        <div class="pi pi-text-input-wrap" data-pid="test" style="position:relative">
           <input type="text" value="1"/>
         </div>
         <input class="pi is-readonly" data-pid="test2" type="text" value="2"/>
       """
-    pi.app.initialize()
+    pi.app.view.piecify()
     @test1 = $('@test')
     @test2 = $('@test2')
 

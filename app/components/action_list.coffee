@@ -9,4 +9,4 @@ do (context = this) ->
   class pi.ActionList extends pi.List
     @include_plugins pi.List.Selectable, pi.List.Searchable, pi.List.Sortable, pi.List.Filterable, pi.List.ScrollEnd
 
-  pi.Guesser.rules_for 'action_list', ['action-list']  
+  pi.Guesser.rules_for 'action_list', ['pi-action-list']  

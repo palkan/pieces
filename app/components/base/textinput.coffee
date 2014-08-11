@@ -27,4 +27,4 @@ do (context = this) ->
         @trigger 'editable', false
       @        
 
-  pi.Guesser.rules_for 'text_input', ['text-input'], ['input[text]']
+  pi.Guesser.rules_for 'text_input', ['pi-text-input-wrap'], ['input[text]']

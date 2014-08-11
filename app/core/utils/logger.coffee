@@ -4,6 +4,11 @@ do (context = this) ->
   pi = context.pi  = context.pi || {}
   utils = pi.utils 
 
+  if !context.console || !context.console.log
+    context.console =
+      log: ->
+        true
+
   pi.log_level ||= "info"
 
   _log_levels =
@@ -21,11 +26,11 @@ do (context = this) ->
       sort: 2
 
   _show_log =  (level) ->
-      _log_levels[pi.log_level].sort <= _log_levels[level].sort
+    _log_levels[pi.log_level].sort <= _log_levels[level].sort
 
 
   utils.log = (level, messages...) ->
-      _show_log(level) && console.log("%c #{ utils.time.now('%H:%M:%S:%L') } [#{ level }]", "color: #{_log_levels[level].color}", messages)
+    _show_log(level) && console.log("%c #{ utils.time.now('%H:%M:%S:%L') } [#{ level }]", "color: #{_log_levels[level].color}", messages)
 
   #log levels aliases
 

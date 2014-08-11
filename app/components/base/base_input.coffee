@@ -21,5 +21,3 @@ do (context = this) ->
 
     clear: () ->
       @input.value ''
-
-  pi.Guesser.rules_for 'text_input', ['text-input'], ['input[text]']

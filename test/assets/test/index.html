@@ -17,6 +17,7 @@
     <script src="js/test.js"></script>
     <script>
       pi.log_level = "debug";
+      pi.app.initialize()
       if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
       else { mocha.run(); }
     </script>

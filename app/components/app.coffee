@@ -8,8 +8,7 @@ do (context = this) ->
   class pi.App
     # uppermost component
     view: null
-    initialize: ->
-      return unless @view?
-      @view.piecify() 
+    initialize: (nod) ->
+      @view = pi.piecify(nod || pi.Nod.root)
 
   pi.app = new pi.App()

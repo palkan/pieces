@@ -13,7 +13,7 @@ describe "base input component", ->
         </div>
         <input class="pi" data-component="base_input"  data-pid="test2" type="text" value="2"/>
       """
-    pi.app.initialize()
+    pi.app.view.piecify()
     @test1 = $('@test')
     @test2 = $('@test2')
 

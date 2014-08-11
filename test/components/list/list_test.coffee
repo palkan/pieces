@@ -58,12 +58,13 @@ describe "list component", ->
 
   describe "working with renderers", ->
     beforeEach ->
-      @list.item_renderer = (data) ->
-        nod = Nod.create("<div>#{ data.name }</div>")
-        nod.addClass 'item'
-        nod.append "<span class='author'>#{ data.author }</span>"
-        pi.utils.extend nod, data
-        nod
+      @list.item_renderer = 
+        render: (data) ->
+            nod = Nod.create("<div>#{ data.name }</div>")
+            nod.addClass 'item'
+            nod.append "<span class='author'>#{ data.author }</span>"
+            pi.utils.extend nod, data
+            nod
       return
 
     it "should set data provider with new rendered elements", ->
@@ -94,7 +95,7 @@ describe "list component", ->
       TestHelpers.clickElement $("@test").find(".item:nth-child(2) .tags").node
 
     it "should not trigger on clickable child element", (done) ->
-      @list.add_item Nod.create "<div class='item'>hi<a href='javscript:void();' class='linko'>click</a></div>"
+      @list.add_item Nod.create "<div class='item'>hi<a href='#' class='linko'>click</a></div>"
 
       @list.on 'item_click', (e) =>
         expect(true).to.be.false
@@ -135,13 +136,14 @@ describe "list component", ->
       expect(@list.items[0]).to.be.an.instanceof pi.Base
 
     it "should peicify items nods", ->
-      @list.item_renderer = (data) ->
-        nod = Nod.create("<div>#{ data.name }</div>")
-        nod.addClass 'item'
-        nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
-        nod = nod.piecify()
-        pi.utils.extend nod, data
-        nod
+      @list.item_renderer = 
+        render: (data) ->
+          nod = Nod.create("<div>#{ data.name }</div>")
+          nod.addClass 'item'
+          nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
+          nod = nod.piecify()
+          pi.utils.extend nod, data
+          nod
 
       @list.add_item {name: 'coffee', author: 'john'}
 

@@ -37,16 +37,19 @@ do (context = this) ->
   # returns snake_case: 'word1_word2_word3'
   _from_dataCase = (str) ->
     words = str.split '-'
-    words[0]+words[1..].join('_')
+    words.join('_')
 
   _dataset = 
     (-> 
       if typeof DOMStringMap is "undefined" 
         (node) ->  
           dataset = {}
-          for attr in node.attributes
-            if _data_reg.test(attr.name)
-              dataset[_from_dataCase(attr.name[5..])] = utils.serialize attr.value
+
+          # old ie window doesn't have attributes
+          if node.attributes?
+            for attr in node.attributes
+              if _data_reg.test(attr.name)
+                dataset[_from_dataCase(attr.name[5..])] = utils.serialize attr.value
           return dataset
       else
         (node) ->
@@ -161,13 +164,9 @@ do (context = this) ->
 
     # return children Elements without modifying 
 
-    children: (callback) ->
-      if typeof callback is 'function'
-        i=0
-        for n in @node.children
-          break if callback.call(null, n, i) is true
-          i++
-        @
+    children: (selector) ->
+      if selector?
+        n for n in @node.children when n.matches(selector)
       else
         @node.children
 
@@ -300,7 +299,7 @@ do (context = this) ->
       offset
 
     move: (x,y) ->
-      @style left: x, top: y
+      @style left: "#{x}px", top: "#{y}px"
 
     position: () ->
       x: @x(), y: @y() 
@@ -481,5 +480,19 @@ do (context = this) ->
   pi.Nod.win = new pi.Nod window
   pi.Nod.body = new pi.Nod document.body
   
+  if context.bowser?
+    klasses = []
+    if bowser.msie
+      klasses.push 'ie', "ie#{bowser.version|0}"
+
+    if bowser.mobile
+      klasses.push 'mobile'
+
+    if bowser.tablet
+      klasses.push 'tablet'
+
+    if klasses.length
+      pi.Nod.root.addClass.apply pi.Nod.root, klasses
+
   pi.Nod.root.initialize()
 

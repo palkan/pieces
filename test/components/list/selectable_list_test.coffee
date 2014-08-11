@@ -89,12 +89,13 @@ describe "selectable list plugin", ->
 
     it "should not send cleared on item added", (done) ->
 
-      @list.item_renderer = (data) ->
-        nod = Nod.create ("<div>#{ data.name }</div>")
-        nod.addClass 'item'
-        nod.append "<span class='author'>#{ data.author }</span>"
-        pi.utils.extend nod,data
-        nod
+      @list.item_renderer = 
+        render: (data) ->
+          nod = Nod.create ("<div>#{ data.name }</div>")
+          nod.addClass 'item'
+          nod.append "<span class='author'>#{ data.author }</span>"
+          pi.utils.extend nod,data
+          nod
 
       @list.on 'selection_cleared', (event) =>
         expect(false).to.equal true

@@ -34,7 +34,8 @@ exports.config =
         after:
           [
             /^app[\\/]plugins/,
-            'app/components/action_list.coffee'
+            'app/components/action_list.coffee',
+            /^app[\\/]components[\\/]renderers/
           ]
     stylesheets:
       defaultExtension: 'sass'

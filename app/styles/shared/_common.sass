@@ -84,16 +84,11 @@ a
   margin: 0 auto
   padding: 0 10px 
   position: relative
-  background: $white
+  background: white
 
   .sidebar
     .title
       @extend %h1_title  
-    .button
-      @extend %button-red
-      +button-rounded
-      width: 100%
-      margin: 0 0 25px 0
     width: $sidebar-width
     margin: 0 $sidebar-margin 0 0
     float: left
@@ -105,23 +100,7 @@ a
     padding: 6px 0
     
   .content
-    width: $content-width
-    float: right
     position: relative
-    .list-container
-      width: $content-width
-  .content-header
-    padding-top: $main-pad-top 
-    width: $content-width
-    height: 80px
-  .controls
-    height: 50px
-    .search-field
-      float: right
-      position: relative
-      top: -4px
-      .text-input
-        width: 344px
 
 @media only screen and (max-width: $main-width)
   .main
@@ -130,3 +109,4 @@ a
 
 
 @import 'common_list'
+@import 'main_page'

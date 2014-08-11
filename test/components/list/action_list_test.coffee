@@ -8,7 +8,7 @@ describe "action_list component", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi action-list" data-pid="test" style="position:relative">
+        <div class="pi pi-action-list" data-pid="test" style="position:relative">
           <ul class="list">
             <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
             <li class="item" data-id="2" data-key="someone">Two<span class="tags">puppy, coward</span></li>

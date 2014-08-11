@@ -32,7 +32,7 @@ describe "pieces core", ->
           </div>
         </div>
         ''')
-      expect(el.find_cut('.x').map( (el) -> el.id ).join("")).to.eq "acdef"
+      expect(el.find_cut('.x').map( (el) -> el.id ).join("")).to.eq "adefc"
 
   describe "global functions", ->
     it "should correctly parse options", ->
@@ -47,6 +47,30 @@ describe "pieces core", ->
     it "should throw error on undefined component", ->
       el = Nod.create('<div data-component="testtt" data-hidden="true"></div>')
       expect(curry(pi.init_component,el)).to.throw(ReferenceError)
+
+  describe "find cut", ->
+    it "should find cut", ->
+      _html = '''
+      <h1 class="title">File input</h1>
+      <div class="content">
+        <div class="inline">
+          <div pid="btn" data-on-files_selected="@host.list.data_provider(e.data)" class="pi button-blue file-input-wrap">choose file
+            <input type="file" class="file-input">
+          </div>
+          <div data-on-selected="@host.btn.multiple(e.data)" class="pi checkbox-wrap">
+            <label class="cb-label">Multiple?</label>
+            <input type="hidden">
+          </div>
+        </div>
+        <div pid="list" data-renderer="mustache(file_item_mst)" class="pi inline list-container">
+          <ul class="list"></ul>
+        </div>
+      </div>
+      '''
+      el = Nod.create('div')
+      el = pi.init_component el
+      el.html _html
+      expect(el.find_cut('.pi')).to.have.length 3
 
   describe "pi piecify and click hanlder", ->
     beforeEach  ->

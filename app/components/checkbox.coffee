@@ -38,4 +38,4 @@ do (context = this) ->
       else
         @select()
 
-  pi.Guesser.rules_for 'checkbox', ['checkbox-wrap'], null
+  pi.Guesser.rules_for 'checkbox', ['pi-checkbox-wrap'], null

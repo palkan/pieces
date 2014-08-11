@@ -4,9 +4,10 @@ do (context = this) ->
   pi = context.pi  = context.pi || {}
   
   _email_regexp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i
-  _html_regexp = /^<.+>$/m
+  _html_regexp = /^\s*<.+>\s*$/m
   _esc_reg = /[-[\]{}()*+?.,\\^$|#]/g
   _clickable_reg = /^(a|button|input|textarea)$/i
+  _trim_reg = /^\s*(.*[^\s])\s*$/m
 
   _uniq_id = 100
 
@@ -25,7 +26,6 @@ do (context = this) ->
         r = r_ if r is 0
     return r
 
-
   pi.utils =
 
     uuid: ->
@@ -35,7 +35,9 @@ do (context = this) ->
     escapeRegexp: (str) -> 
         str.replace(_esc_reg, "\\$&")
 
-    
+    trim: (str) ->
+      str.replace(_trim_reg,"$1")
+
     is_email:(str) ->        
       _email_regexp.test str
 

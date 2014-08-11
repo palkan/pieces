@@ -43,7 +43,7 @@ do (context = this) ->
         if matches.length == 1
           return @klass_to_component[matches[0]]
 
-      matches = matches.map((klass) => @klass_to_component(klass))
+      matches = matches.map((klass) => @klass_to_component[klass])
 
       tag = nod.node.nodeName.toLowerCase()
       tag+="[#{nod.node.type}]" if tag is 'input'

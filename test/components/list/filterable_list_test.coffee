@@ -10,13 +10,13 @@ describe "filterable list plugin", ->
     window.JST = {}
 
     window.JST['test/item'] = (data) ->
-      nod = Nod.create("<div>#{ data.name }</div>")
-      nod.addClass 'item'
-      nod.append "<span class='author'>#{ data.author }</span>"
-      nod  
+        nod = Nod.create("<div>#{ data.name }</div>")
+        nod.addClass 'item'
+        nod.append "<span class='author'>#{ data.author }</span>"
+        nod  
 
     @test_div.append """
-        <div class="pi" data-component="list" data-renderer="test/item" data-plugins="jst_renderer filterable" data-pid="test" style="position:relative">
+        <div class="pi" data-component="list" data-renderer="jst(test/item)" data-plugins="filterable" data-pid="test" style="position:relative">
           <ul class="list">
           </ul>
         </div>

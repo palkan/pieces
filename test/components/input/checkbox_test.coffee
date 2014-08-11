@@ -8,20 +8,20 @@ describe "checkbox component", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi checkbox-wrap" data-pid="test" style="position:relative">
+        <div class="pi pi-checkbox-wrap" data-pid="test" style="position:relative">
           <label>CheckBox</label>
           <input type="hidden" value="0"/>
         </div>
-        <div class="pi checkbox-wrap is-selected" data-pid="test2" style="position:relative">
+        <div class="pi pi-checkbox-wrap is-selected" data-pid="test2" style="position:relative">
           <label>CheckBox2</label>
           <input type="hidden" value="0"/>
         </div>
-        <div class="pi checkbox-wrap" data-pid="test3" style="position:relative">
+        <div class="pi pi-checkbox-wrap" data-pid="test3" style="position:relative">
           <label>CheckBox2</label>
           <input type="hidden" value="1"/>
         </div>
       """
-    pi.app.initialize()
+    pi.app.view.piecify()
     @test1 = $('@test')
     @test2 = $('@test2')
     @test3 = $('@test3') 

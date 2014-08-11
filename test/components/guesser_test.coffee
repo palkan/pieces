@@ -26,7 +26,7 @@ describe "guesser test", ->
       expect(G.find(nod)).to.eq 'button'
 
     it "should guess list", ->
-      nod = Nod.create('<div class="pi list" href="#" style="position:relative"></div>')
+      nod = Nod.create('<div class="pi pi-list" href="#" style="position:relative"></div>')
       expect(G.find(nod)).to.eq 'list'
 
     it "should guess list by tag", ->
@@ -45,7 +45,7 @@ describe "guesser test", ->
 
     it "should guess text input by class", ->
       nod = Nod.create '''
-        <div class="pi text-input" href="#" style="position:relative">
+        <div class="pi pi-text-input-wrap" href="#" style="position:relative">
         </div>'''
       expect(G.find(nod)).to.eq 'text_input'
 

@@ -4,6 +4,8 @@ do (context = this) ->
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
+  _renderer_reg = /(\w+)(?:\(([\w\-\/]+)\))?/
+
   # Basic list component
 
   class pi.List extends pi.Base
@@ -52,6 +54,7 @@ do (context = this) ->
       @buffer = document.createDocumentFragment()
 
     initialize: () ->
+      @item_renderer ||= @_setup_renderer()
       @items_cont = @find(".#{ @list_klass }") || @
       @parse_html_items()
 
@@ -63,13 +66,6 @@ do (context = this) ->
             @_item_clicked(e.target) 
             e.cancel()
     
-    item_renderer: (nod) -> 
-      unless nod instanceof pi.Base
-        nod = nod.piecify()
-      utils.extend nod, nod.data()
-      nod.addClass @item_klass
-      nod
-
     parse_html_items: () ->
       @items_cont.each ".#{ @item_klass }", (node) =>   
         @add_item pi.Nod.create(node)
@@ -188,13 +184,22 @@ do (context = this) ->
     _create_item: (data) ->
       if data instanceof pi.Nod and data.is_list_item
         return data
-      item = @item_renderer data
+      item = @item_renderer.render data
       item.is_list_item = true
       item
 
     _destroy_item: (item) ->
       item.remove()
       item.dispose()
+
+    _setup_renderer: ->
+      if @options.renderer? and _renderer_reg.test(@options.renderer)
+        [_, name, param] = @options.renderer.match _renderer_reg
+        klass = pi.List.Renderers[utils.camelCase(name)]
+        if klass?
+          return new klass(param)
+      new pi.List.Renderers.Base()
+
 
     _flush_buffer: (append = true) ->
       @items_cont.append @buffer if append
@@ -205,4 +210,18 @@ do (context = this) ->
       item = @items[target.data('list-index')]
       @trigger 'item_click', {item: item}
 
-  pi.Guesser.rules_for 'list', ['list','list-container'], ['ul'], (nod) -> !!nod.find('ul')
+  pi.List.Renderers = {}
+
+  class pi.List.Renderers.Base
+    render: (nod) ->
+      @_render nod, nod.data() 
+
+    _render: (nod, data) ->
+      unless nod instanceof pi.Base
+        nod = nod.piecify()
+      utils.extend nod, data
+      nod
+
+  pi.Guesser.rules_for 'list', ['pi-list'], ['ul'], 
+    (nod) -> 
+      nod.children('ul').length is 1

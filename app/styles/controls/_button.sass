@@ -10,7 +10,6 @@
   background: $bg
   border-color: $border
   transition: background 200ms
-  margin-left: 8px
   &:hover
     background: lighten($bg,5%)
     transition: none
@@ -25,30 +24,18 @@
 @mixin button-rounded
   border-radius: 2px
 
-%button-red
+.button-red
   +button($red-button,$red-button-border)
+  +button-rounded
 
-%button-grey
+.button-grey
   +button($grey-button,$grey-button-border,$grey-btn-text)
+  +button-rounded
 
-%button-green
+.button-green
   +button($green-button, $green-button-border)
+  +button-rounded
 
-%button-blue
+.button-blue
   +button($blue-button, $blue-button-border)
-
-.button-cancel
   +button-rounded
-  @extend %button-grey
-
-.button-save
-  +button-rounded
-  @extend %button-blue
-
-.button-enter
-  +button-rounded
-  @extend %button-green
-
-.button-finish
-  +button-rounded
-  @extend %button-grey

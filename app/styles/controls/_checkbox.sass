@@ -1,24 +1,25 @@
-.checkbox-wrap
+.pi-checkbox-wrap
   display: inline-block
   cursor: pointer
   user-select: none
+  position: relative
   .fa-check-square-o
     display: none   
-  .checkbox-input
-    display: none
   .cb-label
     cursor: pointer
-  .fa
-    margin-right: 6px
+    padding-left: 28px
+    line-height: 28px
+  &:before
+    font-family: FontAwesome
     font-size: 22px
     color: $grey-line
     top: 4px
-    position: relative
+    position: absolute
+    left: 0
     width: 22px
+    content: "\f096"
   &.is-selected
-    .fa-check-square-o
-      display: inline-block
-    .fa-square-o
-      display: none
+    &:before
+      content: "\f046"
   &.is-disabled
     opacity: .7

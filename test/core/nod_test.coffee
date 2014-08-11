@@ -122,8 +122,13 @@ describe "pieces nod", ->
       expect(sp.parent('.pi')).to.eq @test_div
 
 
-     it "should not find parent by selector", ->
+    it "should not find parent by selector", ->
       expect(@test_div.parent('.abcd')).to.be.null
+
+
+    it "should find children by selector", ->
+      @test_div.html('<div class="a"><div class="b"><span class="a">1</span></div></div>')
+      expect(@test_div.children('.a')).to.have.length 1
 
 
 

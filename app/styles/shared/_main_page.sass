@@ -19,78 +19,17 @@ $item-pad: 20px
     background-image: url(../images/cover.jpg)
     background-size: cover
     background-position: bottom
-
+  .title
+    width: 100%
+    text-align: left
+    font-size: $font-size-large
+    padding: 0 0 20px 0
   .content
     @extend %centered
     .title
-      width: 100%
-      text-align: center
-      font-size: $font-size-large
-      padding: 0 0 20px 0
-    .slider
-      height: $slider-height
-      display: block
-      overflow: hidden
-      position: relative
-      .item
-        +font($font-size-base, $black)
-        background: transparentize($white,.1)
-        height: ($slider-height - 2*$item-pad)
-        width: $item-width
-        padding: $item-pad
-        position: absolute
-        transition: top 200ms
-        .title
-          text-align: center
-          width: 100%
-          +font($font-size-big, $black)
-          padding-bottom: 10px
-          margin: 10px 0
-          border-bottom: 2px solid $green
-        &.is-hidden
-          top: 300px
-        .player
-          position: absolute
-          left: ($item-width + 2*$item-pad+100)
-          top: $item-pad
-          bottom: $item-pad
-          width: ((9/5)* ($slider-height - 2*$item-pad))
-    .column-3
-      display: block
-      float: left
-      width: 33%
-      .icon
-        text-align: center
-        padding: 20px
-        &.large
-          font-size: 60px
-      .desc
-        padding: 0 20px
-    &.news
-      .picture
-        cursor: pointer
-        filter: grayscale(1)
-        transition: filter 0.7s $easeOutQuart
-        padding: 0 20px
-        position: relative
-        display: block
-        &:hover
-          filter: grayscale(0)
-        .picture-img
-          border: 2px solid $green
-          width: 270px
-          height: 180px
-        .datetime
-          position: absolute
-          left: 22px
-          top: 2px
-          background: $green
-          text-align: center
-          color: white
-          padding: 2px 10px
-          .date
-            font-size: $font-size-big
-      .heading
-        color: $green
-        padding: 10px 0
-
+      font-size: $font-size-menu
+      padding: 0 0 10px 0
+  &.file-input-ex
+    .list-container
+      margin-left: 50px
+      width: 400px

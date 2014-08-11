@@ -7,4 +7,4 @@ do (context = this) ->
   class pi.Button extends pi.Base
 
 
-  pi.Guesser.rules_for 'button', ['button'], ['button','a','input[button]']
+  pi.Guesser.rules_for 'button', ['pi-button'], ['button','a','input[button]']

@@ -21,10 +21,8 @@ do (context = this) ->
         if el.matches(selector)
           acc.push el
         else        
-          if (nod = el.querySelector(selector))
-            el.nextSibling && rest.unshift(el.nextSibling)
-            el = nod
-            continue
+          el.firstChild && rest.unshift(el.firstChild)
+
         el = el.nextSibling || rest.shift()        
     
       acc
@@ -116,7 +114,8 @@ do (context = this) ->
     # define instance vars here and other props
     preinitialize: ->
       @node._nod = @
-      @pid = @data('pid') || @node.id
+      @__components__ = {}
+      @pid = @data('pid') || @attr('pid') || @node.id
       @visible = @enabled = true
       @active = false
 
@@ -126,7 +125,6 @@ do (context = this) ->
 
     # setup instance initial state (but not children)
     initialize: ->       
-      @__components__ = {}
       @disable() if (@options.disabled || @hasClass('is-disabled'))
       @hide() if (@options.hidden || @hasClass('is-hidden'))
       @activate() if (@options.active || @hasClass('is-active'))
@@ -159,7 +157,7 @@ do (context = this) ->
       for node in @find_cut('.pi')
         do (node) =>
           child = pi.init_component node, @
-          if child.pid?
+          if child.pid
             @[child.pid] = child
             @__components__[child.pid] = child
       return
@@ -337,9 +335,6 @@ do (context = this) ->
   # Global Event Dispatcher
 
   pi.event = new pi.EventDispatcher()
-
-  # setup app view
-  pi.app.view = pi.piecify Nod.body
 
   # return component by its path (relative to app.view)
   # find('a.b.c') -> app.view.a.b.c
