@@ -79,7 +79,7 @@ Conditions and logical operators to be done... Maybe.
    function after(delay, fun, this){...} 
 
    // Uniq string id
-   function uuid(){...}
+   function uid(){...}
 
    // Camel case and snake case conversions
    pi.utils.camelCase("my_super_class") = "MySuperClass"

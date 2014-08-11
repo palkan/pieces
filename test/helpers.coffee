@@ -53,6 +53,15 @@ class pi.Test3 extends pi.Test
   @include pi.TestComponent.Renameable, pi.Base.Helloable
 
 
+class pi.Testo extends pi.resources.Base
+  @set_resource 'testos'
+
+
+class pi.Salt extends pi.resources.Base
+  @set_resource 'salts'
+
+
+
 this.TestHelpers = 
   mouseEventElement: (el,type, x=0, y=0) ->
     ev = document.createEvent "MouseEvent"

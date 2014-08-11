@@ -13,6 +13,7 @@ exports.config =
         'js/static.js': /^app\/.*.jade$/
         'js/pieces.core.js': /^app[\\/]core/
         'js/pieces.js': /^app[\\/](components|plugins)/
+        'js/pieces.rest.js': /^app[\\/](net|resources|views|controllers)/
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
         'test/js/test.js': /^test/
         'test/js/test-vendor.js': /^vendor[\\/](?=test)/
@@ -29,6 +30,9 @@ exports.config =
             'app/components/pieces.coffee',
             /^app[\\/]components/,
             'app/plugins/plugin.coffee',
+            'app/resources/base.coffee',
+            'app/views/view.coffee',
+            'app/controllers/base.coffee',
             'test/helpers.coffee'
           ]
         after:

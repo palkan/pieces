@@ -28,7 +28,7 @@ do (context = this) ->
 
   pi.utils =
 
-    uuid: ->
+    uid: ->
       ""+(++_uniq_id)
 
     #Escape regular expression characters (to use string in regexp)

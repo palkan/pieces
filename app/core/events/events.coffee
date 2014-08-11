@@ -29,15 +29,15 @@ do (context = this) ->
 
   class pi.EventListener extends pi.Core
     constructor: (@type, @handler, @context = null, @disposable = false, @conditions) ->
-      @handler._uuid = "fun"+utils.uuid() if not @handler._uuid?
-      @uuid = "#{@type}:#{@handler._uuid}"
+      @handler._uid = "fun"+utils.uid() if not @handler._uid?
+      @uid = "#{@type}:#{@handler._uid}"
 
       unless typeof @conditions is 'function'
         @conditions = _true
 
       if @context?
-        @context._uuid = "obj"+utils.uuid() if not @context._uuid?
-        @uuid+=":#{@context._uuid}"
+        @context._uid = "obj"+utils.uid() if not @context._uid?
+        @uid+=":#{@context._uid}"
       
     dispatch: (event) ->
       if @disposed or !@conditions(event)
@@ -66,7 +66,7 @@ do (context = this) ->
   class pi.EventDispatcher extends pi.Core
     constructor: ->
       @listeners = {} # event_type to listener hash
-      @listeners_by_key = {} # key is event_type:handler_uuid:context_uuid
+      @listeners_by_key = {} # key is event_type:handler_uid:context_uid
 
     # Attach listener
 
@@ -124,7 +124,7 @@ do (context = this) ->
     add_listener: (listener) ->
       @listeners[listener.type] ||= []
       @listeners[listener.type].push listener
-      @listeners_by_key[listener.uuid] = listener
+      @listeners_by_key[listener.uid] = listener
 
     remove_listener: (type, callback, context = null, conditions = null) ->
       if not type?
@@ -139,15 +139,15 @@ do (context = this) ->
         @remove_disposed_listeners()
         return
 
-      uuid = "#{type}:#{callback._uuid}"
+      uid = "#{type}:#{callback._uid}"
 
       if context?
-        uuid+=":#{context._uuid}"
+        uid+=":#{context._uid}"
 
-      listener = @listeners_by_key[uuid]
+      listener = @listeners_by_key[uid]
 
       if listener?
-        delete @listeners_by_key[uuid]
+        delete @listeners_by_key[uid]
         @remove_listener_from_list type, listener
 
       return
