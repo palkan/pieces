@@ -1,0 +1,20 @@
+{
+  "get":
+    {
+      "testos":[
+        {"id":1, "type":"yeast"},
+        {"id":2, "type":"puff"},
+        {"id":3, "type":"salt"}
+      ]
+    },
+  "post":
+    {
+      "testo":{
+        "id": 4,
+        "type": "sugar"
+      }
+    },
+  "delete":
+    {
+    }
+}

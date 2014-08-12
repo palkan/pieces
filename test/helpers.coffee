@@ -61,6 +61,15 @@ class pi.Salt extends pi.resources.Base
   @set_resource 'salts'
 
 
+class pi.TestoRest extends pi.resources.REST
+  @set_resource 'testos'
+  @routes_scope 'test/:path.json'
+  @routes collection: [action: 'destroy_all', path: ':resources', method: 'delete']
+
+  knead: ->
+    @_is_kneading = true
+
+
 
 this.TestHelpers = 
   mouseEventElement: (el,type, x=0, y=0) ->
@@ -97,3 +106,40 @@ this.TestHelpers =
       true #cancelable
     )
     el.dispatchEvent ev 
+
+this.mock_net = ->
+  pi.net.request = (method, url, data, options) ->
+    new Promise(
+      (resolve, reject) ->
+        req = new XMLHttpRequest()
+       
+        params = []
+        if data?
+          params.push("#{ key }=#{ encodeURIComponent(val) }") for own key, val of data
+      
+        params = "#{ params.join("&") }"
+
+        fake_url="/support/#{ url.replace(/\//g,"_") }"
+       
+        req.open 'GET', fake_url, true
+        
+        req.onreadystatechange = ->
+
+          return if req.readyState isnt 4 
+
+          if req.status is 200
+            response = JSON.parse req.responseText
+            method = method.toLowerCase()
+            resolve(if response[method]? then response[method] else response["default"])
+          else
+            reject Error(req.statusText)
+  
+        req.onerror = ->
+          reject Error("Network Error")
+          return
+      
+        req.send(null)
+    )
+
+  pi.net[method] = curry(pi.net.request, [method.toUpperCase()], null) for method in ['get', 'post', 'patch', 'delete']
+  return

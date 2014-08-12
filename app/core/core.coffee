@@ -28,6 +28,10 @@ do(context = this) ->
         @[to].apply(@,args)
       return
 
+    @class_alias: (from, to) ->
+      @[from] = @[to]
+      return
+
     # register before and after callbacks for method
     @register_callback: (method, options={}) ->
       callback_name = options.as || method

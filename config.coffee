@@ -1,6 +1,6 @@
 exports.config =
   conventions:
-    assets: /(assets|vendor\/assets|font)/
+    assets: /(assets|vendor\/assets|fonts)[\\/]/
   modules:
     definition: false
     wrapper: false

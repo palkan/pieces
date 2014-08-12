@@ -36,27 +36,35 @@ do (context = this) ->
 
     @load: (data) ->
       if data?
-        @create(el,true) for el in data
+        @build(el,true) for el in data
 
-    @delete_all: ->
+    @clear_all: ->
+      el.dispose for el in @__all__
       @__all_by_id__ = {}
       @__all__.length = 0
 
     # return resource by id
-    @find: (id) ->
+    @get: (id) ->
       @__all_by_id__[id]
 
-    # create new resource
-    @create: (data={}, silent) ->
-      data.id ||= utils.uid()
-      el = new @(data)
+    @add: (el) ->
       @__all_by_id__[el.id] = el
       @__all__.push el
-      @trigger('create', _wrap(el)) unless silent
-      el
 
-    @destroy: (id, silent) ->
-      el = @find(id)
+    # create new resource
+    @build: (data={}, silent) ->
+      unless (data.id && (el = @get(data.id)))
+        el = new @(data)
+    
+        if el.id
+          @add el  
+          @trigger('create', _wrap(el)) unless silent
+        el
+      else
+        el.set(data)
+
+    @remove: (id, silent) ->
+      el = @get(id)
       if el?
         @__all__.splice @__all__.indexOf(el), 1
         delete @__all_by_id__[el.id]
@@ -81,20 +89,21 @@ do (context = this) ->
       @__all__.slice()
 
     constructor: (data) ->
-      @update(data,true)
-
-    destroy: ->
-      @constructor.destroy @id
+      @set(data,true)
 
     dispose: ->
       for own key,_ of @
         delete @[key]
       @disposed = true
+      @
 
-    update: (params, silent) ->
+    set: (params, silent) ->
+      _changed = false
       for own key,val of params
+        (_changed = true) if @[key]!=val
         @[key] = val
-      @trigger('update') unless silent
+      @trigger('update') if (_changed && !silent)
+      @
 
     trigger: (e) ->
       @constructor.trigger e, _wrap(@)
