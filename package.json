@@ -22,13 +22,15 @@
     "coffee-script": "~1.6.3",
     "coffee-script-brunch": ">= 1.0 < 1.7",
     "uglify-js-brunch": ">= 1.0 < 1.7",
-    
     "clean-css-brunch": ">= 1.0 < 1.7",
     "css-brunch": ">= 1.0 < 1.6",
     "sass-brunch": "~1.7.0",
     "autoprefixer-brunch": "~1.7.0",
-  
     
+    "express": "*",
+    "connect-multiparty":"*",
+    "body-parser":"*",
+
     "jade": "*",
     "jade-brunch": ">= 1.0 < 1.7",
     "static-jade-brunch": ">= 1.0 < 1.7",

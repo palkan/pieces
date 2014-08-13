@@ -3,5 +3,11 @@
     "id": 1,
     "type": "yeast"
   }
-}
+},
+  "patch":{
+    "testo":{
+      "id": 1,
+      "type": "dirt"
+    }
+  }
 }

@@ -4,18 +4,26 @@ do (context = this) ->
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
+  _name_reg = /([^\/\\]+$)/
+
   class pi.FileInput extends pi.BaseInput
     initialize: ->
       super
-      @files = []
+      @_files = []
 
     postinitialize: ->
       super
       @input.on 'change', =>
+        @_files.length = 0
+        # <IE9 hack
+        unless @input.node.files?
+          if @input.node.value
+            @_files.push {name: @input.node.value.split(_name_reg)[1]}
+            @trigger('files_selected',@_files) 
+          return
         if @input.node.files.length
-          @files.length = 0
-          @files.push(file) for file in @input.node.files
-          @trigger 'files_selected', @files
+          @_files.push(file) for file in @input.node.files
+          @trigger 'files_selected', @_files
         else
           @clear()
     multiple: (value) ->
@@ -26,9 +34,9 @@ do (context = this) ->
     
     clear: ->
       super
-      @files.length = 0
+      @_files.length = 0
 
     files: ->
-      @files
+      @_files
 
   pi.Guesser.rules_for 'file_input', ['pi-file-input-wrap'], 'input[file]', (nod) -> nod.children("input[type=file]").length is 1

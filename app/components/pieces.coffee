@@ -82,7 +82,6 @@ do (context = this) ->
     enable: ->
       unless @enabled 
         @removeClass 'is-disabled'
-        @attr 'disabled',null
         @enabled = true
         @trigger 'enabled', true
       @
@@ -90,7 +89,6 @@ do (context = this) ->
     disable: ->
       if @enabled
         @addClass 'is-disabled'
-        @attr 'disabled', 'disabled'
         @enabled = false
         @trigger 'enabled', false
       @

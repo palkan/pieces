@@ -6,6 +6,11 @@ exports.config =
     wrapper: false
   paths:
     public: 'public'
+  server: 
+    path: 'app.js' 
+    port: 3333 
+    base: '/' 
+    run: yes
   files:
     javascripts:
       defaultExtension: 'coffee'
@@ -13,6 +18,7 @@ exports.config =
         'js/static.js': /^app\/.*.jade$/
         'js/pieces.core.js': /^app[\\/]core/
         'js/pieces.js': /^app[\\/](components|plugins)/
+        'js/demo.js': /^app[\\/]demo/
         'js/pieces.rest.js': /^app[\\/](net|resources|views|controllers)/
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
         'test/js/test.js': /^test/
@@ -38,6 +44,7 @@ exports.config =
         after:
           [
             /^app[\\/]plugins/,
+            'app/net/iframe.upload.coffee',
             'app/components/action_list.coffee',
             /^app[\\/]components[\\/]renderers/
           ]

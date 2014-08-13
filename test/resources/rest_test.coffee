@@ -1,12 +1,16 @@
 describe "Pieces REST", ->
-  mock_net()
+  
   describe "rest resources test", ->
     Testo = pi.TestoRest
     R = $r.REST
 
+    beforeEach ->
+      mock_net()
+
     afterEach ->
       Testo.clear_all()
       Testo.off()
+      unmock_net()
 
     describe "path interpolation", ->
       it "should interpolate without scope", ->
@@ -92,6 +96,7 @@ describe "Pieces REST", ->
         Testo.listen (e) ->
           expect(e.data.type).to.eq 'update'
           expect(e.data.testo.id).to.eq 1
+          expect(Testo.get(1).type).to.eq 'dirt'
           done()
 
         Testo.find(1).then( (item) ->

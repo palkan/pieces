@@ -108,38 +108,45 @@ this.TestHelpers =
     el.dispatchEvent ev 
 
 this.mock_net = ->
-  pi.net.request = (method, url, data, options) ->
-    new Promise(
-      (resolve, reject) ->
-        req = new XMLHttpRequest()
-       
-        params = []
-        if data?
-          params.push("#{ key }=#{ encodeURIComponent(val) }") for own key, val of data
+  pi._orig_net = pi.net
+  pi.net = (pi._mock_net ||= ( ->
+    net =
+      request: (method, url, data, options) ->
+        new Promise(
+          (resolve, reject) ->
+            req = new XMLHttpRequest()
+           
+            params = []
+            if data?
+              params.push("#{ key }=#{ encodeURIComponent(val) }") for own key, val of data
+          
+            params = "#{ params.join("&") }"
+
+            fake_url="/support/#{ url.replace(/\//g,"_") }"
+           
+            req.open 'GET', fake_url, true
+            
+            req.onreadystatechange = ->
+
+              return if req.readyState isnt 4 
+
+              if req.status is 200
+                response = JSON.parse req.responseText
+                method = method.toLowerCase()
+                resolve(if response[method]? then response[method] else response["default"])
+              else
+                reject Error(req.statusText)
       
-        params = "#{ params.join("&") }"
-
-        fake_url="/support/#{ url.replace(/\//g,"_") }"
-       
-        req.open 'GET', fake_url, true
-        
-        req.onreadystatechange = ->
-
-          return if req.readyState isnt 4 
-
-          if req.status is 200
-            response = JSON.parse req.responseText
-            method = method.toLowerCase()
-            resolve(if response[method]? then response[method] else response["default"])
-          else
-            reject Error(req.statusText)
-  
-        req.onerror = ->
-          reject Error("Network Error")
-          return
-      
-        req.send(null)
-    )
-
-  pi.net[method] = curry(pi.net.request, [method.toUpperCase()], null) for method in ['get', 'post', 'patch', 'delete']
+            req.onerror = ->
+              reject Error("Network Error")
+              return
+          
+            req.send(null)
+        )
+    net[method] = curry(net.request, [method.toUpperCase()], net) for method in ['get', 'post', 'patch', 'delete']
+    net
+    )())
   return
+
+this.unmock_net = ->
+  pi.net = pi._orig_net

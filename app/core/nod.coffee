@@ -150,6 +150,19 @@ do (context = this) ->
     
       acc
 
+    # set multiple attributes
+    attrs: (data) ->
+      for own name,val of data        
+        @attr name, val
+      @
+
+    # set multiple styles
+    styles: (data) ->
+      for own name,val of data        
+        @style name, val
+      @
+
+
     # return parent Element as Nod
 
     parent: (selector) ->
@@ -347,12 +360,12 @@ do (context = this) ->
       
       prop = prop.replace("-","_")
 
-      if val is undefined 
-        return @_data[prop]
       if val is null
         val = @_data[prop]
         delete @_data[prop]
-        val
+        return val
+      if val is undefined 
+        @_data[prop]
       else
         @_data[prop] = val
         @
@@ -369,12 +382,12 @@ do (context = this) ->
   _prop_hash(
     "attr", 
     (prop, val) ->
-      if val is undefined 
-        return @node.getAttribute prop
       if val is null 
         @node.removeAttribute prop
-      
-      @node.setAttribute prop, val
+      else if val is undefined 
+        @node.getAttribute prop
+      else
+        @node.setAttribute prop, val
   )
 
   _geometry_styles ["top", "left", "width", "height"]

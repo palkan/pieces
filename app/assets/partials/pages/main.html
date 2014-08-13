@@ -5,17 +5,20 @@
     <div class="field size">{{size}}</div>
   </li>
 </script>
-<div pid="file_input" class="section white pi file-input-ex">
+<div pid="file_input_section" data-component="uploader" data-url="/upload" class="section white pi file-input-ex">
   <h1 class="title">File input</h1>
   <div class="content">
     <div class="inline">
-      <div pid="btn" data-on-files_selected="@host.list.data_provider(e.data)" class="pi button-blue pi-file-input-wrap"> <span>choose file</span>
-        <input type="file" class="file-input"/>
-      </div>
-      <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">
-        <label class="cb-label">Multiple?</label>
-        <input type="hidden"/>
-      </div>
+      <form pid="form" class="pi">
+        <div pid="btn" data-on-files_selected="@host.host.list.data_provider(e.data)" class="pi button-blue pi-file-input-wrap"> <span>choose file</span>
+          <input type="file" name="attachment[file]" class="file-input"/>
+        </div>
+        <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">
+          <label class="cb-label">Multiple?</label>
+          <input type="hidden" name="attachment[multiple]"/>
+        </div>
+      </form>
+      <button pid="upload_btn" class="pi button-red">upload</button>
     </div>
     <div pid="list" data-renderer="mustache(file_item_mst)" class="pi inline list-container">
       <h2 class="title">Selected files</h2>

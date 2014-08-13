@@ -4,73 +4,123 @@ do (context = this) ->
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
-  _prepare_response = (xhr) ->
-    type = xhr.getResponseHeader 'Content-Type'
-    response = 
-      if /json/.test type
-        JSON.parse xhr.responseText
+  
+  class pi.Net
+    @_prepare_response: 
+      (xhr) ->
+        type = xhr.getResponseHeader 'Content-Type'
+        response = 
+          if /json/.test type
+            JSON.parse xhr.responseText
+          else
+            xhr.responseText
+        utils.debug 'XHR response', xhr.responseText
+        response
+
+    @_is_success: 
+      (status) ->
+       (status >= 200 and status <300) or (status is 304) 
+
+    @_with_prefix: (prefix,key) ->
+      if prefix
+        "#{prefix}[#{key}]"
       else
-        xhr.responseText
-    response
+        key
 
-  _is_success = (status) ->
-     (status >= 200 and status <300) or (status is 304) 
+    @_to_params: 
+      (data,prefix="") ->
+        params = []
+        
+        if not data? 
+          return params
 
-  _data_to_params = 
-    (data) ->
-      params = []
-      if data?
-        params.push("#{ key }=#{ encodeURIComponent(val) }") for own key, val of data
-      params
+        if typeof data isnt 'object'    
+          params.push({name: prefix, value: data})
+        else
+          if data instanceof Date
+            params.push({name: prefix, value: data.getTime()})
+          else if data instanceof Array
+            prefix+="[]"
+            for item in data
+              params = params.concat @_to_params item, prefix
+          # IE hach: instanceof throws Reference error if argument is undefined
+          else if (!!context.File and ((data instanceof File) or (data instanceof Blob)))
+            params.push({name: prefix, value: data})
+          else
+            for own key, val of data
+              params = params.concat @_to_params(val, @_with_prefix(prefix,key))
+        params
 
-  _data_to_form = (
-    if context.FormData?
+    @_data_to_query:
       (data) ->
-        form = new FormData()
-        for own key,val of data
-          form.append key, val
-        form
-    else
-      _data_to_params
-  )()
+        q = []
+        for param in @_to_params(data)
+          q.push "#{param.name}=#{encodeURIComponent(param.value)}"
+        q.join "&"
 
-  pi.net = 
-    use_json: true
-    headers: []
-    request: (method, url, data, options={}, xhr) ->
+    @_data_to_form: 
+      (
+        if !!context.FormData
+          (data) =>
+            form = new FormData()
+            for param in @_to_params(data)
+              form.append param.name, param.value
+            form
+        else
+          (data) => @_data_to_query data
+      )
+
+    @use_json: true
+    @headers: []
+    
+    @request: (method, url, data, options={}, xhr) ->
       new Promise( 
-        (resolve, reject) ->
+        (resolve, reject, progress) =>
           req = xhr || new XMLHttpRequest()
+
+          use_json = if options.json? then options.json else @use_json
           
           _headers = utils.merge pi.net.headers, (options.headers||{})
 
           if (method is 'GET')
-            params = _data_to_params data
-            url+="?#{ params.join("&") }"
+            q = @_data_to_query data
+            if q
+              if url.indexOf("?")<0
+                url+="?"
+              else
+                url+="&"
+              url+="#{ q }"
             data = null
           else
-            if pi.net.use_json  
+            if use_json  
               _headers['Content-Type'] = 'application/json'
               data = JSON.stringify(data) if data?
             else
-              data = _data_to_form data
+              data = @_data_to_form data
 
           req.open method, url, true
+          req.withCredentials = !!options.withCredentials
           req.setRequestHeader(key,value) for own key,value of _headers
 
           _headers = null
 
-          req.onreadystatechange = ->
+          if typeof progress is 'function'  
+            req.upload.onprogress = (event) => 
+              value = if event.lengthComputable then event.loaded * 100 / event.total else 0
+              progress(Math.round(value)) if progress?
+
+
+          req.onreadystatechange = =>
 
             return if req.readyState isnt 4 
 
-            if _is_success(req.status)
-              resolve _prepare_response(req)
+            if @_is_success(req.status)
+              resolve @_prepare_response(req)
             else
               reject Error(req.statusText)
 
   
-          req.onerror = ->
+          req.onerror = =>
             reject Error("Network Error")
             return
       
@@ -80,40 +130,45 @@ do (context = this) ->
     # Upload file using XHR
     # Available options:
     #   method [String] request method (default to POST)
-    #   name [String] POST field name (default to 'file')
     #   headers [Object] Custom headers
-    upload: (file, url, data = {}, options={}, xhr) ->
+    @upload: (url, data = {}, options={}, xhr) ->
+      throw Error('File upload not supported') unless @XHR_UPLOAD
+
+      method = options.method||'POST'
+      options.json = false
+
+      @request method, url, data, options, xhr
+      
+    # Upload file using IFrame
+    # Available options:
+    #   method [String] request method (default to POST) 
+    #   as_json [Boolean] whether to parse response as json or not (default is equal to pi.Net.use_json)
+
+    @iframe_upload: (form, url, data={}, options={}) -> 
+      as_json = if options.as_json? then options.as_json else @use_json
+
+      form = pi.Nod.create(form) unless form instanceof pi.Nod
+
+      throw Error('Form is undefined') unless form?
+
+      method = options.method || 'POST'
+
       new Promise(
-        (resolve, reject, progress) ->
-          req = xhr || new XMLHttpRequest()
-          
-          _headers = utils.merge pi.net.headers, (options.headers||{})
+          (resolve, reject) =>
+            pi.net.IframeUpload.upload(form, url, @_to_params(data), method).then( 
+              (response) => 
+                reject Error('Response is empty') unless response?
 
-          options.name ||= 'file'
-          
-          form = new FormData()
-          form.append options.name, file
-          
-          for own key,val of data
-            form.append(key, val)
-              
-          if typeof options.progress is 'function'  
-            req.upload.onprogress = (event) => 
-              value = if event.lengthComputable then event.loaded * 100 / event.total else 0
-              progress(Math.round(value)) if progress?
+                resolve(response.innerHtml) unless as_json
 
-          req.onload = ->
-            resolve _prepare_response(req)
+                response = JSON.parse response.innerHTML
+                resolve response
+            ).catch((e) -> reject e)
+        )
 
-          req.onerror = ->
-            reject Error("Network Error: "+req.responseText)
-            return
-            
-          req.open(options.method||'POST', url, true)
-          req.withCredentials = !!options.withCredentials
-          req.setRequestHeader(key,value) for own key,value of _headers
+  pi.Net.XHR_UPLOAD = !!context.FormData
 
-          req.send form
-          )
+  # backward compatibility
+  pi.net = pi.Net
     
-  pi.net[method] = curry(pi.net.request, [method.toUpperCase()], null) for method in ['get', 'post', 'patch', 'delete']
+  pi.net[method] = curry(pi.net.request, [method.toUpperCase()], pi.net) for method in ['get', 'post', 'patch', 'delete']
