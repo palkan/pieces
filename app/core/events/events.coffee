@@ -64,6 +64,8 @@ do (context = this) ->
   # @private
 
   class pi.EventDispatcher extends pi.Core
+    listeners: ''
+    listeners_by_key: ''
     constructor: ->
       @listeners = {} # event_type to listener hash
       @listeners_by_key = {} # key is event_type:handler_uid:context_uid

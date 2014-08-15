@@ -75,5 +75,3 @@ do (context = this) ->
             return match
 
       return 'base'
-
-  pi.app = new pi.App()

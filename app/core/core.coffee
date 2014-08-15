@@ -20,6 +20,12 @@ do(context = this) ->
         utils.extend @::, mixin::, true, ['constructor']
         mixin.included @
 
+    # extend class with mixin class methods
+    @extend: (mixins...) ->
+      for mixin in mixins
+        utils.extend @, mixin, true
+        mixin.extended @
+
     @class_name: ->
       klass_name @
 

@@ -21,7 +21,9 @@ exports.config =
         'js/demo.js': /^app[\\/]demo/
         'js/pieces.rest.js': /^app[\\/](net|resources|views|controllers)/
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
-        'test/js/test.js': /^test/
+        'test/js/test.helpers.js': /^test\/helpers\.coffee/
+        'test/js/test.js': /^test[\\/](?!rvc)/
+        'test/js/test.rvc.js': /^test[\\/](?=rvc)/
         'test/js/test-vendor.js': /^vendor[\\/](?=test)/
       order:
         before:
@@ -37,8 +39,10 @@ exports.config =
             /^app[\\/]components/,
             'app/plugins/plugin.coffee',
             'app/resources/base.coffee',
-            'app/views/view.coffee',
             'app/controllers/base.coffee',
+            'app/controllers/page.coffee',
+            'app/controllers/modules/scoped.coffee',
+            'app/views/view.coffee',
             'test/helpers.coffee'
           ]
         after:
@@ -46,7 +50,8 @@ exports.config =
             /^app[\\/]plugins/,
             'app/net/iframe.upload.coffee',
             'app/components/action_list.coffee',
-            /^app[\\/]components[\\/]renderers/
+            /^app[\\/]components[\\/]renderers/,
+            /^app[\\/]controllers/,
           ]
     stylesheets:
       defaultExtension: 'sass'

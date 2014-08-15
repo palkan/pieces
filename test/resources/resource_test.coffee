@@ -24,7 +24,7 @@ describe "Pieces REST base", ->
         expect(Salt.get(4)).to.be.undefined
 
       it "should destroy item", ->
-        res = Salt.remove(1)
+        res = Salt.remove_by_id(1)
         expect(res.id).to.be.undefined
         expect(Salt.get(1)).to.be.undefined
 
@@ -63,6 +63,7 @@ describe "Pieces REST base", ->
 
         t.set {type: 'yeast'}
 
+
       it "should not send update event if no changes",(done) ->
         t = Testo.all()[1]
         Testo.listen (e) ->
@@ -73,5 +74,14 @@ describe "Pieces REST base", ->
 
         t.set {type: 'blinno'}
 
+      it "should send update event on destroy event if element is not stored",(done) ->
+        t = new Testo({type: 'hoho', id: 123})
+        Testo.listen (e) ->
+          expect(e.data.type).to.eq 'destroy'
+          expect(e.data.testo.id).to.eq 123
+          expect(e.data.testo.type).to.eq 'hoho'
+          done()
+
+        Testo.remove t
 
      

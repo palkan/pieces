@@ -29,7 +29,7 @@ describe "selectable list plugin", ->
       TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'item_click', (event) =>
-        expect(@list.selected()[0].key).to.equal "anyone"
+        expect(@list.selected()[0].record.key).to.equal "anyone"
         done()
 
       TestHelpers.clickElement $('@test').find('[data-id="3"]').node
@@ -52,8 +52,8 @@ describe "selectable list plugin", ->
       @list.add_item item
 
       @list.on 'selected', (event) =>
-        expect(@list.selected()[0].key).to.equal 'new'
-        expect(event.data.key).to.equal 'new'
+        expect(@list.selected()[0].record.key).to.equal 'new'
+        expect(event.data.record.key).to.equal 'new'
         done()
 
       TestHelpers.clickElement $('@test').find('[data-id="4"]').node

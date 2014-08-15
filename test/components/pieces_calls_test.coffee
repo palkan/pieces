@@ -19,7 +19,7 @@ describe "pieces calls", ->
 
       @test_div.append('<a id="call1" href="@test1.text(pong)">Text</div>')
       @test_div.append('<a id="call2" href="@test2.text(@test1.text)">Text</div>')
-      @test_div.append('<a id="call3" href="@test2.btn.hide">Hide</div>')
+      @test_div.append('<a id="call3" href="@test2.btn.hide()">Hide</div>')
       @test_div.append('<a id="call4" href="@test1.text(ABC)">ABC</div>')
       @test_div.append('<a id="call5" href="@test1.addClass(\'A\',\'B\',\'is-dead\')">ABC</div>')
       @test_div.append('<a id="call6" href="@test1.addClass(@test2.name,\'B\')">ABC</div>')
@@ -107,3 +107,18 @@ describe "pieces calls", ->
       expect(@example.c5.visible).to.be.true
       @example.c5.value_trigger 1
       expect(@example.c5.visible).to.be.false
+
+  describe "pi calls with view", ->
+    beforeEach  ->
+      @test_div.append('''
+        <div class="pi" data-pid="test" data-component="view.base">
+          <span pid="btn" class="pi" data-on-click="@this.view.log.text('bla')"></span>
+          <span pid="log" class="pi">loggo</span>
+        </div>
+        ''')
+      pi.app.view.piecify()
+      @example = $("@test")
+
+    it "should work with bool condition", ->
+      TestHelpers.clickElement @example.btn.node
+      expect(@example.log.text()).to.eq 'bla'

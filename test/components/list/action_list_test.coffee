@@ -29,7 +29,7 @@ describe "action_list component", ->
       TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 
       @list.on 'item_click', (event) =>
-        expect(@list.selected()[0].key).to.equal "anyone"
+        expect(@list.selected()[0].record.key).to.equal "anyone"
         done()
 
       TestHelpers.clickElement $('@test').find('[data-id="3"]').node
@@ -45,5 +45,5 @@ describe "action_list component", ->
       expect(@list.size()).to.equal 1
 
     it "should sort by key", ->  
-      @list.sort 'key', true
+      @list.sort {key:'asc'}
       expect($('@test').first('.item .tags').text()).to.equal 'bully,zombopuppy'

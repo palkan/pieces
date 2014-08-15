@@ -94,7 +94,9 @@ do (context = this) ->
     @_create_html: (html) ->
       temp = document.createElement 'div'
       temp.innerHTML = html
-      new @(temp.firstChild)
+      node = temp.firstChild
+      temp.removeChild node
+      new @(node)
 
     # return first matching element as Nod
 
@@ -167,7 +169,10 @@ do (context = this) ->
 
     parent: (selector) ->
       unless selector?
-        pi.Nod.create @node.parentNode
+        if @node.parentNode?
+          pi.Nod.create(@node.parentNode) 
+        else
+          null
       else
         p = @node
         while((p = p.parentNode) && (p != document))
@@ -268,6 +273,13 @@ do (context = this) ->
       else
         @node.innerHTML
 
+    outerHTML: (val) ->
+      if val?
+        @node.outerHTML = val
+        @
+      else
+        @node.outerHTML
+
     text: (val) ->
       if val?
         @node.textContent = val
@@ -297,6 +309,11 @@ do (context = this) ->
     hasClass: (c) ->
       @node.classList.contains c
 
+    mergeClasses: (nod) ->
+      for klass in nod.node.className.split(/\s+/)
+        @addClass klass
+      @
+      
     x: ->
       offset = @node.offsetLeft
       node = @node

@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../stylesheets/test.css" />
+    <link rel="stylesheet" href="../../css/app.css" />
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="../js/test-vendor.js"></script>
+    <script>
+      mocha.ui('bdd');
+      mocha.reporter('html');
+      expect = chai.expect;
+    </script>
+    <script src="../../js/vendor.js"></script>
+    <script src="../../js/pieces.core.js"></script>
+    <script src="../../js/pieces.js"></script>
+    <script src="../../js/pieces.rest.js"></script>
+    <script src="../js/test.helpers.js"></script>
+    <script src="../js/test.rvc.js"></script>
+    <script>
+      pi.log_level = "debug";
+      pi.app.initialize()
+      if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
+      else { mocha.run(); }
+    </script>
+  </body>
+</html>

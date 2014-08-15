@@ -47,23 +47,27 @@ describe "pieces utils", ->
   describe "sorting", ->
     it "should sort by key", ->
       arr = [ {key: 1}, {key: 3}, {key: 2}, {key: -2} ]
-      expect(pi.utils.sort_by(arr,'key')).to.eql([ {key: 3}, {key: 2}, {key: 1}, {key: -2} ])
+      expect(pi.utils.sort_by(arr,'key', 'desc')).to.eql([ {key: 3}, {key: 2}, {key: 1}, {key: -2} ])
 
     it "should sort by key asc", ->
       arr = [ {key: 1}, {key: 3}, {key: 2}, {key: -2} ]
-      expect(pi.utils.sort_by(arr,'key',true)).to.eql([ {key: -2}, {key: 1}, {key: 2}, {key: 3} ])
+      expect(pi.utils.sort_by(arr,'key')).to.eql([ {key: -2}, {key: 1}, {key: 2}, {key: 3} ])
 
     it "should sort by many keys", ->
       arr = [ {key: 1, name: "bob"}, {key: 2, name: "jack"}, {key: 2, name: "doug"}, {key: -2} ]
-      expect(pi.utils.sort(arr,['key','name'])).to.eql([ {key: 2, name:'jack'}, {key: 2, name: 'doug'}, {key: 1, name: 'bob'}, {key: -2} ])
+      expect(pi.utils.sort(arr,[{key:'desc'},{name:'desc'}])).to.eql([ {key: 2, name:'jack'}, {key: 2, name: 'doug'}, {key: 1, name: 'bob'}, {key: -2} ])
 
     it "should sort by many keys asc", ->
       arr = [ {key: 1, name: "bob"}, {key: 2, name: "jack"}, {key: 2, name: "doug"}, {key: -2} ]
-      expect(pi.utils.sort(arr,['name','key'],true)).to.eql([ {key: -2}, {key: 1, name: 'bob'}, {key: 2, name: 'doug'}, {key: 2, name:'jack'} ])
+      expect(pi.utils.sort(arr,[{name:'asc'},{key:'asc'}],true)).to.eql([ {key: -2}, {key: 1, name: 'bob'}, {key: 2, name: 'doug'}, {key: 2, name:'jack'} ])
 
     it "should sort by many keys with diff orders", ->
       arr = [ {key: 1, name: "bob"}, {key: 2, name: "jack"}, {key: 2, name: "doug"}, {key: -2} ]
-      expect(pi.utils.sort(arr,['key','name'],[false,true])).to.eql([ {key: 2, name:'doug'}, {key: 2, name: 'jack'}, {key: 1, name: 'bob'}, {key: -2} ])
+      expect(pi.utils.sort(arr,[{key:'desc'},{name:'asc'}],[false,true])).to.eql([ {key: 2, name:'doug'}, {key: 2, name: 'jack'}, {key: 1, name: 'bob'}, {key: -2} ])
+
+    it "should sort serialized data", ->
+      arr = [ {key: '12'}, {key: '31'}, {key: '2'}, {key: '-2'} ]
+      expect(pi.utils.sort_by(arr,'key')).to.eql([ {key: '-2'}, {key: '2'}, {key: '12'}, {key: '31'} ])
 
 
   describe "debounce", ->

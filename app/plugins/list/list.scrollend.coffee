@@ -17,6 +17,7 @@ do (context = this) ->
       @_prev_top = @scroll_object.scrollTop()
 
       @enable() unless @list.options.scroll_end is false
+      @list.on 'update', @scroll_listener(), @, (e) => (e.data.type is 'item_removed' or e.data.type is 'load') 
       return
 
     enable: () ->

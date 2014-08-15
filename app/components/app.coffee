@@ -6,9 +6,8 @@ do (context = this) ->
   utils = pi.utils
 
   class pi.App
-    # uppermost component
-    view: null
     initialize: (nod) ->
       @view = pi.piecify(nod || pi.Nod.root)
+      @page?.initialize()
 
   pi.app = new pi.App()

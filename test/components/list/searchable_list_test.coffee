@@ -62,21 +62,6 @@ describe "searchable list plugin", ->
       @list.search 'kill'
       @list.search null
 
-  describe "search within data scope", ->
-
-    it "should search within one-key scope", ->    
-      @list.searchable.update_scope 'data:key'
-      @list.search 'some'
-      expect(@list.size()).to.equal 1
-
-
-    it "should search within two-key scope", ->  
-      @list.searchable.update_scope 'data:key,data:val'
-      @list.search 'some'
-      expect(@list.size()).to.equal 2
-      @list.search 'false'
-      expect(@list.size()).to.equal 1
-
   describe "search within selector scope", ->
 
     it "should search within one-selector scope", ->    
@@ -139,3 +124,15 @@ describe "searchable list plugin", ->
       expect(@list.size()).to.eq 1
       @list.search ''
       expect(@list.size()).to.eq 2
+
+    it "should refilter after new item added", (done) ->
+      @list.search 't', true
+      expect(@list.size()).to.equal 2
+      @list.on 'update', (e) =>
+        return unless e.data.type is 'item_added'
+        expect(@list.size()).to.equal 3
+        @list.search('') 
+        expect(@list.size()).to.equal 4
+        done()
+      @list.add_item pi.Nod.create('''<li class="item" data-id="7" data-key="three" data-val="toast">Tetro<span class="tags">killer,zomby</span><span class="notes">lo</span></li>
+            ''')

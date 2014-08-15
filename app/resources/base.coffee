@@ -52,27 +52,33 @@ do (context = this) ->
       @__all__.push el
 
     # create new resource
-    @build: (data={}, silent) ->
+    @build: (data={}, silent = false, add = true) ->
       unless (data.id && (el = @get(data.id)))
         el = new @(data)
     
-        if el.id
+        if el.id and add
           @add el  
           @trigger('create', _wrap(el)) unless silent
         el
       else
         el.set(data)
 
-    @remove: (id, silent) ->
+    @remove_by_id: (id, silent) ->
       el = @get(id)
       if el?
-        @__all__.splice @__all__.indexOf(el), 1
-        delete @__all_by_id__[el.id]
+        @remove el
+      return false
+
+    @remove: (el, silent) ->
+      if el instanceof @
+        if @__all_by_id__[el.id]?
+          @__all__.splice @__all__.indexOf(el), 1
+          delete @__all_by_id__[el.id]
         @trigger('destroy', _wrap(el)) unless silent
         el.dispose()
         return true
       return false
-    
+
     @listen: (callback) ->
       pi.event.on "#{@resources_name}_update", callback 
 

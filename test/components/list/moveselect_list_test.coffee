@@ -30,7 +30,7 @@ describe "move-select list plugin", ->
       expect(@list.selected().length).to.eq 3
       
       @list.on 'selected', (event) =>
-        expect(@list.selected()[0].key).to.equal "anyone"
+        expect(@list.selected()[0].record.key).to.equal "anyone"
         done()
 
       item = $('@test').find('[data-id="3"]')
@@ -52,7 +52,7 @@ describe "move-select list plugin", ->
         TestHelpers.mouseEventElement item3.find('.tags').node, 'mouseup'
 
       after 1000, =>
-        expect(@list.selected()[0].key).to.equal "one"
+        expect(@list.selected()[0].record.key).to.equal "one"
         expect(@list.selected().length).to.equal 3
         done()
 
@@ -69,7 +69,7 @@ describe "move-select list plugin", ->
         TestHelpers.mouseEventElement item3.node, 'mouseup'
 
       after 600, =>
-        expect(@list.selected()[0].key).to.equal "one"
+        expect(@list.selected()[0].record.key).to.equal "one"
         expect(@list.selected().length).to.equal 3
         done()
 
@@ -87,6 +87,6 @@ describe "move-select list plugin", ->
         TestHelpers.mouseEventElement item1.node, 'mouseup'
 
       after 1000, =>
-        expect(@list.selected()[0].key).to.equal "someone"
+        expect(@list.selected()[0].record.key).to.equal "someone"
         expect(@list.selected().length).to.equal 1
         done()

@@ -10,7 +10,7 @@ do (context = this) ->
 
   class pi.List extends pi.Base
 
-    @string_matcher = (string) ->
+    @string_matcher: (string) ->
       if string.indexOf(":") > 0
         [selectors, query] = string.split ":"
         regexp = new RegExp(query,'i')
@@ -24,12 +24,11 @@ do (context = this) ->
         (item) ->
           !!item.text().match(regexp)
 
-    @object_matcher = (obj, all = true) ->
+    @object_matcher: (obj, all = true) ->
       for key,val of obj
-        do (key,val) ->
-          if typeof val is "string"
-            obj[key] = (value) -> 
-              !!value.match new RegExp(val,'i')
+        do (key,val) =>
+          if typeof val is "object"
+            obj[key] = @object_matcher val, all
           else if !(typeof val is 'function')
             obj[key] = (value) ->
               val == value
@@ -80,7 +79,7 @@ do (context = this) ->
       if data?
         @add_item(item,false) for item in data
       
-      @update()
+      @update('load')
 
     add_item: (data, update = true) ->
       item = @_create_item data
@@ -137,6 +136,26 @@ do (context = this) ->
       item = @items[index]
       @remove_item(item,update)
 
+    # redraw item with new data
+    # How it works:
+    #  1. Render new item for new data
+    #  2. Update item html (merge classes)
+    #  3. Update item record (by extending it with new item data (overwriting))
+  
+    update_item: (item, data, update=true) ->
+      new_item = @item_renderer.render data
+
+      # update associated record
+      utils.extend item.record, new_item.record, true
+
+      # update HTML
+      item.html new_item.html()
+
+      #merge classes
+      item.mergeClasses new_item
+      
+      @trigger('update', {type:'item_updated',item:item}) if update
+      item  
 
     # Find items within list using query
     #
@@ -155,11 +174,11 @@ do (context = this) ->
     size: () ->
       @items.length
 
-    update: () ->
+    update: (type) ->
       @_flush_buffer()
       @_update_indeces() if @_need_update_indeces
       @_check_empty()
-      @trigger 'update'
+      @trigger 'update', {type: type}
 
     clear: () ->
       @items_cont.detach_children()
@@ -219,7 +238,7 @@ do (context = this) ->
     _render: (nod, data) ->
       unless nod instanceof pi.Base
         nod = nod.piecify()
-      utils.extend nod, data
+      nod.record = data
       nod
 
   pi.Guesser.rules_for 'list', ['pi-list'], ['ul'], 

@@ -27,6 +27,11 @@ describe "Pieces REST", ->
         expect(Testo.fetch).to.be.a('function')
         expect(Testo.destroy_all).to.be.a('function')
 
+      it "should setup paths", ->
+        expect(Testo.show_path).to.not.be.undefined
+        expect(Testo.fetch_path).to.not.be.undefined
+        expect(Testo.destroy_all_path).to.not.be.undefined
+
       it "should fetch data", (done) ->
         Testo.fetch().then(
           (items) -> 
@@ -60,6 +65,12 @@ describe "Pieces REST", ->
 
     describe "instance functions", ->
 
+      it "should setup member paths", ->
+        t = new Testo({id:1, type: 'puff',_persisted: true})
+        expect(t.update_path).to.not.be.undefined
+        expect(t.create_path).to.not.be.undefined
+        expect(t.destroy_path).to.not.be.undefined
+        
       describe "attributes", ->
         it "should add only own attributes", ->
           t = new Testo({id:1, type: 'puff',_persisted: true})
@@ -79,6 +90,16 @@ describe "Pieces REST", ->
                 done()           
             )
         )
+
+      it "should destroy element and even it is not stored", (done) ->
+        t = new Testo({id:1, type: 'puff',_persisted: true})
+        Testo.listen (e) ->
+          expect(e.data.type).to.eq 'destroy'
+          expect(e.data.testo.type).to.eq 'puff'
+          done()
+          
+        t.destroy()
+
 
       it "should save new element", (done) ->
         t = new Testo()

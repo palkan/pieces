@@ -2,6 +2,7 @@ describe "list component", ->
   Nod = pi.Nod
   root = Nod.create 'div'
   Nod.body.append root.node
+  utils = pi.utils
 
   beforeEach ->
     @test_div = Nod.create 'div'
@@ -24,33 +25,54 @@ describe "list component", ->
 
   describe "list basics", ->
     it "should parse list items", ->
-      expect(@list.size()).to.equal 3
+      expect(@list.size()).to.eq 3
 
     it "should add item", ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       @list.add_item item
-      expect(@list.size()).to.equal 4
-      expect($('@test').last('.item').text()).to.equal 'New'
+      expect(@list.size()).to.eq 4
+      expect($('@test').last('.item').text()).to.eq 'New'
 
     it "should add item at index", ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       @list.add_item_at item, 0
-      expect(@list.size()).to.equal 4
-      expect($('@test').first('.item').text()).to.equal 'New'
+      expect(@list.size()).to.eq 4
+      expect($('@test').first('.item').text()).to.eq 'New'
 
     it "should trigger update event on add", (done) ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       
       @list.on 'update', (event) =>
-        expect(event.data.item.id).to.equal 4
+        expect(event.data.item.record.id).to.eq 4
         done()
 
       @list.add_item_at item, 0
 
     it "should remove element at", ->
       @list.remove_item_at 0
-      expect(@list.size()).to.equal 2
-      expect($('@test').first('.item').data('id')).to.equal 2
+      expect(@list.size()).to.eq 2
+      expect($('@test').first('.item').data('id')).to.eq 2
+
+    it "should update element and trigger item's events", (done) ->
+      item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
+      
+      old_item = @list.items[0]
+      old_item.disable()
+
+      old_item.on 'click', -> done()
+
+      @list.on 'update', (event) =>
+        expect(event.data.item).to.eq old_item
+        expect(event.data.item.hasClass('is-disabled')).to.be.true
+        expect(event.data.item.enabled).to.eq false
+        expect(event.data.type).to.eq 'item_updated'
+        expect(event.data.item.record.id).to.eq 4
+        expect(event.data.item.record.key).to.eq 'new'
+        expect(utils.trim($('@test').text())).to.eq 'NewTwopuppy, cowardTrebully,zombopuppy'
+        event.data.item.enable()
+        TestHelpers.clickElement $("@test").first(".item").node
+
+      @list.update_item old_item, item
 
     it "should clear all", ->
       @list.clear()
@@ -63,7 +85,7 @@ describe "list component", ->
             nod = Nod.create("<div>#{ data.name }</div>")
             nod.addClass 'item'
             nod.append "<span class='author'>#{ data.author }</span>"
-            pi.utils.extend nod, data
+            nod.record = data
             nod
       return
 
@@ -73,15 +95,15 @@ describe "list component", ->
         {id:2, name: 'Element 2', author: 'Bob'},
         {id:3, name: 'Element 3', author: 'John'} 
       ]
-      expect(@list.all('.item').length).to.equal 3
-      expect(@list.first('.author').text()).to.equal 'John'
+      expect(@list.all('.item').length).to.eq 3
+      expect(@list.first('.author').text()).to.eq 'John'
 
   describe "item click and operations", ->
     it "should trigger correct item after list modification", (done) ->
       @list.remove_item_at 0
 
       @list.on 'item_click', (e) =>
-        expect(e.data.item.id).to.equal 2
+        expect(e.data.item.record.id).to.eq 2
         done()
 
       TestHelpers.clickElement $("@test").first(".item").node
@@ -89,7 +111,7 @@ describe "list component", ->
     it "should trigger correct item when click on child element", (done) ->
 
       @list.on 'item_click', (e) =>
-        expect(e.data.item.id).to.equal 2
+        expect(e.data.item.record.id).to.eq 2
         done()
 
       TestHelpers.clickElement $("@test").find(".item:nth-child(2) .tags").node
@@ -108,22 +130,21 @@ describe "list component", ->
 
   describe "list queries", ->
     it "should find by simple one-key object", ->
-      item = @list.where(id:1)[0]
-      expect(item.key).to.equal 'one'
+      item = @list.where(record:{id:1})[0]
+      expect(item.record.key).to.eq 'one'
 
     it "should find by object with string matcher", ->
-      [item1, item2] = @list.where(key:'.+one')
-      expect(item1.id).to.equal 2
-      expect(item2.id).to.equal 3
+      [item] = @list.where(record:{key:'one'})
+      expect(item.record.id).to.eq 1 
 
     it "should find by simple string query", ->
       item = @list.where('Tre')[0]
-      expect(item.key).to.equal 'anyone'
+      expect(item.record.key).to.eq 'anyone'
 
     it "should find by nested string query", ->
       [item1,item2] = @list.where('.tags:\\bpuppy\\b')
-      expect(item1.key).to.equal 'one'
-      expect(item2.key).to.equal 'someone'
+      expect(item1.record.key).to.eq 'one'
+      expect(item2.record.key).to.eq 'someone'
 
   describe "list with components", ->
 

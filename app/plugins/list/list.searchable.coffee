@@ -7,18 +7,15 @@ do (context = this) ->
   # [Plugin]
   #
   #  Add 'search' method to list
-  #  Search items detaching (not hiding!) DOM elements  ## note: but why? 
+  #  Search items detaching (not hiding!) DOM elements 
   #  
   #  To search within scope define 'options.search_scope'.
   #  
-  #  Scope is: 
-  #  - a CSS selector (or selectors separated by commas), e.g. '.title,.email' (no spaces between selectors!)
-  #  - item object keys written as "data:key1,data:key2" to be matched (no spaces between keys!)
+  #  Scope is a CSS selector (or selectors separated by commas), e.g. '.title,.email' (no spaces between selectors!)
   #  
 
   _clear_mark_regexp = /<mark>([^<>]*)<\/mark>/gim
   _selector_regexp = /[\.#a-z\s\[\]=\"-_,]/i
-  _data_regexp = /data:([\w\d_]+)/gi
 
   _is_continuation = (prev,query) ->
     query.match(prev)?.index == 0
@@ -27,8 +24,14 @@ do (context = this) ->
     initialize: (@list) ->
       super
       @update_scope @list.options.search_scope
-      @list.delegate_to 'searchable', 'search'
+      @list.delegate_to 'searchable', 'search', 'highlight'
       @searching = false
+      @list.on 'update', ((e) -> 
+        if e.data.type is 'item_added' and @searching
+          @_all_items.push e.data.item
+        @search(@_prevq)), 
+        @, 
+        (e) => (e.data.type is 'item_added' or e.data.type is 'item_updated') 
       return
 
     update_scope: (scope) -> 
@@ -42,13 +45,6 @@ do (context = this) ->
       @matcher_factory = 
         if not scope?
           pi.List.string_matcher
-        else if _data_regexp.test(scope)
-          scope = scope.replace _data_regexp, "$1"
-          obj = {}
-          keys = scope.split ","
-          (value) -> 
-            obj[key] = value for key in keys
-            pi.List.object_matcher(obj, false) 
         else 
           (value) -> 
             pi.List.string_matcher(scope+':'+value) 
@@ -64,13 +60,13 @@ do (context = this) ->
       @_prevq = ''
       @list.trigger 'search_start'
 
-    stop_search: () ->
+    stop_search: (rollback = true) ->
       return unless @searching
       @searching = false
       @list.removeClass 'is-searching'
       items = @all_items()
       @clear_highlight items
-      @list.data_provider items
+      @list.data_provider(items) if rollback
       @_all_items = null
       @list.trigger 'search_stop'
 
@@ -89,10 +85,13 @@ do (context = this) ->
         _raw_html = _raw_html.replace(_regexp,'$1<mark>$2</mark>') if query isnt ''
         nod.html(_raw_html)
 
+    highlight: (q) ->
+      @_prevq = q
+      @highlight_item(q,item) for item in @list.items
+      return
     # Local search thru items.
     # @param [String,Object] q query
     # @param [Boolean] highlight defines whether to highlight matches with <mark> tag. Default is false.
-    #
 
     search: (q = '', highlight = false) ->
       if q is ''
@@ -110,6 +109,5 @@ do (context = this) ->
       @list.data_provider _buffer
 
       if highlight
-        @highlight_item(q,item) for item in _buffer
-
+        @highlight(q)
       @list.trigger 'search_update'

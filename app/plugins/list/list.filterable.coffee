@@ -14,7 +14,7 @@ do (context = this) ->
   #   - simple filter (exact match): filter({key1: val, key2: val2})
   #   - 'any' filter: filter({key+"?": [val1, val2]}) # true if item[key] = val1 or item[key] = val2
   #   - 'contains' filter (for array values): filter({key+"?&":[val1,val2]})  
-  #   - 'greater/less' filters (for array values): filter({key+">":val})  
+  #   - 'greater/less' filters: filter({key+">":val})  
   
   _operands = 
     "?":  (values) ->
@@ -39,10 +39,13 @@ do (context = this) ->
   _matcher = (params) ->
     obj = {}
     for own key, val of params
-      if (matches = key.match(_key_operand))
-        obj[matches[1]] = _operands[matches[2]] val
+      if (typeof val is 'object' and !(Array.isArray(val)))
+        obj[key] = _matcher val
       else
-        obj[key] = val
+        if (matches = key.match(_key_operand))
+          obj[matches[1]] = _operands[matches[2]] val
+        else
+          obj[key] = val
     pi.List.object_matcher obj
 
   _is_continuation = (prev, params) ->
@@ -55,6 +58,12 @@ do (context = this) ->
     initialize: (@list) ->
       super
       @list.delegate_to 'filterable', 'filter'
+      @list.on 'update', ((e) -> 
+        if e.data.type is 'item_added' and @filtered
+          @_all_items.push e.data.item
+        @filter(@_prevf)), 
+        @, 
+        (e) => (e.data.type is 'item_added' or e.data.type is 'item_updated') 
 
     all_items: ->
       @_all_items.filter((item) -> !item._disposed)
@@ -67,11 +76,11 @@ do (context = this) ->
       @_prevf = {}
       @list.trigger 'filter_start'
 
-    stop_filter: () ->
+    stop_filter: (rollback=true) ->
       return unless @filtered
       @filtered = false
       @list.removeClass 'is-filtered'
-      @list.data_provider @all_items()
+      @list.data_provider(@all_items()) if rollback
       @_all_items = null
       @list.trigger 'filter_stop'
 
@@ -89,7 +98,7 @@ do (context = this) ->
 
       @_prevf = params
 
-      matcher = _matcher params
+      matcher = _matcher record: params
 
       _buffer = (item for item in scope when matcher(item))
       @list.data_provider _buffer

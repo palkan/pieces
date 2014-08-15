@@ -51,7 +51,7 @@ do (context = this) ->
 
     piecify: ->
       @init_children()
-      for _,c in @__components__
+      for own _,c of @__components__
         c.piecify()
 
     ## event dispatcher ##
@@ -148,7 +148,8 @@ do (context = this) ->
       while(klass?)
         if klass[name]?
           return klass[name]
-        klass = klass.__super__
+        klass = klass.__super__.constructor
+      utils.warning "plugin not found: #{name}"
       return null
 
     init_children: ->
@@ -186,8 +187,8 @@ do (context = this) ->
   event_re = /^on_(.+)/i
 
   pi._guess_component = (nod) ->
-    component_name = utils.camelCase(nod.data('component') || pi.Guesser.find(nod))
-    pi[component_name]
+    component_name = (nod.data('component') || pi.Guesser.find(nod))
+    utils.get_class_path pi, component_name
 
   pi._gather_options = (el) ->
     opts = utils.clone(el.data())
@@ -202,7 +203,7 @@ do (context = this) ->
 
 
   pi.init_component = (nod, host) ->
-    nod = if nod instanceof Nod then nod else new Nod(nod)
+    nod = if nod instanceof Nod then nod else Nod.create(nod)
     component = pi._guess_component nod
 
     unless component?
@@ -215,26 +216,28 @@ do (context = this) ->
 
   _method_reg = /([\w\.]+)\.(\w+)/
 
-  pi.call = (component, method_chain, fixed_args, args...) ->   
+  pi.call = (component, method_chain, fixed_args) ->   
     try
       utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
       target = switch 
         when typeof component is 'object' then component 
-        when component is 'e' then args[0]
-        else pi.find(component)
+        when component[0] is '@' then pi.find(component[1..])
+        else @[component] 
+
+      return target if !method_chain
 
       [method,target] =
         if method_chain.indexOf(".") < 0
           [method_chain, target]
         else
-          [_void, target_chain, method_] = method_chain.match _method_reg
+          [_, target_chain, method_] = method_chain.match _method_reg
           target_ = target
           for key_ in target_chain.split('.') 
             do (key_) ->
-              target_ = target_[key_]
+              target_ = if typeof target_[key_] is 'function' then target_[key_].call(target_) else target_[key_]
           [method_, target_]
       if target[method]?.call?
-        target[method].apply(target, ((if typeof arg is 'function' then arg.apply(null,args) else arg) for arg in fixed_args).concat(args))
+        target[method].apply(target, ((if typeof arg is 'function' then arg.apply(@) else arg) for arg in fixed_args))
       else
         target[method]
     catch error
@@ -243,46 +246,49 @@ do (context = this) ->
   _str_reg = /^['"].+['"]$/
 
   pi.prepare_arg = (arg, host) ->
-    if arg[0] is "@"
+    if _method_reg.test(arg) or arg[0] is '@' 
       pi.str_to_fun arg, host
     else
       if _str_reg.test(arg) then arg[1...-1] else utils.serialize arg
 
 
   _condition_regexp = /^([\w\.\(\)@'"-=><]+)\s*\?\s*([\w\.\(\)@'"-]+)\s*(?:\:\s*([\w\.\(\)@'"-]+)\s*)$/
-  _fun_reg = /^@(\w+)(?:\.([\w\.]+)(?:\(([@\w\.\(\),'"-]+)\))?)?$/
+  _fun_reg = /^(@?\w+)(?:\.([\w\.]+)(?:\(([@\w\.\(\),'"-]+)\))?)?$/
   _op_reg = /(>|<|=)/
 
   _operators = 
     # more
     ">": (left, right) ->
           (args...) ->
-            a = left.apply?(null,args) || left
-            b = right.apply?(null,args) || right
+            a = left.apply?(@,args) || left
+            b = right.apply?(@,args) || right
             a > b
     #less
     "<": (left, right) ->
           (args...) ->
-            a = left.apply?(null,args) || left
-            b = right.apply?(null,args) || right
+            a = left.apply?(@,args) || left
+            b = right.apply?(@,args) || right
             a < b
     #equals (non strict)
     "=": (left, right) ->
           (args...) ->
-            a = left.apply?(null,args) || left
-            b = right.apply?(null,args) || right
+            a = left.apply?(@,args) || left
+            b = right.apply?(@,args) || right
             a == b
 
   _conditional = (condition, resolve, reject) ->
     (args...) ->
-      if condition.apply(null, args)
-        resolve.apply null, args
+      if condition.apply(@, args)
+        resolve.apply @, args
       else
-        reject.apply null, args
+        reject.apply @, args
 
   _null = -> true
 
+  _call_reg = /\(\)/
+
   pi.str_to_fun = (callstr, host) ->
+    callstr = callstr.replace _call_reg, ''
     if (matches = callstr.match(_condition_regexp))
       condition = pi.compile_condition matches[1], host
       resolve = pi.compile_fun matches[2], host
@@ -301,29 +307,25 @@ do (context = this) ->
   pi.compile_fun = (callstr, host) ->
     matches = callstr.match _fun_reg
     target = switch 
-      when matches[1] == 'this' then host 
-      when matches[1] == 'host' then host.host # TODO: make more readable
-      when matches[1] == 'view' then host.view() # TODO: if we don't use Views?? 
+      when matches[1] == '@this' then host 
+      when matches[1] == '@app' then pi.app
+      when matches[1] == '@host' then host.host # TODO: make more readable
+      when matches[1] == '@view' then host.view() # TODO: if we don't use Views?? 
       else matches[1]
     if matches[2]
       curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
     else
-      if typeof target is 'object'       
-        -> 
-          target
-      else
-        ->
-          pi.find target
+      curry(pi.call,[target, undefined, undefined])
 
 
 
   # the same as pi.str_to_fun, but call with event object
 
   pi.str_to_event_handler = (callstr, host) ->
-    callstr = callstr.replace /\be\b/, "@e"
+    callstr = callstr.replace /\be\b/, "e"
     _f = pi.str_to_fun callstr, host
     (e) ->
-      _f e
+      _f.call({e: e})
 
   # shortcut for 
 
@@ -338,16 +340,7 @@ do (context = this) ->
   # find('a.b.c') -> app.view.a.b.c
 
   pi.find = (pid_path) ->
-    parts = pid_path.split "."
-    res = pi.app.view
-    
-    while(parts.length)
-      key = parts.shift()
-      if res[key]?
-        res = res[key]
-      else
-        return null
-    res
+    utils.get_path pi.app.view, pid_path
 
   utils.extend(
     Nod::, 

@@ -111,6 +111,10 @@ describe "pieces nod", ->
       sp = @test_div.find('span')
       expect(sp.parent()).to.eq @test_div
 
+    it "should return null if no parent", ->
+      sp = Nod.create('<span>0</span>')
+      expect(sp.parent()).to.be.null
+
     it "should find parent by selector", ->
       @test_div.html('<div class="a"><div class="b"><span>1</span></div></div>')
       @test_div.addClass 'pi'
@@ -130,6 +134,14 @@ describe "pieces nod", ->
       @test_div.html('<div class="a"><div class="b"><span class="a">1</span></div></div>')
       expect(@test_div.children('.a')).to.have.length 1
 
+    it "should merge classes", ->
+      a = pi.Nod.create '<span class="a c d"></span>'
+      b = pi.Nod.create '<span class="a b"></span>'
+      a.mergeClasses b
+      expect(a.hasClass('a')).to.be.true
+      expect(a.hasClass('b')).to.be.true
+      expect(a.hasClass('c')).to.be.true
+      expect(a.hasClass('d')).to.be.true
 
 
     it "should clone", ->

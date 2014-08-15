@@ -46,6 +46,7 @@ do (context = this) ->
                   else
                     response
               ) 
+            @["#{spec.action}_path"] = spec.path
       if data.member?
         for spec in data.member
           do (spec) =>
@@ -57,6 +58,7 @@ do (context = this) ->
                   else
                     response
               )
+            @::["#{spec.action}_path"] = spec.path            
 
     # set common scope for all action (i.e. '/api/:path', don't forget about slash!)
     # you can set event another domain
@@ -81,10 +83,13 @@ do (context = this) ->
 
 
     @_request: (path, method, params) ->
-      path = @_interpolate_path path, utils.merge(params,{resources: @resources_name, resource: @resource_name, scope: @_rscope})
+      path = @_interpolate_path path, utils.merge(params,{resources: @resources_name, resource: @resource_name})
 
       pi.net[method].call(null, path, params)
-      .catch( (error) => @error error.message )
+      .catch( (error) =>  
+          @error error.message 
+          throw error # rethrow it to the top!
+      )
 
     # requests callbacks
     @on_show: (data) ->
@@ -116,7 +121,7 @@ do (context = this) ->
       el.save()
 
     on_destroy: (data) ->
-      @constructor.remove @id
+      @constructor.remove @
       data
 
     on_update: (data) ->

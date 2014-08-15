@@ -11,12 +11,24 @@ do (context = this) ->
   class pi.List.Sortable extends pi.Plugin
     initialize: (@list) ->
       super
-      @list.delegate_to 'sortable', 'sort' 
+      @list.delegate_to 'sortable', 'sort'
+      @list.on 'update', (-> @sort(@_prevs)), @, (e) -> (e.data.type is 'item_added' or e.data.type is 'item_updated') 
+
+
     # @params [Array,String] fields
     # @params [Boolean] reverse if true then 'asc' else 'desc'
     # @see pi.utils.sort 
+    sort: (sort_params) ->
+      sort_params = utils.to_a sort_params
+      @_prevs = sort_params
+      
+      @list.items.sort (a,b) ->
+        utils.keys_compare a.record, b.record, sort_params
 
-    sort: (fields, reverse = false) ->
-      if typeof fields is 'object' then utils.sort(@list.items,fields,reverse) else utils.sort_by(@list.items,fields,reverse)
       @list.data_provider @list.items.slice()
-      @list.trigger 'sort_update', {fields: fields, reverse: reverse}
+      @list.trigger 'sort_update', sort_params
+
+    sorted: (sort_params) ->
+      sort_params = utils.to_a sort_params
+      @_prevs = sort_params
+      @list.trigger 'sort_update', sort_params
