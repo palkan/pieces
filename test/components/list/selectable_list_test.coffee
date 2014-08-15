@@ -53,7 +53,7 @@ describe "selectable list plugin", ->
 
       @list.on 'selected', (event) =>
         expect(@list.selected()[0].record.key).to.equal 'new'
-        expect(event.data.record.key).to.equal 'new'
+        expect(event.data[0].record.key).to.equal 'new'
         done()
 
       TestHelpers.clickElement $('@test').find('[data-id="4"]').node

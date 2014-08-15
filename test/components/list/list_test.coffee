@@ -148,11 +148,6 @@ describe "list component", ->
 
   describe "list with components", ->
 
-    beforeEach ->
-      @list.dispose()
-      pi.app.view.piecify()
-      @list = $('@test')
-
     it "should create items nods as components", ->
       expect(@list.items[0]).to.be.an.instanceof pi.Base
 
@@ -171,4 +166,5 @@ describe "list component", ->
       item = @list.where(name: 'coffee')[0]
 
       expect(item).to.be.an.instanceof pi.Base
+      expect(item.host).to.eq @list      
       expect(item.find('.author')).to.be.an.instanceof pi.Button

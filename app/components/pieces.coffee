@@ -329,8 +329,8 @@ do (context = this) ->
 
   # shortcut for 
 
-  pi.piecify = (nod) ->
-    pi.init_component nod, nod.parent('.pi')
+  pi.piecify = (nod,host) ->
+    pi.init_component nod, host||nod.parent('.pi')
 
   # Global Event Dispatcher
 
@@ -344,7 +344,7 @@ do (context = this) ->
 
   utils.extend(
     Nod::, 
-    piecify: -> pi.piecify @
+    piecify: (host) -> pi.piecify @, host
     pi_call: (target, action) ->
       if !@_pi_call or @_pi_action != action
         @_pi_action = action

@@ -62,8 +62,8 @@ do (context = this) ->
       unless @options.noclick?
         @listen ".#{ @item_klass }", "click", (e) =>  
           unless utils.clickable(e.origTarget)
-            @_item_clicked(e.target) 
-            e.cancel()
+            if  @_item_clicked(e.target) 
+              e.cancel()
     
     parse_html_items: () ->
       @items_cont.each ".#{ @item_klass }", (node) =>   
@@ -83,6 +83,8 @@ do (context = this) ->
 
     add_item: (data, update = true) ->
       item = @_create_item data
+      return unless item?
+      
       @items.push item
 
       @_check_empty()
@@ -202,9 +204,13 @@ do (context = this) ->
 
     _create_item: (data) ->
       if data instanceof pi.Nod and data.is_list_item
-        return data
+        if data.host is @
+          return data
+        else
+          return null
       item = @item_renderer.render data
       item.is_list_item = true
+      item.host = @
       item
 
     _destroy_item: (item) ->
@@ -224,10 +230,12 @@ do (context = this) ->
       @items_cont.append @buffer if append
       @buffer.innerHTML = ''
 
-    _item_clicked: (target,e) ->
-      return unless target.data('list-index')?
-      item = @items[target.data('list-index')]
-      @trigger 'item_click', {item: item}
+    _item_clicked: (target) ->
+      return unless target.is_list_item
+      item = target
+      if item and item.host is @
+        @trigger 'item_click', {item: item}
+        true
 
   pi.List.Renderers = {}
 
