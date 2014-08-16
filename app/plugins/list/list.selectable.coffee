@@ -10,6 +10,7 @@ do (context = this) ->
   # Highlights selected elements with 'is-selected' class 
 
   class pi.List.Selectable extends pi.Plugin
+    id: 'selectable'
     initialize: (@list) ->
       super
       @type(@list.options.select_type || 'radio') 
@@ -21,7 +22,7 @@ do (context = this) ->
       @list.items_cont.each '.is-selected', (nod) =>
         nod.selected = true
 
-      @list.delegate_to 'selectable', 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
+      @list.delegate_to @, 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
 
       return
 

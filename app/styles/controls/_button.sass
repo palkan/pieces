@@ -10,6 +10,7 @@
   background: $bg
   border-color: $border
   transition: background 200ms
+  @extend %focusable
   &:hover
     background: lighten($bg,5%)
     transition: none
@@ -18,8 +19,6 @@
     transition: none 
   &.is-disabled
     opacity: .5
-  &:focus
-    box-shadow: 0 0 2px 2px $grey-line
 
 @mixin button-rounded
   border-radius: 2px

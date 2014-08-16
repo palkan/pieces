@@ -3,9 +3,7 @@
   cursor: pointer
   user-select: none
   position: relative
-  .fa-check-square-o
-    display: none   
-  .cb-label
+  .checkbox-label
     cursor: pointer
     padding-left: 28px
     line-height: 28px
@@ -18,6 +16,8 @@
     left: 0
     width: 22px
     content: "\f096"
+  &:focus:before
+    color: $blue-button
   &.is-selected
     &:before
       content: "\f046"

@@ -8,7 +8,6 @@
   _swf_count = 0
 
   class pi.SwfPlayer extends pi.Base
-    
     initialize: ->
       cont = document.createElement 'div'
 

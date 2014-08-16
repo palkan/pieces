@@ -1,0 +1,24 @@
+.section.white.pi(pid="search_input_section")
+  h1.title Search input
+  .content
+    .pi.pi-search-field(data-on-query = "@host.list.search(e.data)")
+      i.pi.reset-btn.fa.fa-times(data-on-click="@host.reset")
+      input.text-input(type="text")
+    .pi.inline.list-container(pid="list",data-plugins="searchable", data-highlight="true")
+      ul.list
+        li.item(data-name="John")
+          .field.name John
+        li.item(data-name="Vagon")
+          .field.name Vagon
+        li.item(data-name="Jack")
+          .field.name Jack
+        li.item(data-name="Sam")
+          .field.name Sam
+        li.item(data-name="Elliot")
+          .field.name Elliot
+        li.item(data-name="Julia")
+          .field.name Julia
+        li.item(data-name="Edward")
+          .field.name Edward
+        li.item(data-name="Simon")
+          .field.name Simon

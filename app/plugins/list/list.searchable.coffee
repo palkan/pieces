@@ -21,10 +21,11 @@ do (context = this) ->
     query.match(prev)?.index == 0
 
   class pi.List.Searchable extends pi.Plugin
+    id: 'searchable'
     initialize: (@list) ->
       super
       @update_scope @list.options.search_scope
-      @list.delegate_to 'searchable', 'search', 'highlight'
+      @list.delegate_to @, 'search', 'highlight'
       @searching = false
       @list.on 'update', ((e) -> 
         if e.data.type is 'item_added' and @searching
@@ -89,13 +90,16 @@ do (context = this) ->
       @_prevq = q
       @highlight_item(q,item) for item in @list.items
       return
+
     # Local search thru items.
     # @param [String,Object] q query
     # @param [Boolean] highlight defines whether to highlight matches with <mark> tag. Default is false.
 
-    search: (q = '', highlight = false) ->
+    search: (q = '', highlight) ->
       if q is ''
         return @stop_search()
+
+      highlight = @list.options.highlight unless highlight?
 
       @start_search() unless @searching
 

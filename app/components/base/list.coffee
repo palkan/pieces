@@ -9,7 +9,6 @@ do (context = this) ->
   # Basic list component
 
   class pi.List extends pi.Base
-
     @string_matcher: (string) ->
       if string.indexOf(":") > 0
         [selectors, query] = string.split ":"
@@ -53,6 +52,7 @@ do (context = this) ->
       @buffer = document.createDocumentFragment()
 
     initialize: () ->
+      super
       @item_renderer ||= @_setup_renderer()
       @items_cont = @find(".#{ @list_klass }") || @
       @parse_html_items()
@@ -195,11 +195,11 @@ do (context = this) ->
       if !@empty and @items.length is 0
         @addClass 'is-empty'
         @empty = true
-        @trigger 'empty'
+        @trigger 'empty', true
       else if @empty and @items.length > 0
         @removeClass 'is-empty'
         @empty = false
-        @trigger 'is-full'
+        @trigger 'empty', false
       
 
     _create_item: (data) ->

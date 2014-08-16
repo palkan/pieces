@@ -10,13 +10,14 @@ do (context = this) ->
 
 
   class pi.List.Restful extends pi.Plugin
+    id: 'restful'
     initialize: (@list) ->
       super
       if @list.options.rest? and $r[utils.camelCase(@list.options.rest)]?
         @resources = $r[utils.camelCase(@list.options.rest)]
         @resources.listen @resource_update()
 
-        @list.delegate_to 'restful', 'find_by_id'
+        @list.delegate_to @, 'find_by_id'
       return
 
     find_by_id: (id) ->

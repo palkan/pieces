@@ -1,0 +1,24 @@
+.section.white.pi(pid="select_input_section")
+  h1.title Select input
+  .content
+    .pi.pi-select-field(pid="select_field", data-on-change="@this.placeholder.text(e.data.value)")
+      input(type="hidden")
+      .pi.placeholder(pid="placeholder") Не выбрано
+      .pi.is-hidden.list-container.pi-select-list(pid="dropdown")
+        ul.list
+          li.item(data-value="John")
+            .field.name John
+          li.item(data-value="Vagon")
+            .field.name Vagon
+          li.item(data-value="Jack")
+            .field.name Jack
+          li.item(data-value="Sam")
+            .field.name Sam
+          li.item(data-value="Elliot")
+            .field.name Elliot
+          li.item(data-value="Julia")
+            .field.name Julia
+          li.item(data-value="Edward")
+            .field.name Edward
+          li.item(data-value="Simon")
+            .field.name Simon

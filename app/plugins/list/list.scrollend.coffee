@@ -9,6 +9,7 @@ do (context = this) ->
   #
 
   class pi.List.ScrollEnd extends pi.Plugin
+    id: 'scroll_end'
     initialize: (@list) ->
       super
       @scroll_object = if @list.options.scroll_object == 'window' then pi.Nod.root else @list.items_cont

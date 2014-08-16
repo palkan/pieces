@@ -6,6 +6,7 @@
   display: inline-block
   position: relative
   .text-input
+    @extend %focusable
     +font($font-size-bold,$menu-text)
     user-select: text
     padding: 0 10px
@@ -15,9 +16,6 @@
     line-height: 30px
     border: none
     vertical-align: top
-    transition: box-shadow 300ms
-    &:focus
-      box-shadow: 0 0 2px 2px $grey-line
     &::-ms-clear
       width: 0
       height: 0

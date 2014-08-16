@@ -12,6 +12,7 @@ do (context = this) ->
   class pi.Checkbox extends pi.BaseInput
     postinitialize: ->
       super
+      @attr('tabindex',0)
       @selected = false
       @select() if (@options.selected || @hasClass('is-selected') || (@value()|0))
       @on 'click', =>

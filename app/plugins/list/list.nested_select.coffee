@@ -8,13 +8,14 @@ do (context = this) ->
   # Add ability to 'select' elements within list and sublists
 
   class pi.List.NestedSelect extends pi.Plugin
+    id: 'nested_select'
     initialize: (@list) ->
       super
       unless @list.has_selectable
         @list.attach_plugin pi.List.Selectable
 
       @selectable = @list.selectable
-      @list.delegate_to 'nested_select', 'clear_selection', 'select_all', 'selected'
+      @list.delegate_to @, 'clear_selection', 'select_all', 'selected'
       
       @list.on 'selection_cleared', (e) =>
         if e.target != @list

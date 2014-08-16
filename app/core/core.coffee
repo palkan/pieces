@@ -4,15 +4,6 @@ do(context = this) ->
   pi = context.pi  = context.pi || {}
   utils = pi.utils
 
-  if Function::name? 
-    klass_name = (fun) ->
-      fun.name
-  else
-    klass_name =(fun) ->
-      _regex = /function (.{1,})\(/
-      results = _regex.exec fun.toString()
-      results[1]
-
   class pi.Core
     # extend class prototype with mixin methods
     @include: (mixins...) ->
@@ -25,9 +16,6 @@ do(context = this) ->
       for mixin in mixins
         utils.extend @, mixin, true
         mixin.extended @
-
-    @class_name: ->
-      klass_name @
 
     @alias: (from, to) ->
       @::[from] = (args...) ->
@@ -55,10 +43,6 @@ do(context = this) ->
     run_callbacks: (type) ->
       for callback in (@constructor["_#{type}"]||[])
         callback.call(@)
-
-    # Returns 'class' name of an object (which equals to constructor.name) 
-    class_name: ->
-      @constructor.class_name()
 
     # delegate methods to another object or nested object/method (then to is string key)
     delegate_to: (to, methods...) ->

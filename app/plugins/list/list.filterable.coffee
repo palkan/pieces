@@ -55,9 +55,11 @@ do (context = this) ->
     return true
 
   class pi.List.Filterable extends pi.Plugin
+    id: 'filterable'
+
     initialize: (@list) ->
       super
-      @list.delegate_to 'filterable', 'filter'
+      @list.delegate_to @, 'filter'
       @list.on 'update', ((e) -> 
         if e.data.type is 'item_added' and @filtered
           @_all_items.push e.data.item

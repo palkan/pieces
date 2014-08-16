@@ -1,0 +1,20 @@
+script(id="file_item_mst", type="x-tmpl-mustache")
+  li.item
+    .field.name {{name}}
+    .field.size {{size}}
+    
+.section.white.pi.file-input-ex(pid="file_input_section", data-component="uploader", data-url="/upload")
+  h1.title File input
+  .content
+    .inline
+      form.pi(pid="form")
+        .pi.button-blue.pi-file-input-wrap(pid="btn",data-on-files_selected="@host.host.list.data_provider(e.data)") 
+          span choose file
+          input.file-input(type="file", name="attachment[file]") 
+        .pi.pi-checkbox-wrap(data-on-selected="@host.btn.multiple(e.data)")
+          label.checkbox-label Multiple?
+          input(type="hidden", name="attachment[multiple]")
+      button.pi.button-red.is-disabled(pid="upload_btn") upload
+    .pi.inline.list-container(pid="list", data-renderer="mustache(file_item_mst)", data-on-empty="e.data ? @host.upload_btn.disable : @host.upload_btn.enable")
+      h2.title Selected files
+      ul.list

@@ -50,6 +50,7 @@ exports.config =
             /^app[\\/]plugins/,
             'app/net/iframe.upload.coffee',
             'app/components/action_list.coffee',
+            'app/components/toggle_button.coffee',
             /^app[\\/]components[\\/]renderers/,
             /^app[\\/]controllers/,
           ]
@@ -66,6 +67,10 @@ exports.config =
       joinTo: 
         'js/templates.js': /.+\.jade$/
   plugins:
+    uglify:
+      mangle: 
+        toplevel: false
+      ignored: /^(bower_components|vendor|test)/
     jade:
       options:
         pretty: yes

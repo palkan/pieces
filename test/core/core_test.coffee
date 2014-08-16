@@ -1,9 +1,6 @@
 describe "core class", ->
 
   describe "class functions", ->
-    it "should return class name", ->
-      expect(pi.Test.class_name()).to.equal 'Test'
-
     it "should include mixin", ->
       expect((new pi.Test2()).world("hi")).to.eq "hi"
 
@@ -20,8 +17,6 @@ describe "core class", ->
 
 
   describe "instance functions", ->
-    it "should return class name", ->
-      expect((new pi.Test()).class_name()).to.equal 'Test'
 
     it "should delegate methods to another object", ->
       obj = 

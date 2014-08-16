@@ -33,6 +33,13 @@ do (context = this) ->
     @include_plugins: (plugins...) ->
       plugin.included(@) for plugin in plugins
 
+    @requires: (components...) ->
+      @before_create ->
+        while(components.length)
+          cmp = components.pop()
+          if @[cmp] is undefined
+            throw Error("Missing required component #{cmp}") 
+
     constructor: (@node, @host, @options = {}) ->
       super
 
@@ -139,7 +146,7 @@ do (context = this) ->
         
     attach_plugin: (plugin) ->
       if plugin?
-        utils.debug "plugin attached #{plugin.class_name()}"
+        utils.debug "plugin attached #{plugin::id}"
         plugin.attached @
 
     find_plugin: (name) ->
@@ -188,6 +195,7 @@ do (context = this) ->
 
   pi._guess_component = (nod) ->
     component_name = (nod.data('component') || pi.Guesser.find(nod))
+    utils.debug "component created: #{component_name}"
     utils.get_class_path pi, component_name
 
   pi._gather_options = (el) ->
@@ -207,11 +215,10 @@ do (context = this) ->
     component = pi._guess_component nod
 
     unless component?
-      throw new ReferenceError('unknown or initialized component: ' + component_name)
+      throw new ReferenceError("unknown or initialized component #{component_name}")
     else if nod instanceof component
       return nod 
     else
-      utils.debug "component created: #{component.class_name()}"
       new component(nod.node,host,pi._gather_options(nod))
 
   _method_reg = /([\w\.]+)\.(\w+)/

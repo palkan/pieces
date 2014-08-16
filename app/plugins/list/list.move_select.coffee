@@ -8,6 +8,7 @@ do (context = this) ->
   # Select elements OS-like (mouse_down -> move -> mouse_up)
  
   class pi.List.MoveSelect extends pi.Plugin
+    id: 'move_select'
     initialize: (@list) ->
       super
       unless @list.has_selectable

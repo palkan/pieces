@@ -9,9 +9,10 @@ do (context = this) ->
   #  Add 'sort(field,order)' method to list
 
   class pi.List.Sortable extends pi.Plugin
+    id: 'sortable'
     initialize: (@list) ->
       super
-      @list.delegate_to 'sortable', 'sort'
+      @list.delegate_to @, 'sort'
       @list.on 'update', (-> @sort(@_prevs)), @, (e) -> (e.data.type is 'item_added' or e.data.type is 'item_updated') 
 
 

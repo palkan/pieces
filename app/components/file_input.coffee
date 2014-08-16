@@ -13,6 +13,9 @@ do (context = this) ->
 
     postinitialize: ->
       super
+      # remove focus from input
+      @input.attr('tabindex','-1')
+
       @input.on 'change', =>
         @_files.length = 0
         # <IE9 hack
@@ -39,4 +42,4 @@ do (context = this) ->
     files: ->
       @_files
 
-  pi.Guesser.rules_for 'file_input', ['pi-file-input-wrap'], 'input[file]', (nod) -> nod.children("input[type=file]").length is 1
+  pi.Guesser.rules_for 'file_input', ['pi-file-input-wrap'], ['input[file]'], (nod) -> nod.children("input[type=file]").length is 1

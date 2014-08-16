@@ -1,20 +1,28 @@
-.search-field
+.pi-search-field
   @extend .pi-text-input-wrap
   z-index: $second
   .text-input
     padding: 0 $search-left-pad 0 $search-right-pad
-  .fa
-    display: none
+  &:before
     font-size: $font-size-bold
+    color: $menu-text
+    font-family: FontAwesome
+    line-height: 30px
     position: absolute
-    right: 10px
+    left: 10px
+    content: "\f002"
+  .reset-btn
+    font-size: $font-size-bold
     line-height: 30px
     color: $menu-text
+    position: absolute
     cursor: pointer
+    right: 10px
+    display: none
     &:hover
       color: lighten($menu-text,10%)
     &:active
       color: darken($menu-text,10%)
   &.is-active
-    .fa
+    .reset-btn
       display: inline-block

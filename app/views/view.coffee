@@ -18,13 +18,6 @@ do (context = this) ->
         comp = comp.host
 
   class pi.View.Base extends pi.Base
-    @requires: (components...) ->
-      @before_create ->
-        while(components.length)
-          cmp = components.pop()
-          if @[cmp] is undefined
-            throw Error("Missing required component #{cmp}") 
-
     postinitialize: ->
       controller_klass = null
       if @options.controller

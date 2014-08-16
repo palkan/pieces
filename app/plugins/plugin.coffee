@@ -5,7 +5,8 @@ do(context=this) ->
   utils = pi.utils
 
   class pi.Plugin extends pi.Core
-
+    # uniq plugin id
+    id: ""
     # invoked when plugin included to class (pi.Base)
     @included: (klass) ->
       self = @
@@ -16,6 +17,5 @@ do(context=this) ->
       (new @()).initialize instance
 
     initialize: (instance) ->
-      snake_name = utils.snake_case @class_name()
-      instance[snake_name] = @
-      instance["has_#{snake_name}"] = true
+      instance[@id] = @
+      instance["has_#{@id}"] = true
