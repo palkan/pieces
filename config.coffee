@@ -1,6 +1,6 @@
 exports.config =
   conventions:
-    assets: /(assets|vendor\/assets|fonts)[\\/]/
+    assets: /(assets|vendor\/assets|font)[\\/]/
   paths:
     public: 'public'
   server: 
@@ -12,12 +12,13 @@ exports.config =
     javascripts:
       defaultExtension: 'coffee'
       joinTo:
-        'js/pieces.js': /^app\/core/
+        'js/pieces.core.js': /^(app\/pi\.core\.js|app\/core)/
+        'js/pieces.components.js': /^(app\/pi\.components\.js|app\/(components|plugins))/
+        'js/pieces.rvc.js': /^(app\/pi\.rvc\.js|app\/(controllers|resources|views|net))/
         'js/static.js': /^app\/.*.jade$/
+        'js/demo.js': /^app\/demo/      
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
-        'test/js/test.helpers.js': /^test\/helpers\.coffee/
-        'test/js/test.js': /^test[\\/](?!rvc)/
-        'test/js/test.rvc.js': /^test[\\/](?=rvc)/
+        'test/js/test.js': /^test/
         'test/js/test-vendor.js': /^vendor[\\/](?=test)/
     stylesheets:
       defaultExtension: 'sass'

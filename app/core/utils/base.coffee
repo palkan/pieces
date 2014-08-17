@@ -1,5 +1,18 @@
 pi = require '../pi'
 
+
+# export function to global object (window) with ability to rollback (noconflict)
+_conflicts = {}
+
+pi.export = (fun, as) ->
+  if window[as]?
+    _conflicts[as] = window[as] unless _conflicts[as]?
+  window[as] = fun
+
+pi.noconflict = () ->
+  for own name,fun of _conflicts
+    window[name] = fun
+
 class pi.utils
 
   @uniq_id: 100
@@ -20,7 +33,7 @@ class pi.utils
 
   #Escape regular expression characters (to use string in regexp)
   @escapeRegexp: (str) -> 
-      str.replace(@esc_rxp, "\\$&")
+    str.replace(@esc_rxp, "\\$&")
 
   @trim: (str) ->
     str.replace(@trim_rxp,"$1")
@@ -175,7 +188,7 @@ class pi.utils
 
   ## Function utils
 
-  @debounce: (period, fun, ths = null) ->
+  @debounce: (period, fun, ths) ->
     _wait = false
     _buf = null
 
@@ -184,30 +197,30 @@ class pi.utils
         _buf = args
         return
 
-      after period, ->
+      pi.utils.after period, ->
         _wait = false
         fun.apply(ths,_buf) if _buf?
 
       _wait = true
       fun.apply(ths,args) unless _buf?
 
-  @curry: (fun, args = [], ths = this, last = false) ->
+  @curry: (fun, args = [], ths, last = false) ->
       fun = if ("function" == typeof fun) then fun else ths[fun]
       args = if (args instanceof Array) then args else [args]
       (rest...)->
         fun.apply(ths||@, if last then rest.concat(args) else args.concat(rest))      
 
   # return delayed version of function
-  @delayed: (delay, fun, args = [], ths = this) -> 
+  @delayed: (delay, fun, args = [], ths) -> 
       -> 
-        setTimeout(curry(fun, args, ths), delay)
+        setTimeout(pi.utils.curry(fun, args, ths), delay)
 
   # setTimeout with reverse order of arguments and context
   @after: (delay, fun, ths) ->
-    delayed(delay, fun, [], ths)()
+    @delayed(delay, fun, [], ths)()
   
 # export functions 
-window.curry = pi.utils.curry
-window.delayed = pi.utils.delayed
-window.after = pi.utils.after
-window.debounce = pi.utils.debounce
+pi.export pi.utils.curry, 'curry'
+pi.export pi.utils.delayed, 'delayed'
+pi.export pi.utils.after, 'after'
+pi.export pi.utils.debounce, 'debounce'

@@ -1,5 +1,5 @@
 pi = require '../pi'
-require '../utils'
+require '../utils/index'
 require '../core'
 utils = pi.utils
 

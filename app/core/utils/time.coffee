@@ -69,7 +69,7 @@ _formatter =
   "p": (d) ->
     _formatter.P(d).toLowerCase()
 
-class utils.time 
+utils.time = 
   now: (fmt) ->
     @format(new Date(), fmt)
 

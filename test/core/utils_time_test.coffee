@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "pieces time utils", ->
   describe "format time", ->
 

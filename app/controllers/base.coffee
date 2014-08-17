@@ -1,40 +1,35 @@
-do (context = this) ->
-  "use strict"
+pi = require 'core'
+utils = pi.utils
+pi.controllers = {}
 
-  # shortcuts
-  pi = context.pi  = context.pi || {}
-  utils = pi.utils
+app = pi.app
 
-  pi.controllers = {}
+class pi.controllers.Base extends pi.Core
 
-  app = pi.app
+  # add shortcut for resource
+  @has_resource: (resource) ->
+    return unless resource.resources_name?
+    @::[resource.resources_name] = resource
 
-  class pi.controllers.Base extends pi.Core
+  id: 'base'
 
-    # add shortcut for resource
-    @has_resource: (resource) ->
-      return unless resource.resources_name?
-      @::[resource.resources_name] = resource
+  constructor: (@view) ->
+    @_initialized = false
 
-    id: 'base'
+  initialize: ->
+    @_initialized = true
 
-    constructor: (@view) ->
-      @_initialized = false
+  load: (data) ->
+    @initialize() unless @_initialized
+    @view.loaded data
+    return
 
-    initialize: ->
-      @_initialized = true
+  unload: ->
+    @view.unloaded()
+    return
 
-    load: (data) ->
-      @initialize() unless @_initialized
-      @view.loaded data
-      return
+  exit: (data) ->
+    app.page.switch_back data
 
-    unload: ->
-      @view.unloaded()
-      return
-
-    exit: (data) ->
-      app.page.switch_back data
-
-    switch: (to, data) ->
-      app.page.switch_context @id, to, data
+  switch: (to, data) ->
+    app.page.switch_context @id, to, data

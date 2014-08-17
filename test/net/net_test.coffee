@@ -1,3 +1,5 @@
+TestHelpers = require '../rvc/helpers'
+
 describe "Net utils base", ->
   net = pi.net
   utils = pi.utils

@@ -1,36 +1,32 @@
-do (context = this) ->
-  "use strict"
+pi = require 'core'
+require 'components/pieces'
+utils = pi.utils
+pi.View = {}
 
-  # shortcuts
-  pi = context.pi  = context.pi || {}
-  utils = pi.utils
+utils.extend pi.Base::,
+  view: ->
+    (@__view__ ||= @_find_view())
+  _find_view: ->
+    comp = @
+    while(comp)
+      if comp instanceof pi.View.Base
+        return comp
+      comp = comp.host
 
-  pi.View = {}
+class pi.View.Base extends pi.Base
+  postinitialize: ->
+    controller_klass = null
+    if @options.controller
+      controller_klass = utils.get_class_path pi.controllers, @options.controller
 
-  utils.extend pi.Base::,
-    view: ->
-      (@__view__ ||= @_find_view())
-    _find_view: ->
-      comp = @
-      while(comp)
-        if comp instanceof pi.View.Base
-          return comp
-        comp = comp.host
+    controller_klass ||= @default_controller
 
-  class pi.View.Base extends pi.Base
-    postinitialize: ->
-      controller_klass = null
-      if @options.controller
-        controller_klass = utils.get_class_path pi.controllers, @options.controller
+    if controller_klass?
+      controller = new controller_klass(@)
+      pi.app.page.add_context controller, @options.main
 
-      controller_klass ||= @default_controller
+  loaded: (data) ->
+    return
 
-      if controller_klass?
-        controller = new controller_klass(@)
-        pi.app.page.add_context controller, @options.main
-
-    loaded: (data) ->
-      return
-
-    unloaded: ->
-      return
+  unloaded: ->
+    return

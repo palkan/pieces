@@ -1,3 +1,5 @@
+TestHelpers = require '../helpers'
+
 describe "checkbox component", ->
   Nod = pi.Nod
   root = Nod.create 'div'

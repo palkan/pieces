@@ -1,3 +1,5 @@
+TestHelpers = require '../rvc/helpers'
+
 describe "Pieces REST", ->
   
   describe "rest resources test", ->
@@ -5,12 +7,12 @@ describe "Pieces REST", ->
     R = $r.REST
 
     beforeEach ->
-      mock_net()
+      TestHelpers.mock_net()
 
     afterEach ->
       Testo.clear_all()
       Testo.off()
-      unmock_net()
+      TestHelpers.unmock_net()
 
     describe "path interpolation", ->
       it "should interpolate without scope", ->

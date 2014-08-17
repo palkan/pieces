@@ -1,3 +1,5 @@
+TestHelpers = require '../helpers'
+
 describe "select_input component", ->
   Nod = pi.Nod
   root = Nod.create 'div'

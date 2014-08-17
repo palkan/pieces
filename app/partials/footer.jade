@@ -1,8 +1,10 @@
 script(src='js/vendor.js')
 script(src='js/pieces.core.js')
-script(src='js/pieces.js')
-script(src='js/pieces.rest.js')
+script(src='js/pieces.components.js')
+script(src='js/pieces.rvc.js')
 script(src='js/demo.js')
+script
+  | require('demo_app');
 script
   |pi.log_level = 'debug';pi.app.initialize();
 

@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "guesser test", ->
   Nod = pi.Nod
   root = Nod.create 'div'

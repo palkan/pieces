@@ -1,3 +1,5 @@
+TestHelpers = require '../helpers'
+
 describe "text input component", ->
   Nod = pi.Nod
   root = Nod.create 'div'

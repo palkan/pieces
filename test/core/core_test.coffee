@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "core class", ->
 
   describe "class functions", ->

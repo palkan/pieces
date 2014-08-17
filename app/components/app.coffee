@@ -1,13 +1,12 @@
-do (context = this) ->
-  "use strict"
+pi = require 'core/pi'
+require './pieces' 
 
-  # shortcuts
-  pi = context.pi  = context.pi || {}
-  utils = pi.utils
+utils = pi.utils
 
-  class pi.App
-    initialize: (nod) ->
-      @view = pi.piecify(nod || pi.Nod.root)
-      @page?.initialize()
+class pi.App
+  initialize: (nod) ->
+    @view = pi.piecify(nod || pi.Nod.root)
+    @page?.initialize()
 
-  pi.app = new pi.App()
+pi.app = new pi.App()
+module.exports = pi.app

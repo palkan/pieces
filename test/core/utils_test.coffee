@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "pieces utils", ->
   describe "escape regexp", ->
     it "should work", ->

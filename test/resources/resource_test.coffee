@@ -1,3 +1,5 @@
+TestHelpers = require '../rvc/helpers'
+
 describe "Pieces REST base", ->
   describe "base resources test", ->
     Salt = pi.Salt

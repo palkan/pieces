@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "pieces nod", ->
 
   Nod = pi.Nod

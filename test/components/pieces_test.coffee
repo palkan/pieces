@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "pieces core", ->
   Nod = pi.Nod
   root = Nod.create 'div'

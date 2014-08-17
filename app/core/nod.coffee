@@ -1,6 +1,6 @@
 pi = require './pi'
 require './utils'
-require './events/nod_events'
+require './events'
 utils = pi.utils
 
 _prop_hash = (method, callback) ->
@@ -509,15 +509,23 @@ pi.Nod.root = new pi.NodRoot()
 pi.Nod.win = new pi.Nod window
 pi.Nod.body = new pi.Nod document.body
 
-if context.bowser?
-  klasses = []
-  if bowser.msie
-    klasses.push 'ie', "ie#{bowser.version|0}"
+pi.$ = (q) ->
+  if utils.is_html q
+    pi.Nod.create q
+  else
+    pi.Nod.root.find q
 
-  if bowser.mobile
+pi.export(pi.$, '$')
+
+if window.window.bowser?
+  klasses = []
+  if window.bowser.msie
+    klasses.push 'ie', "ie#{window.bowser.version|0}"
+
+  if window.bowser.mobile
     klasses.push 'mobile'
 
-  if bowser.tablet
+  if window.bowser.tablet
     klasses.push 'tablet'
 
   if klasses.length

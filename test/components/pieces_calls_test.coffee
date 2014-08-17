@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "pieces calls", ->
   Nod = pi.Nod
   root = Nod.create 'div'
@@ -107,18 +109,3 @@ describe "pieces calls", ->
       expect(@example.c5.visible).to.be.true
       @example.c5.value_trigger 1
       expect(@example.c5.visible).to.be.false
-
-  describe "pi calls with view", ->
-    beforeEach  ->
-      @test_div.append('''
-        <div class="pi" data-pid="test" data-component="view.base">
-          <span pid="btn" class="pi" data-on-click="@this.view.log.text('bla')"></span>
-          <span pid="log" class="pi">loggo</span>
-        </div>
-        ''')
-      pi.app.view.piecify()
-      @example = $("@test")
-
-    it "should work with bool condition", ->
-      TestHelpers.clickElement @example.btn.node
-      expect(@example.log.text()).to.eq 'bla'

@@ -1,3 +1,5 @@
+TestHelpers = require '../helpers'
+
 describe "sortable list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'

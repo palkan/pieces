@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "Pieces RVC", ->
   TestUsers = pi.resources.TestUsers
   Controller = pi.controllers.Test

@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "event dispatcher", ->
     Nod = pi.Nod
     root = Nod.create 'div'
@@ -7,123 +9,77 @@ describe "event dispatcher", ->
       @test_div = Nod.create 'div'
       @test_div.style position:'relative'
       root.append @test_div
-      @test_div.append('<div class="pi" data-component="test_component" data-pid="test" style="position:relative"></div>')
-      pi.app.view.piecify()
+      @test_div.append('<div style="position:relative"></div>')
 
     afterEach ->
       root.html ''
 
 
-    it "should parse dom and add event handlers", ->
-      @test_div.append """
-        <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn' data-on-click='@test.hide' data-on-custom='@test.show'>Button</button>
-        </div>
-          """
-      pi.app.view.piecify()
-      expect(pi.find("btn").listeners).to.have.keys(['click','custom'])
-
     it "should add native events and call handlers", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find("btn")
-      count = 0
+      el = pi.$(".pi")
 
-      dummy =
-        fn: -> true
+      spy_fun = sinon.spy()
 
-      spy = sinon.spy(dummy,"fn")
-
-      el.on 'click', dummy.fn, dummy
-      el.on 'click', dummy.fn, dummy
+      el.on 'click', spy_fun
+      el.on 'click', spy_fun
 
       TestHelpers.clickElement el.node
-      expect(spy.callCount).to.equal 2
-
-    it "should add custom events and call handlers", ->
-      @test_div.append """
-        <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
-        </div>
-          """
-      pi.app.view.piecify()
-      el = pi.find("btn")
-      
-      dummy =
-        fn: -> true
-        fn2: -> false
-
-      spy = sinon.spy(dummy,"fn")
-      spy2 = sinon.spy(dummy,"fn2")
-
-      el.on 'enabled', dummy.fn, dummy
-      el.on 'hidden', dummy.fn2, dummy
-
-      el.hide()
-      el.disable()
-
-      expect(spy.callCount).to.equal 1
-      expect(spy2.callCount).to.equal 1
+      expect(spy_fun.callCount).to.eq 2
 
     it "should remove all events on off", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-on-click='@test.hide' data-on-custom='@test.show' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find("btn")
+      el = pi.$(".pi")
+      spy_fun = sinon.spy()
+
+      el.on 'click', spy_fun
+      el.on 'mousedown', spy_fun
+      expect(el.listeners).to.have.keys('click','mousedown')
+
       el.off()
       expect(el.listeners).to.eql({})
 
-    it "should not call removed events", (done)->
+    it "should not call removed events", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-on-click='@test.hide' data-on-custom='@test.show' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find("btn")
+      el = pi.$(".pi")
       
-      count = 0
+      spy_fun = sinon.spy()
 
-      el.on 'enabled', (event) =>
-        count.total++
-      
-      el.on 'click', (event) =>
-        count.total++
-      
-      after 500, =>
-        if count == 0
-          done()
+      el.on 'click', spy_fun
 
-      el.off()
-        
       TestHelpers.clickElement el.node
-      el.disable()
-      el.enable()
+      el.off()
+
+      TestHelpers.clickElement el.node
+      expect(spy_fun.callCount).to.eq 1
 
     it "should remove native listener on off()", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find("btn")
+      el = pi.$(".pi")
 
-      spy = sinon.spy(el,"add_native_listener")
+      spy_native = sinon.spy(el,"add_native_listener")
 
       el.on "click", (event) => "hello"
 
-      dummy =
-        kill: -> true
+      spy_fun = sinon.spy()
 
-      el.on "click", dummy.kill, dummy
+      el.on "click", spy_fun
       
       TestHelpers.clickElement el.node
       
@@ -133,25 +89,25 @@ describe "event dispatcher", ->
       TestHelpers.clickElement el.node
       
       expect(el.listeners).to.eql {}
-      expect(spy.callCount).to.equal(1)
+      expect(spy_native.callCount).to.eq(1)
+      expect(spy_fun.callCount).to.eq(1)
+
 
     it "should remove native listener on off(event)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find('btn')
+      el = pi.$(".pi")
 
-      spy = sinon.spy(el,"add_native_listener")
+      spy_native = sinon.spy(el,"add_native_listener")
 
       el.on "click", (event) => "hello"
 
-      dummy =
-        kill: -> true
+      spy_fun = sinon.spy()
 
-      el.on "click", dummy.kill, dummy     
+      el.on "click", spy_fun    
 
       TestHelpers.clickElement el.node
       
@@ -161,112 +117,87 @@ describe "event dispatcher", ->
       TestHelpers.clickElement el.node
       
       expect(el.listeners.click).to.be.undefined
-      expect(spy.callCount).to.equal(1)
+      expect(spy_native.callCount).to.eq(1)
+      expect(spy_fun.callCount).to.eq(1)
 
 
     it "should remove native listener on off(event,callback,context)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find('btn')
-      spy = sinon.spy(el,"add_native_listener")
+      el = pi.$(".pi")
+      spy_native = sinon.spy(el,"add_native_listener")
       
       dummy =
-        kill: -> pi.utils.debug('kill')
+        spy: sinon.spy()
 
-      el.on "click", dummy.kill, dummy
+      el.on "click", dummy.spy, dummy
 
       TestHelpers.clickElement el.node
       
-      el.off 'click', dummy.kill, dummy 
+      el.off 'click', dummy.spy, dummy 
       
       TestHelpers.clickElement el.node
       TestHelpers.clickElement el.node
 
       expect(el.listeners.click).to.be.undefined
-      expect(spy.callCount).to.equal(1)
+      expect(spy_native.callCount).to.eq(1)
+      expect(dummy.spy.callCount).to.eq(1)
 
     it "should call once if one(event)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find('btn')
-      
+      el = pi.$(".pi")
       
       dummy =
-        kill: -> pi.utils.debug('kill')
+        spy: sinon.spy()
 
-      spy = sinon.spy(dummy,"kill")
-
-      el.one "click", dummy.kill, dummy
+      el.one "click", dummy.spy, dummy
 
       TestHelpers.clickElement el.node
       TestHelpers.clickElement el.node
       TestHelpers.clickElement el.node
 
-      expect(spy.callCount).to.equal(1)
-
-    it "should handle multiple events", ->
-      @test_div.append """
-        <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
-        </div>
-          """
-      pi.app.view.piecify()
-      el = pi.find('btn')
-            
-      dummy =
-        kill: -> pi.utils.debug('kill')
-
-      spy = sinon.spy(dummy,"kill")
-
-      el.on "click,hidden,shown", dummy.kill, dummy
-
-      TestHelpers.clickElement el.node
-      el.hide()
-      el.show()
-
-      expect(spy.callCount).to.equal(3)
+      expect(dummy.spy.callCount).to.eq(1)
 
     it "should remove native listener after event if one(event)", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find('btn')
+      el = pi.$ '.pi'
       
-      spy = sinon.spy(el,"add_native_listener")
+      spy_native = sinon.spy(el,"add_native_listener")
       
       dummy =
-        kill: -> pi.utils.debug('kill')
+        spy: sinon.spy()
 
-      el.one "click", dummy.kill, dummy
+      el.one "click", dummy.spy, dummy
 
       TestHelpers.clickElement el.node
       TestHelpers.clickElement el.node
       TestHelpers.clickElement el.node
 
       expect(el.listeners.click).to.be.undefined
-      expect(spy.callCount).to.equal(1)
+      expect(spy_native.callCount).to.eq(1)
+      expect(dummy.spy.callCount).to.eq(1)
+
 
     it "should work with several native events", ->
       @test_div.append """
         <div id='cont'>
-          <button class='pi' data-component='base' data-pid='btn'>Button</button>
+          <button class='pi'>Button</button>
         </div>
           """
-      pi.app.view.piecify()
-      el = pi.find('btn')
+      el = pi.$ '.pi'
       
-      spy = sinon.spy(el,"add_native_listener")
+      spy_native = sinon.spy(el,"add_native_listener")
       spy_fun = sinon.spy()
       
       el.on "click", spy_fun
@@ -281,5 +212,5 @@ describe "event dispatcher", ->
 
       expect(el.listeners.click).to.be.undefined
       expect(el.listeners.mouseover).to.have.length(1)
-      expect(spy.callCount).to.equal(2)
-      expect(spy_fun.callCount).to.equal(2)
+      expect(spy_native.callCount).to.eq(2)
+      expect(spy_fun.callCount).to.eq(2)

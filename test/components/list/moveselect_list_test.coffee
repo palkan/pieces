@@ -1,3 +1,5 @@
+TestHelpers = require '../helpers'
+
 describe "move-select list plugin", ->
   Nod = pi.Nod
   root = Nod.create 'div'

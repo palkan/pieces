@@ -1,3 +1,6 @@
+TestHelpers = require '../helpers'
+
+
 describe "file input component", ->
   Nod = pi.Nod
   root = Nod.create 'div'

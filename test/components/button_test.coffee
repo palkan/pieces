@@ -1,3 +1,5 @@
+TestHelpers = require './helpers'
+
 describe "button component", ->
   Nod = pi.Nod
   root = Nod.create 'div'

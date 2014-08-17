@@ -1,3 +1,5 @@
+TestHelpers = require '../helpers'
+
 describe "action_list component", ->
   Nod = pi.Nod
   root = Nod.create 'div'

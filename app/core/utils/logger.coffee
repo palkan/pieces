@@ -4,8 +4,8 @@ require './time'
 
 utils = pi.utils 
 
-if !context.console || !context.console.log
-  context.console =
+if !window.console || !window.console.log
+  window.console =
     log: ->
       true
 

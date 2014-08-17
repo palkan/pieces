@@ -1,23 +1,21 @@
-do (context = this) ->
-  "use strict"
-  # shortcuts
-  pi = context.pi  = context.pi || {}
-  utils = pi.utils
+pi = require 'core'
+require '../pieces'
+utils = pi.utils
 
-  class pi.BaseInput extends pi.Base
+class pi.BaseInput extends pi.Base
 
-    postinitialize: ->
-      @input = if @node.nodeName is 'INPUT' then @ else @find('input')
-    
-    value: (val) ->
-      if @ is @input
-        super
+  postinitialize: ->
+    @input = if @node.nodeName is 'INPUT' then @ else @find('input')
+  
+  value: (val) ->
+    if @ is @input
+      super
+    else
+      if val? 
+        @input.node.value=val
+        @
       else
-        if val? 
-          @input.node.value=val
-          @
-        else
-          @input.node.value
+        @input.node.value
 
-    clear: () ->
-      @input.value ''
+  clear: () ->
+    @input.value ''
