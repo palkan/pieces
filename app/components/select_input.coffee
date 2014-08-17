@@ -1,3 +1,4 @@
+'use strict'
 pi = require 'core'
 require './base/base_input'
 utils = pi.utils

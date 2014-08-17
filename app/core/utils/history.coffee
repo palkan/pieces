@@ -1,3 +1,4 @@
+'use strict'
 class History
   constructor: ->
     @_storage = []

@@ -1,3 +1,4 @@
+'use strict'
 require './base_input'
 require './button'
 require './list'

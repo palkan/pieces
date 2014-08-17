@@ -1,3 +1,4 @@
+'use strict'
 pi = require '../pi'
 
 
@@ -101,11 +102,11 @@ class pi.utils
   # sort array by many keys provided as hash: {key: order}
   # order is 'asc' or 'desc'
   @sort: (arr, sort_params) ->
-    arr.sort @curry(@keys_compare,[sort_params],null,true)
+    arr.sort @curry(@keys_compare,[sort_params],@,true)
 
   # sort array by key
   @sort_by: (arr, key, order = 'asc') ->
-    arr.sort @curry(@key_compare,[key,order],null,true)
+    arr.sort @curry(@key_compare,[key,order],@,true)
 
 
   ## Object utils
@@ -217,7 +218,7 @@ class pi.utils
 
   # setTimeout with reverse order of arguments and context
   @after: (delay, fun, ths) ->
-    @delayed(delay, fun, [], ths)()
+    pi.utils.delayed(delay, fun, [], ths)()
   
 # export functions 
 pi.export pi.utils.curry, 'curry'

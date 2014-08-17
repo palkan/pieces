@@ -1,3 +1,4 @@
+'use strict'
 require './selectable'
 require './sortable'
 require './searchable'

@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require '../helpers'
 
 describe "search_input component", ->

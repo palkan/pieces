@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require '../rvc/helpers'
 
 describe "Pieces REST base", ->

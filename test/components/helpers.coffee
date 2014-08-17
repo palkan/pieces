@@ -1,3 +1,4 @@
+'use strict'
 pi = require 'pi.components'
 TestHelpers = require '../helpers'
 pi.log_level = "debug"

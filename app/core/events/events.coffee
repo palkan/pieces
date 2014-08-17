@@ -1,3 +1,4 @@
+'use strict'
 pi = require '../pi'
 require '../utils/index'
 require '../core'

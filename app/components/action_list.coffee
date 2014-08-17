@@ -1,3 +1,4 @@
+'use strict'
 pi = require 'core'
 require './base/list'
 require 'plugins/list'

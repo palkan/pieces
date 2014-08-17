@@ -1,3 +1,4 @@
+'use strict'
 pi = require 'core'
 utils = pi.utils
 pi.controllers = {}

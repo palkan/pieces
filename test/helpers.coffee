@@ -1,3 +1,4 @@
+'use strict'
 class TestHelpers
   @mouseEventElement: (el,type, x=0, y=0) ->
     ev = document.createEvent "MouseEvent"

@@ -1,3 +1,4 @@
+'use strict'
 pi = require 'core'
 require './net'
 utils = pi.utils

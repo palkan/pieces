@@ -1,3 +1,4 @@
+'use strict'
 pi = require 'core'
 require './pieces'
 utils = pi.utils

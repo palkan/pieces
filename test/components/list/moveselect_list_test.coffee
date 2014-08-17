@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require '../helpers'
 
 describe "move-select list plugin", ->

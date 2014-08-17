@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require '../helpers'
 
 describe "jst renderer list plugin", ->

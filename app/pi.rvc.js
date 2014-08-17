@@ -1,3 +1,4 @@
+'use strict'
 pi = require('./pi.core')
 require('./pi.components')
 require('./net')

@@ -1,3 +1,4 @@
+'use strict'
 require './pieces'
 require './app'
 require './guess/guesser'

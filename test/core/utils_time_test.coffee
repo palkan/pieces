@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require './helpers'
 
 describe "pieces time utils", ->

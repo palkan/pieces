@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require '../helpers'
 
 describe "action_list component", ->

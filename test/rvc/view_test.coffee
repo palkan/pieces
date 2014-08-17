@@ -1,3 +1,4 @@
+'use strict'
 TestHelpers = require './helpers'
 
 describe "pi calls with view", ->

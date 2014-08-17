@@ -1,6 +1,6 @@
 RE_PARTIAL = /.*\.(coffee|js)$/
  
-targets = Dir.glob("(app|test)/**/*")
+targets = Dir.glob("app/**/*")
 
 targets.each do |file|
   if file=~RE_PARTIAL
