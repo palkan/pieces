@@ -142,6 +142,17 @@ describe "pieces core", ->
         expect(test.some.any.text()).to.eq 'Any'
         expect(test.some.any.host).to.eq test.some
 
+      it "should init list of children", ->
+        test = $("@test")
+        test.append '''
+          <span class='pi' pid='many[]'>1</span>
+          <span class='pi' pid='many[]'>2</span>
+          <span class='pi' pid='many[]'>3</span>  
+          '''
+        test.piecify()
+        expect(test.many).to.have.length 3
+        expect(test.many[1].text()).to.eq '2'
+
   describe "pi base events", ->
     beforeEach  ->
       @test_div.append('<div class="pi" data-disabled="true" data-on-value="@this.text(e.data); @this.name(e.data)" data-component="test_component" data-pid="test" style="position:relative"></div>')

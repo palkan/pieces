@@ -27,6 +27,7 @@ do (context = this) ->
     
       acc
 
+  _array_rxp = /\[\]$/
 
   class pi.Base extends pi.Nod
 
@@ -58,7 +59,7 @@ do (context = this) ->
 
     piecify: ->
       @init_children()
-      for own _,c of @__components__
+      for c in @__components__
         c.piecify()
 
     ## event dispatcher ##
@@ -119,7 +120,7 @@ do (context = this) ->
     # define instance vars here and other props
     preinitialize: ->
       @node._nod = @
-      @__components__ = {}
+      @__components__ = []
       @pid = @data('pid') || @attr('pid') || @node.id
       @visible = @enabled = true
       @active = false
@@ -164,8 +165,11 @@ do (context = this) ->
         do (node) =>
           child = pi.init_component node, @
           if child.pid
-            @[child.pid] = child
-            @__components__[child.pid] = child
+            if _array_rxp.test(child.pid)
+              (@[child.pid[..-3]]||=[]).push child
+            else
+              @[child.pid] = child
+            @__components__.push child
       return
 
     setup_events: ->
@@ -175,7 +179,7 @@ do (context = this) ->
       delete @options.events
       return
 
-     # [private] Use for callbacks (postinitialize can be overriden by sub-classs) 
+    # [private] Use for callbacks (postinitialize can be overriden by sub-classs) 
     __postinitialize: ->
       @postinitialize()
 
