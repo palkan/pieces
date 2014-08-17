@@ -1,178 +1,178 @@
-do (context = this) ->
-  "use strict"
+pi = require '../pi'
+require '../utils'
+require './events'
 
-  # shortcuts
-  pi = context.pi  = context.pi || {}
-  utils = pi.utils
-  Events = pi.Events || {}
+utils = pi.utils
 
-  class pi.NodEvent extends pi.Event
+Events = pi.Events || {}
 
-    @aliases: {}
-    @reversed_aliases: {}
-    @delegates: {}
+class pi.NodEvent extends pi.Event
 
-    @add: ( -> 
-      if typeof Element::addEventListener is "undefined" 
-        (nod, event, handler) ->  
-          nod.attachEvent("on" + event, handler)
-      else
-        (nod, event, handler) ->
-          nod.addEventListener(event, handler)
-      )()
+  @aliases: {}
+  @reversed_aliases: {}
+  @delegates: {}
 
-    @remove: ( -> 
-      if typeof Element::removeEventListener is "undefined" 
-        (nod, event, handler) ->  
-          nod.detachEvent("on" + event, handler)
-      else            (nod, event, handler) ->
-          nod.removeEventListener(event, handler)
-      )()
+  @add: ( -> 
+    if typeof Element::addEventListener is "undefined" 
+      (nod, event, handler) ->  
+        nod.attachEvent("on" + event, handler)
+    else
+      (nod, event, handler) ->
+        nod.addEventListener(event, handler)
+    )()
 
-    @register_delegate: (type, delegate) ->
-      @delegates[type] = delegate
+  @remove: ( -> 
+    if typeof Element::removeEventListener is "undefined" 
+      (nod, event, handler) ->  
+        nod.detachEvent("on" + event, handler)
+    else            (nod, event, handler) ->
+        nod.removeEventListener(event, handler)
+    )()
 
-    @has_delegate: (type) ->
-      !!@delegates[type]
+  @register_delegate: (type, delegate) ->
+    @delegates[type] = delegate
 
-    @register_alias: (from, to) ->
-      @aliases[from] = to
-      @reversed_aliases[to] = from
+  @has_delegate: (type) ->
+    !!@delegates[type]
 
-    @has_alias: (type) ->
-      !!@aliases[type]
+  @register_alias: (from, to) ->
+    @aliases[from] = to
+    @reversed_aliases[to] = from
 
-    @is_aliased: (type) ->
-      !!@reversed_aliases[type]
+  @has_alias: (type) ->
+    !!@aliases[type]
 
-    constructor: (event) ->
-      @event = event || window.event  
+  @is_aliased: (type) ->
+    !!@reversed_aliases[type]
 
-      @origTarget = @event.target || @event.srcElement
-      @target = pi.Nod.create @origTarget
-      @type = if @constructor.is_aliased[event.type] then @constructor.reversed_aliases[event.type] else event.type
-      @ctrlKey = @event.ctrlKey
-      @shiftKey = @event.shiftKey
-      @altKey = @event.altKey
-      @metaKey = @event.metaKey
-      @detail = @event.detail
-      @bubbles = @event.bubbles
+  constructor: (event) ->
+    @event = event || window.event  
 
-    stopPropagation: ->
-      if @event.stopPropagation 
-        @event.stopPropagation()
-      else
-        @event.cancelBubble = true
+    @origTarget = @event.target || @event.srcElement
+    @target = pi.Nod.create @origTarget
+    @type = if @constructor.is_aliased[event.type] then @constructor.reversed_aliases[event.type] else event.type
+    @ctrlKey = @event.ctrlKey
+    @shiftKey = @event.shiftKey
+    @altKey = @event.altKey
+    @metaKey = @event.metaKey
+    @detail = @event.detail
+    @bubbles = @event.bubbles
 
-    stopImmediatePropagation: ->
-      if @event.stopImmediatePropagation 
-        @event.stopImmediatePropagation()
-      else
-        @event.cancelBubble = true
-        @event.cancel = true
+  stopPropagation: ->
+    if @event.stopPropagation 
+      @event.stopPropagation()
+    else
+      @event.cancelBubble = true
 
-    preventDefault: ->
-      if @event.preventDefault
-        @event.preventDefault()
-      else
-        @event.returnValue = false
+  stopImmediatePropagation: ->
+    if @event.stopImmediatePropagation 
+      @event.stopImmediatePropagation()
+    else
+      @event.cancelBubble = true
+      @event.cancel = true
 
-    cancel: ->
-      @stopImmediatePropagation()
-      @preventDefault()
-      super
+  preventDefault: ->
+    if @event.preventDefault
+      @event.preventDefault()
+    else
+      @event.returnValue = false
 
-  NodEvent = pi.NodEvent
+  cancel: ->
+    @stopImmediatePropagation()
+    @preventDefault()
+    super
 
-  _mouse_regexp = /(click|mouse|contextmenu)/i
+NodEvent = pi.NodEvent
 
-  _key_regexp = /(keyup|keydown|keypress)/i
+_mouse_regexp = /(click|mouse|contextmenu)/i
 
-  class pi.MouseEvent extends NodEvent
-    constructor: ->
-      super
-      
-      @button = @event.button
+_key_regexp = /(keyup|keydown|keypress)/i
 
-      unless @pageX?
-        @pageX = @event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft 
-        @pageY = @event.clientY + document.body.scrollTop + document.documentElement.scrollTop
-
-      unless @offsetX?
-        @offsetX = @event.layerX - @origTarget.offsetLeft
-        @offsetY = @event.layerY - @origTarget.offsetTop
-
-      @wheelDelta = @event.wheelDelta
-      unless @wheelDelta?
-        @wheelDelta = -@event.detail*40
-
-  class pi.KeyEvent extends NodEvent
-    constructor: ->
-      super      
-      utils.debug 'I am a KEEEY!'
-      @keyCode = @event.keyCode || @event.which
-      @charCode = @event.charCode
-
+class pi.MouseEvent extends NodEvent
+  constructor: ->
+    super
     
-  _prepare_event = (e) ->
-    if _mouse_regexp.test e.type
-      new pi.MouseEvent e
-    else if _key_regexp.test e.type
-      new pi.KeyEvent e
+    @button = @event.button
+
+    unless @pageX?
+      @pageX = @event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft 
+      @pageY = @event.clientY + document.body.scrollTop + document.documentElement.scrollTop
+
+    unless @offsetX?
+      @offsetX = @event.layerX - @origTarget.offsetLeft
+      @offsetY = @event.layerY - @origTarget.offsetTop
+
+    @wheelDelta = @event.wheelDelta
+    unless @wheelDelta?
+      @wheelDelta = -@event.detail*40
+
+class pi.KeyEvent extends NodEvent
+  constructor: ->
+    super      
+    utils.debug 'I am a KEEEY!'
+    @keyCode = @event.keyCode || @event.which
+    @charCode = @event.charCode
+
+  
+_prepare_event = (e) ->
+  if _mouse_regexp.test e.type
+    new pi.MouseEvent e
+  else if _key_regexp.test e.type
+    new pi.KeyEvent e
+  else
+    new NodEvent e
+
+_selector_regexp = /[\.#]/
+
+_selector = (s, parent) ->
+  ## when selector is tag (for links default behaviour preventing)
+  unless _selector_regexp.test s
+    (e) ->
+      return e.target.node.matches(s)
+  else
+    (e) ->
+      parent ||= document
+      node = e.target.node
+      return true if node.matches(s) 
+      while((node = node.parentNode) != parent)
+        return (e.target = pi.Nod.create(node)) if node.matches(s)
+
+class pi.NodEventDispatcher extends pi.EventDispatcher
+
+  constructor: ->
+    super
+    @native_event_listener = (event) => @trigger _prepare_event(event)  
+
+  listen: (selector, event, callback, context) ->
+    @on event, callback, context, _selector(selector)
+
+  add_native_listener: (type) ->
+    if NodEvent.has_delegate type
+      NodEvent.delegates[type].add @node, @native_event_listener
+    else 
+      NodEvent.add @node, type, @native_event_listener 
+
+  remove_native_listener: (type) ->
+    if NodEvent.has_delegate type
+      NodEvent.delegates[type].remove @node
     else
-      new NodEvent e
-
-  _selector_regexp = /[\.#]/
-
-  _selector = (s, parent) ->
-    ## when selector is tag (for links default behaviour preventing)
-    unless _selector_regexp.test s
-      (e) ->
-        return e.target.node.matches(s)
-    else
-      (e) ->
-        parent ||= document
-        node = e.target.node
-        return true if node.matches(s) 
-        while((node = node.parentNode) != parent)
-          return (e.target = pi.Nod.create(node)) if node.matches(s)
-
-  class pi.NodEventDispatcher extends pi.EventDispatcher
-
-    constructor: ->
-      super
-      @native_event_listener = (event) => @trigger _prepare_event(event)  
-
-    listen: (selector, event, callback, context) ->
-      @on event, callback, context, _selector(selector)
-
-    add_native_listener: (type) ->
-      if NodEvent.has_delegate type
-        NodEvent.delegates[type].add @node, @native_event_listener
-      else 
-        NodEvent.add @node, type, @native_event_listener 
-
-    remove_native_listener: (type) ->
-      if NodEvent.has_delegate type
-        NodEvent.delegates[type].remove @node
-      else
-        NodEvent.remove @node, type, @native_event_listener
+      NodEvent.remove @node, type, @native_event_listener
 
 
-    add_listener: (listener) ->
-      if !@listeners[listener.type]
-        @add_native_listener listener.type
-        @add_native_listener NodEvent.aliases[listener.type] if NodEvent.has_alias(listener.type)
-      super
+  add_listener: (listener) ->
+    if !@listeners[listener.type]
+      @add_native_listener listener.type
+      @add_native_listener NodEvent.aliases[listener.type] if NodEvent.has_alias(listener.type)
+    super
 
-    remove_type: (type) ->
-      @remove_native_listener type
-      @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
-      super
+  remove_type: (type) ->
+    @remove_native_listener type
+    @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
+    super
 
-    remove_all: ->
-      for own type,list of @listeners
-        do =>
-          @remove_native_listener type
-          @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
-      super
+  remove_all: ->
+    for own type,list of @listeners
+      do =>
+        @remove_native_listener type
+        @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
+    super

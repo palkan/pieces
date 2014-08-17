@@ -1,0 +1,6 @@
+window.pi = require('./core/pi')
+require('./core/utils')
+require('./core/core')
+require('./core/events/nod_events')
+require('./core/events/aliases')
+require('./core/nod')

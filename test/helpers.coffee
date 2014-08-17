@@ -1,3 +1,4 @@
+pi.log_level = "debug"
 class pi.TestComponent extends pi.Base
   @after_initialize () -> @id = @options.id
   @before_create () -> @on 'click', => @value_trigger(13)
