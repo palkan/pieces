@@ -13,7 +13,8 @@
     "node": "~0.6.10 || 0.8 || 0.9"
   },
   "scripts": {
-    "start": "brunch watch --server"
+    "start": "brunch watch --server",
+    "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../public/js/pieces.bundle.js && cd .. && uglifyjs -m toplevel public/js/pieces.bundle.js > public/js/pieces.min.js"
   },
   "dependencies": {
   },
