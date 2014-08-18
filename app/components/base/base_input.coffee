@@ -6,7 +6,7 @@ utils = pi.utils
 class pi.BaseInput extends pi.Base
 
   postinitialize: ->
-    @input = if @node.nodeName is 'INPUT' then @ else @find('input')
+    @input ||= if @node.nodeName is 'INPUT' then @ else @find('input')
   
   value: (val) ->
     if @ is @input

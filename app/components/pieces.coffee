@@ -163,7 +163,8 @@ class pi.Base extends pi.Nod
         child = pi.init_component node, @
         if child.pid
           if _array_rxp.test(child.pid)
-            (@[child.pid[..-3]]||=[]).push child
+            arr = (@[child.pid[..-3]]||=[])
+            arr.push(child) unless arr.indexOf(child)>-1
           else
             @[child.pid] = child
           @__components__.push child
@@ -218,6 +219,8 @@ pi._gather_options = (el) ->
 pi.init_component = (nod, host) ->
   nod = if nod instanceof Nod then nod else Nod.create(nod)
   component = pi._guess_component nod
+  
+  return unless component?
 
   if nod instanceof component
     return nod 

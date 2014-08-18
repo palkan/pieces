@@ -18,8 +18,9 @@ class pi.List.Selectable extends pi.Plugin
 
     @list.on 'update', @update_handler()
 
-    @list.items_cont.each '.is-selected', (nod) =>
-      nod.selected = true
+    for item in @list.items 
+      if item.hasClass 'is-selected'
+        item.__selected__ = true
 
     @list.delegate_to @, 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
 

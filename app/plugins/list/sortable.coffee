@@ -15,10 +15,9 @@ class pi.List.Sortable extends pi.Plugin
     @list.on 'update', (-> @sort(@_prevs)), @, (e) -> (e.data.type is 'item_added' or e.data.type is 'item_updated') 
 
 
-  # @params [Array,String] fields
-  # @params [Boolean] reverse if true then 'asc' else 'desc'
   # @see pi.utils.sort 
   sort: (sort_params) ->
+    return unless sort_params?
     sort_params = utils.to_a sort_params
     @_prevs = sort_params
     
@@ -29,6 +28,7 @@ class pi.List.Sortable extends pi.Plugin
     @list.trigger 'sort_update', sort_params
 
   sorted: (sort_params) ->
+    return unless sort_params?
     sort_params = utils.to_a sort_params
     @_prevs = sort_params
     @list.trigger 'sort_update', sort_params
