@@ -153,7 +153,7 @@ class pi.Base extends pi.Nod
     while(klass?)
       if klass[name]?
         return klass[name]
-      klass = klass.__super__.constructor
+      klass = klass.__super__?.constructor
     utils.warning "plugin not found: #{name}"
     return null
 
@@ -198,7 +198,7 @@ pi._guess_component = (nod) ->
   component_name = (nod.data('component') || pi.Guesser.find(nod))
   component = utils.get_class_path pi, component_name
   unless component?
-    throw new ReferenceError("unknown or initialized component #{component_name}")
+    utils.error "unknown or initialized component #{component_name}"
   else
     utils.debug "component created: #{component_name}"
     component

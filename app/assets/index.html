@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/vendor.css" media="all">
     <link rel="stylesheet" href="css/font-awesome.min.css" media="all">
     <link href="//fonts.googleapis.com/css?family=PT+Sans&amp;subset=latin,cyrillic" rel="stylesheet" media="all">
+    <link rel="stylesheet" href="css/pieces.css" media="all">
     <link rel="stylesheet" href="css/app.css" media="all">
   </head>
 </html>
@@ -41,7 +42,7 @@
       <div class="content">
         <div class="inline">
           <form pid="form" class="pi">
-            <div pid="btn" data-on-files_selected="@host.host.list.data_provider(e.data)" class="pi button-blue pi-file-input-wrap"> <span>choose file</span>
+            <div pid="btn" data-on-files_selected="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap"> <span>choose file</span>
               <input type="file" name="attachment[file]" class="file-input">
             </div>
             <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">
@@ -49,7 +50,7 @@
               <input type="hidden" name="attachment[multiple]">
             </div>
           </form>
-          <button pid="upload_btn" class="pi button-red is-disabled">upload</button>
+          <button pid="upload_btn" class="pi pi-button-red is-disabled">upload</button>
         </div>
         <div pid="list" data-renderer="mustache(file_item_mst)" data-on-empty="e.data ? @host.upload_btn.disable : @host.upload_btn.enable" class="pi inline list-container">
           <h2 class="title">Selected files</h2>
@@ -101,30 +102,14 @@
           <div pid="placeholder" class="pi placeholder">Не выбрано</div>
           <div pid="dropdown" class="pi is-hidden list-container pi-select-list">
             <ul class="list">
-              <li data-value="John" class="item">
-                <div class="field name">John</div>
-              </li>
-              <li data-value="Vagon" class="item">
-                <div class="field name">Vagon</div>
-              </li>
-              <li data-value="Jack" class="item">
-                <div class="field name">Jack</div>
-              </li>
-              <li data-value="Sam" class="item">
-                <div class="field name">Sam</div>
-              </li>
-              <li data-value="Elliot" class="item">
-                <div class="field name">Elliot</div>
-              </li>
-              <li data-value="Julia" class="item">
-                <div class="field name">Julia</div>
-              </li>
-              <li data-value="Edward" class="item">
-                <div class="field name">Edward</div>
-              </li>
-              <li data-value="Simon" class="item">
-                <div class="field name">Simon</div>
-              </li>
+              <li data-value="John" class="item">John</li>
+              <li data-value="Vagon" class="item">Vagon</li>
+              <li data-value="Jack" class="item">Jack</li>
+              <li data-value="Sam" class="item">Sam</li>
+              <li data-value="Elliot" class="item">Elliot</li>
+              <li data-value="Julia" class="item">Julia</li>
+              <li data-value="Edward" class="item">Edward</li>
+              <li data-value="Simon" class="item">Simon</li>
             </ul>
           </div>
         </div>

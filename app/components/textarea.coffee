@@ -4,12 +4,10 @@ require './base/textinput'
 utils = pi.utils
 
 class pi.TextArea extends pi.TextInput
-  initialize: ->
+  postinitialize: ->
     @input = if @node.nodeName is 'TEXTAREA' then @ else @find('textarea')
-    @editable = true
-    @make_readonly() if (@options.readonly || @hasClass('is-readonly'))
+    super
     @enable_autosize() if @options.autosize is true
-    pi.Base::initialize.apply(this)
 
   autosizer: ->
     @_autosizer ||= =>

@@ -1,8 +1,8 @@
 @mixin button($bg,$border,$color: $white)
-  +font($font-size-bold,$color)
+  +font($font-size-normal,$color)
   cursor: pointer
-  height: 30px
-  line-height: 30px
+  height: $btn-height
+  line-height: $btn-height
   text-decoration: none
   padding: 0 10px
   border: 1px solid
@@ -23,18 +23,18 @@
 @mixin button-rounded
   border-radius: 2px
 
-.button-red
+.pi-button-red
   +button($red-button,$red-button-border)
   +button-rounded
 
-.button-grey
+.pi-button-grey
   +button($grey-button,$grey-button-border,$grey-btn-text)
   +button-rounded
 
-.button-green
+.pi-button-green
   +button($green-button, $green-button-border)
   +button-rounded
 
-.button-blue
+.pi-button-blue
   +button($blue-button, $blue-button-border)
   +button-rounded

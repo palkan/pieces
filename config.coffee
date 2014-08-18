@@ -45,7 +45,8 @@ exports.config =
     stylesheets:
       defaultExtension: 'sass'
       joinTo:
-        'css/app.css' : /^app/
+        'css/app.css' : /^app\/styles\/application/
+        'css/pieces.css' : /^app\/styles\/pieces/
         'css/vendor.css' : /^(vendor[\\/](?!test))/
         'test/stylesheets/test.css': /^(test|vendor[\\/](?=test))/
       order:

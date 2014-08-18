@@ -1,0 +1,89 @@
+// Global
+//
+// colors
+$white: #ffffff
+$light-grey: #d7d7d7
+$grey-text: #858585
+$blue-link: #007fe3
+$popup-grey: #fcfcfc
+$black: #000000
+$red: #ff1313
+$light-red: #ffc5c5
+$light-green: #bfd9bf
+$grey: #4b4b4b
+$grey-bg: #f3f3f3
+
+// Z-indeces
+
+$ground: 5
+$first: 10
+$second: 20
+$third: 30
+$heaven: 100000
+$hell: 0
+
+// fonts
+$font-family: 'Helvetica', sans !default
+$font-size-small: 10px !default
+$font-size-normal: 12px !default
+$font-size-base: 13px !default
+$font-size-title: 15px !default
+$font-size-big: 20px !default
+$font-size-large: 26px !default
+
+/// Button
+$btn-height: 30px
+$red-button: #f10028
+$red-button-border: #d10033
+$grey-btn-text: #5a5a5a
+$grey-button: #f7f7f7
+$grey-button-border: #d7d7d7
+$green-button: #11b700
+$green-button-border: #10a100
+$blue-button: #0090ff
+$blue-button-border: #007de6
+
+// Checkbox
+$cb-color: #d7d7d7
+$cb-focus-color: #007fe3
+
+// SearchInput
+$search-left-pad: 10px
+$search-right-pad: 30px
+$search-total-pad: ($search-right-pad + $search-left-pad)
+
+// List
+$grey-list-border: #e8e8e8
+$item-selected: #fffdd9
+$item-hover: #fffef2
+
+
+@import ../shared/easings
+
+// Mixins
+
+@mixin font($size, $color: $black, $bold:false)
+  font-family: $font-family
+  color: $color
+  @if $bold
+    font-weight: bold
+  @else
+    font-weight: normal
+  font-size: $size
+
+@mixin dotted($color)
+  color: $color
+  cursor: pointer
+  border-bottom: 1px dotted $color
+  text-decoration: none
+  &:hover
+    border-width: 0
+
+// Placeholders
+%centered
+  margin: 0 auto
+
+%focusable
+  transition: box-shadow 300ms
+  &:focus
+    box-shadow: 0 0 2px 2px $light-grey

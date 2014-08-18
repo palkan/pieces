@@ -1,13 +1,13 @@
 .pi-text-input-wrap
   background: $white
   border-radius: 2px
-  border: 1px solid $grey-line
+  border: 1px solid $light-grey
   height: 30px
   display: inline-block
   position: relative
   .text-input
     @extend %focusable
-    +font($font-size-bold,$menu-text)
+    +font($font-size-normal,$grey)
     user-select: text
     padding: 0 10px
     margin: 0
@@ -30,7 +30,7 @@
     border: none
     .text-input
       background: 0
-      font-size: $font-size-menu
+      font-size: $font-size-title
       color: $black
       padding: 0
       &:focus
