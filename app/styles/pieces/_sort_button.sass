@@ -1,0 +1,13 @@
+.pi-sort-button
+  position: relative
+  padding-left: 10px
+  &::before
+    font-family: FontAwesome
+    position: absolute
+    left: 0
+    width: 8px
+    content: ''
+  &.is-desc::before
+    content: "\f0dd"
+  &.is-asc::before
+    content: "\f0de"
