@@ -12,7 +12,7 @@ NodeJS+Bower+Brunch
 * Interactivite DOM elements with only few data attributes.
 In your HTML:
 ```
-<div class="pi" data-component="base" data-pi="cont">...</div>
+<div class="pi" pid="cont">...</div>
 ```
 In your JS:
 ```
@@ -35,9 +35,9 @@ every _piece_ automatically update class on state change ('hidden', 'disabled', 
 * *Call queries* Move all your logic to DOM! If you want...
 In your HTML:
 ```
-<div class="pi" data-component="base" data-pi="cont" data-event-shown="@btn.show">...</div>
+<div class="pi" pid="cont" data-on-hidden=" e.data ? @btn.show : @btn.hide">...</div>
 <a href="@cont.hide">Hide cont</a>
-<button class="pi" data-pi="btn" data-option-hidden="true" data-component="button" data-event-click="@cont.show">Show cont</a>
+<a href="@cont.show">Show cont</a>
 ```
 In your JS:
 ```
@@ -47,17 +47,24 @@ nothin'
 And even more:
 ```
 // use 'this' keyword in call query
-<div class="pi" data-component="base" data-event-click="@this.hide">...</div>
+<div class="pi" data-on-click="@this.hide">...</div>
+
+// use 'host' keyword in call query (host is parent component (not DOM element))
+<div class="pi" data-on-click="@host.hide">...</div>
+
 
 // binding
-<input class="pi" type="text" data-component="base" data-event-blur="@list.search(@this.value)"/>
+<input class="pi" type="text" data-on-blur="@list.search(@this.value)"/>
 ```
 
-Conditions and logical operators to be done... Maybe.
-
 * Pieces (or _components_) from the box:
-   - List: list of elements with built-in manipulation functions (add/remove/clear), template rendering (or DOM parsing), custom events ('item_click') and many useful plugins (Selectable, Searchable, Autoload, Sortable, DragSelect, JSTRenderers);
-   - SWFPlayer: simple wrapper for flash objects (using swfobject.js);    
+   - List: list of elements with built-in manipulation functions (add/remove/clear), template rendering (JST, Mustache) or DOM parsing, custom events ('item_click') and many useful plugins (Selectable, Searchable, Scrollend, Sortable, MoveSelect, Filterable);
+   - FileInput
+   - SelectInput
+   - SearchInput
+   - ...
+
+* RVC - resources-view-controller logic.
 * *Slim* shortcuts to be done
 * Some useful functions in _pi.utils_: 
   ```
@@ -96,12 +103,11 @@ Conditions and logical operators to be done... Maybe.
    pi.utils.serialize("1.5") = 1.5
 
    // array sort (using Array.sort)
-   pi.utils.sort(arr,keys,reverse) // by multiple keys and even different orders (false - 'desc', true - 'asc')
+   pi.utils.sort(arr,sort_params) // by multiple keys 
    
-   pi.utils.sort(arr, ['date','name'],[false,true])
+   pi.utils.sort(arr, [{date:'asc'},{name:'desc'}])
 
-   pi.utils.sort_by(arr,key,reverse)
-
+   pi.utils.sort_by(arr,key,order)
 
    // deep cloning (clones Node elements too)
    pi.utils.clone(data)

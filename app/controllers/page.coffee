@@ -1,8 +1,8 @@
 'use strict'
-pi = require 'core'
+pi = require '../core'
 require './base'
 utils = pi.utils
-History = require 'core/utils/history'
+History = require '../core/utils/history'
 
 # The entry point for all actions; 
 # controllers, contexts and so on...

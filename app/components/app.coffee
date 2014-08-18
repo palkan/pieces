@@ -1,5 +1,5 @@
 'use strict'
-pi = require 'core/pi'
+pi = require '../core/pi'
 require './pieces' 
 
 utils = pi.utils

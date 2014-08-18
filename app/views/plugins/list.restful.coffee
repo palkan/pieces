@@ -1,7 +1,7 @@
 'use strict'
-pi = require 'core'
-require 'plugins/plugin'
-require 'components/base/list'
+pi = require '../../core'
+require '../../plugins/plugin'
+require '../../components/base/list'
 utils = pi.utils
 
 # [Plugin]

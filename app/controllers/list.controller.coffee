@@ -1,5 +1,5 @@
 'use strict'
-pi = require 'core'
+pi = require '../core'
 require './base'
 require './page'
 require './modules/scoped'

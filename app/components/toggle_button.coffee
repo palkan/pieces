@@ -1,7 +1,7 @@
 'use strict'
-pi = require 'core'
+pi = require '../core'
 require './base/button'
-require 'plugins/base/selectable'
+require '../plugins/base/selectable'
 utils = pi.utils
 
 class pi.ToggleButton extends pi.Button

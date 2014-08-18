@@ -1,5 +1,5 @@
 'use strict'
-pi = require 'core'
+pi = require '../../core'
 require '../rest'
 utils = pi.utils
 # add query method to resource

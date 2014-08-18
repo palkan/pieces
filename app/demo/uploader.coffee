@@ -1,7 +1,3 @@
-'use strict'
-pi = require 'core'
-require 'components/pieces'
-
 class pi.Uploader extends pi.Base
   postinitialize: ->
     super

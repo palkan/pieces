@@ -1,6 +1,6 @@
 'use strict'
-pi = require 'core'
-require 'components/pieces'
+pi = require '../core'
+require '../components/pieces'
 utils = pi.utils
 pi.View = {}
 

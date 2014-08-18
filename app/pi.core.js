@@ -1,3 +1,3 @@
 'use strict'
-window.pi = require('./core')
+window.pi = require('pi/core')
 module.exports = window.pi

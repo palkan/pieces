@@ -1,5 +1,5 @@
 'use strict'
-pi = require 'core'
+pi = require '../core'
 require './base/textinput'
 utils = pi.utils
 

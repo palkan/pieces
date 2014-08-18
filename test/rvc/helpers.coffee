@@ -1,5 +1,5 @@
 'use strict'
-pi = require 'pi.rvc'
+pi = require 'pi'
 TestHelpers = require '../helpers'
 pi.log_level = "debug"
 

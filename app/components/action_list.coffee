@@ -1,7 +1,7 @@
 'use strict'
-pi = require 'core'
+pi = require '../core'
 require './base/list'
-require 'plugins/list'
+require '../plugins/list'
 utils = pi.utils
 
 # Action list component (list + selectable, sortable, searchable, ...)

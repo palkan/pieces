@@ -1,5 +1,5 @@
 'use strict'
-pi = require 'core'
+pi = require '../../core'
 utils = pi.utils
 
 # Class helps to infere component class from Nod
