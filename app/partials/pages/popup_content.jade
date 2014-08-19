@@ -1,0 +1,12 @@
+.section.white.pi(pid="popup_section")
+  h1.title Popup
+  .content
+    button.pi.pi-button-red(data-on-click="@popup.open(@host.p1)") popup!
+    
+  .popups.is-hidden
+    .popup.pi(pid="p1")
+      I am Popup!
+      button.pi.pi-button-red(data-on-click="@popup.open(@host.host.p2)") popup 2!
+    .popup.pi.no-transitions(pid="p2")
+      I am Popup 2!
+

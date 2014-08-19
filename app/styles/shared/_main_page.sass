@@ -33,3 +33,17 @@ $item-pad: 20px
     .list-container
       margin-left: 50px
       width: 400px
+
+.popup
+  background: $light-grey
+  width: 400px
+  height: 300px
+  margin-top: 0
+  transition: margin $overlay-delay, height 0
+  &.is-hidden
+    margin-top: 100%
+    transition: margin $overlay-delay, height 0 $overlay-delay
+    height: 0
+    display: block !important 
+  &.no-transitions
+    transition: none

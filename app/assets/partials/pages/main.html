@@ -83,3 +83,18 @@
     </div>
   </div>
 </div>
+<div pid="popup_section" class="section white pi">
+  <h1 class="title">Popup</h1>
+  <div class="content">
+    <button data-on-click="@popup.open(@host.p1)" class="pi pi-button-red">popup!</button>
+  </div>
+  <div class="popups is-hidden">
+    <div pid="p1" class="popup pi">
+      <I>am Popup!</I>
+      <button data-on-click="@popup.open(@host.host.p2)" class="pi pi-button-red">popup 2!</button>
+    </div>
+    <div pid="p2" class="popup pi no-transitions">
+      <I>am Popup 2!</I>
+    </div>
+  </div>
+</div>

@@ -2,8 +2,8 @@
 * add Paginated module to Controllers
 * resource query response 'bubble' from resource as is (but only resources data is converted to resources)
 * add 'merge_classes' property to List which indicates what classes should not be removed on item update
-* [todo] add popup (and abstract popup)
-* [todo] add confirmable to controller/view  
+*  rename View.<Some> to <Some>View
+*  add popup  
 
 ## 0.2.0 (2014-08)
 * no more jQuery
