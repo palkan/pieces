@@ -47,9 +47,9 @@ describe "pieces core", ->
       component = pi.init_component el
       expect(component).to.be.an.instanceof pi.TestComponent
       expect(component.visible).to.be.false
-    it "should throw error on undefined component", ->
+    it "should return undefined if component not found", ->
       el = Nod.create('<div data-component="testtt" data-hidden="true"></div>')
-      expect(curry(pi.init_component,el)).to.throw(ReferenceError)
+      expect(pi.init_component(el)).to.be.undefined
 
   describe "find cut", ->
     it "should find cut", ->

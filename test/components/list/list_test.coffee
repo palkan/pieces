@@ -61,12 +61,13 @@ describe "list component", ->
       
       old_item = @list.items[0]
       old_item.disable()
-
+      old_item.addClass 'is-fucked-up'
       old_item.on 'click', -> done()
 
       @list.on 'update', (event) =>
         expect(event.data.item).to.eq old_item
         expect(event.data.item.hasClass('is-disabled')).to.be.true
+        expect(event.data.item.hasClass('is-fucked-up')).to.be.false
         expect(event.data.item.enabled).to.eq false
         expect(event.data.type).to.eq 'item_updated'
         expect(event.data.item.record.id).to.eq 4

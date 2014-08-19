@@ -12,22 +12,26 @@ class pi.controllers.ListController extends pi.controllers.Base
   # has_resource + define resource as list resource for index, search, filter and sort functions
   @list_resource: (resource) ->
     @::resources = resource
+    @::_parse_response = (data) -> data[resource.resources_name]
     @has_resource resource
 
   id: 'list_base'
 
+  default_scope: {}
+
   initialize: ->
+    @scope().set @default_scope
     super
 
   # Makes AJAX request on resource
   # @params [String] action resource method name (fetch, create, destroy ...)
   # @params [Object] params query params
 
-  _action: (action) ->
-    params = utils.clone @scope().params 
+  query: (params={}) ->
+    params = utils.merge(@scope().params,params) 
     @view.loading true
 
-    @resources[action].call(@resources,params)
+    @resources.query(params)
     .catch( (error) => @view.error error.message )
     .then( (response) =>  
       @view.loading false 
@@ -38,11 +42,11 @@ class pi.controllers.ListController extends pi.controllers.Base
       response
     )
 
-  index: (params={}) ->
-    @scope().set params
-    @_action('fetch').then(
+  index: (params) ->
+    @scope().set(params)
+    @query().then(
      (data) => 
-        @view.reload data 
+        @view.load @_parse_response(data)
         data
     )
 
@@ -51,9 +55,9 @@ class pi.controllers.ListController extends pi.controllers.Base
     if @scope().is_full
       @view.search q
     else
-      @_action('query').then(
+      @query().then(
         (data) =>
-          @view.reload data
+          @view.reload @_parse_response(data)
           @view.searched q
           data
       )
@@ -64,9 +68,9 @@ class pi.controllers.ListController extends pi.controllers.Base
     if @scope().is_full
       @view.sort params
     else
-      @_action('query').then(
+      @query().then(
         (data) =>
-          @view.reload data
+          @view.reload @_parse_response(data)
           @view.sorted params
           data
       )
@@ -77,9 +81,9 @@ class pi.controllers.ListController extends pi.controllers.Base
     if @scope().is_full
       @view.filter params
     else
-      @_action('query').then(
+      @query().then(
         (data) =>
-          @view.reload data
+          @view.reload @_parse_response(data)
           @view.filtered params
           data
       )

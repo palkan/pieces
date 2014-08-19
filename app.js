@@ -40,9 +40,18 @@ _add_user('kurt',21);
 _add_user('luiza',11);
 _add_user('jano',14);
 _add_user('howard',33);
-_add_user('lana',22);
+_add_user('lana',25);
 _add_user('klara',21);
 
+
+_paginated = function(all, page, per_page){
+  console.log("all:", all.length, page, per_page);
+  if(all.length <= page*per_page)
+    next_page = null
+  else
+    next_page = page+1
+  return {users: all.slice((page-1)*per_page, (page-1)*per_page+per_page), total_pages: Math.ceil(all.length / per_page), next_page: next_page, page: page, per_page: per_page}
+}
 
 
 exports.startServer = function(port, path, callback){ 
@@ -101,6 +110,12 @@ exports.startServer = function(port, path, callback){
             });
           }
         }
+
+      }
+
+      if(req.query.page !=undefined && req.query.per_page !=undefined){
+          res.json(_paginated(all,req.query.page|0,req.query.per_page|0))
+          return;
       }
 
       res.json({users: all});

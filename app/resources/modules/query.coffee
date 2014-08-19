@@ -13,10 +13,5 @@ class pi.resources.Query
   @query: (params) ->
     @_request(@query_path, 'get', params).then( 
       (response) =>
-        @on_query response
+        @on_all response
       ) 
-
-  @on_query: (data) ->
-    if data[@resources_name]?
-      query_data = @build(el,true,false) for el in data[@resources_name]
-

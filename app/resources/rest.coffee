@@ -42,7 +42,7 @@ class pi.resources.REST extends pi.resources.Base
                 if @["on_#{spec.action}"]? 
                   @["on_#{spec.action}"](response)
                 else
-                  response
+                  @on_all response
             ) 
           @["#{spec.action}_path"] = spec.path
     if data.member?
@@ -54,7 +54,7 @@ class pi.resources.REST extends pi.resources.Base
                 if @["on_#{spec.action}"]? 
                   @["on_#{spec.action}"](response)
                 else
-                  response
+                  @on_all response
             )
           @::["#{spec.action}_path"] = spec.path            
 
@@ -89,6 +89,11 @@ class pi.resources.REST extends pi.resources.Base
         throw error # rethrow it to the top!
     )
 
+  @on_all: (data) ->
+    if data[@resources_name]?
+      data[@resources_name] = @load(data[@resources_name])
+    data
+
   # requests callbacks
   @on_show: (data) ->
     if data[@resource_name]?
@@ -96,14 +101,8 @@ class pi.resources.REST extends pi.resources.Base
       el._persisted = true
       el
 
-  @on_fetch: (data) ->
-    if data[@resources_name]?
-      @load data[@resources_name]   
-
   # find element by id;
   # return Promise
-
-
   @find: (id) ->
     el = @get(id)
     if el?
@@ -122,11 +121,11 @@ class pi.resources.REST extends pi.resources.Base
     @constructor.remove @
     data
 
-  on_update: (data) ->
+  on_all: (data) ->
     params = data[@constructor.resource_name]
     if params? and params.id == @id
       @set params
-
+  
   on_create: (data) ->
     params = data[@constructor.resource_name]
     if params?

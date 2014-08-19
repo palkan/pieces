@@ -2,7 +2,6 @@
 pi = require '../core'
 require '../components/pieces'
 utils = pi.utils
-pi.View = {}
 
 utils.extend pi.Base::,
   view: ->
@@ -10,11 +9,12 @@ utils.extend pi.Base::,
   _find_view: ->
     comp = @
     while(comp)
-      if comp instanceof pi.View.Base
+      if comp.is_view is true
         return comp
       comp = comp.host
 
-class pi.View.Base extends pi.Base
+class pi.BaseView extends pi.Base
+  is_view: true
   postinitialize: ->
     controller_klass = null
     if @options.controller

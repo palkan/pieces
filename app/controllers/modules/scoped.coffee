@@ -78,5 +78,10 @@ class Scope
 class pi.controllers.Scoped
   @included: ->
     true
+  
+  scope_whitelist: []
+  scope_blacklist: []
+  scope_rules: {}
+
   scope: ->
-    @_scope ||= new Scope()
+    @_scope ||= new Scope(@scope_whitelist, @scope_blacklist, @scope_rules)

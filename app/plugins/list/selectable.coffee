@@ -12,6 +12,8 @@ class pi.List.Selectable extends pi.Plugin
   id: 'selectable'
   initialize: (@list) ->
     super
+    @list.merge_classes.push 'is-selected'
+      
     @type(@list.options.select_type || 'radio') 
     
     @list.on 'item_click', @item_click_handler() # TODO: overwrite _item_clicked

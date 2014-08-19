@@ -2,7 +2,7 @@
   "author": "Vlad Dem <palkan>",
   "name": "js-pieces",
   "description": "JS library and framework",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "homepage": "",
   "repository": {
@@ -15,7 +15,7 @@
   "scripts": {
     "start": "brunch watch --server",
     "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../public/js/pieces.bundle.js && cd .. && uglifyjs -m toplevel public/js/pieces.bundle.js > public/js/pieces.min.js",
-    "gemify":  "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces-rails/app/assets/javascripts/pieces.js && cd .."
+    "gemify":  "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces-rails/app/assets/javascripts/pieces.js && cd .. && ./gem_sass.sh"
   },
   "dependencies": {
   },

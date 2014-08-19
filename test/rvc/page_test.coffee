@@ -4,7 +4,7 @@ TestHelpers = require './helpers'
 describe "Pieces RVC", ->
   TestUsers = pi.resources.TestUsers
   Controller = pi.controllers.Test
-  View = pi.View.Test
+  View = pi.TestView
   utils = pi.utils
 
   Nod = pi.Nod
@@ -20,14 +20,14 @@ describe "Pieces RVC", ->
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
-        <div class="pi" data-component="view.test" pid="test" style="position:relative">
+        <div class="pi" data-component="test_view" pid="test" style="position:relative">
           <div class="pi pi-progressbar" pid="loader"></div>
           <div class="pi pi-list-container" pid="list">
             <ul class="list">
             </ul>
           </div> 
         </div>
-        <div class="pi" data-component="view.test2" pid="test" style="position:relative">
+        <div class="pi" data-component="test2_view" pid="test" style="position:relative">
         </div>
       """
 

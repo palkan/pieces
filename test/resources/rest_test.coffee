@@ -37,8 +37,8 @@ describe "Pieces REST", ->
 
       it "should fetch data", (done) ->
         Testo.fetch().then(
-          (items) -> 
-            expect(items).to.have.length 3
+          (data) -> 
+            expect(data.testos).to.have.length 3
             expect(Testo.all()).to.have.length 3
             done()
         )

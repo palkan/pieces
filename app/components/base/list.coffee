@@ -42,6 +42,8 @@ class pi.List extends pi.Base
             return false if all
       return _any
 
+  merge_classes: ['is-disabled', 'is-active', 'is-hidden']
+
   preinitialize: () ->
     super
     @list_klass = @options.list_klass || 'list'
@@ -152,6 +154,9 @@ class pi.List extends pi.Base
     # update HTML
     item.html new_item.html()
 
+    #try to remove runtime classes
+    for klass in item.node.className.split(/\s+/)
+      item.removeClass(klass) unless klass in @merge_classes
     #merge classes
     item.mergeClasses new_item
     
@@ -240,6 +245,7 @@ pi.List.Renderers = {}
 
 class pi.List.Renderers.Base
   render: (nod) ->
+    return unless nod instanceof pi.Nod
     @_render nod, nod.data() 
 
   _render: (nod, data) ->

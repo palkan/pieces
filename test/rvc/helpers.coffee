@@ -47,14 +47,32 @@ class pi.controllers.Test3 extends pi.controllers.ListController
   load: (data) ->
     super
 
-class pi.View.Test extends pi.View.List
+class pi.controllers.Test4 extends pi.controllers.ListController
+  @list_resource pi.resources.TestUsers
+  id: 'test'
+
+  @include pi.controllers.Paginated
+
+  per_page: 5
+
+  page_resolver: (data)->
+    if !data.next_page
+      @scope().all_loaded()
+
+  initialize: ->
+    super
+
+  load: (data) ->
+    super
+
+class pi.TestView extends pi.ListView
   default_controller: pi.controllers.Test 
 
   loaded: (data) ->
     if data?.title?
       @title.text data.title 
 
-class pi.View.Test2 extends pi.View.Base
+class pi.Test2View extends pi.BaseView
   default_controller: pi.controllers.Test2 
 
   loaded: (data) ->

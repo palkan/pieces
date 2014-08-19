@@ -12,7 +12,7 @@ describe "pi calls with view", ->
     root.append @test_div 
 
     @test_div.append('''
-      <div class="pi" data-pid="test" data-component="view.base">
+      <div class="pi" data-pid="test" data-component="base_view">
         <span pid="btn" class="pi" data-on-click="@this.view.log.text('bla')"></span>
         <span pid="log" class="pi">loggo</span>
       </div>

@@ -1,9 +1,9 @@
 'use strict'
 pi = require '../core'
-require './view'
+require './base'
 utils = pi.utils
 
-class pi.View.List extends pi.View.Base
+class pi.ListView extends pi.BaseView
   @requires 'list', 'loader'
 
   loading: (value) ->

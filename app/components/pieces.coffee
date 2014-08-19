@@ -161,7 +161,7 @@ class pi.Base extends pi.Nod
     for node in @find_cut('.pi')
       do (node) =>
         child = pi.init_component node, @
-        if child.pid
+        if child?.pid
           if _array_rxp.test(child.pid)
             arr = (@[child.pid[..-3]]||=[])
             arr.push(child) unless arr.indexOf(child)>-1
