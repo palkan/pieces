@@ -25,7 +25,7 @@ class pi.List.Restful extends pi.Plugin
 
   resource_update: () ->
     @_resource_update ||= (e) =>
-      utils.debug 'Resful list event', e.data.type
+      utils.debug 'Restful list event', e.data.type
       @["on_#{e.data.type}"]?.call(@, e.data[@resources.resource_name])
 
   on_create: (data) ->

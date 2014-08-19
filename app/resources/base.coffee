@@ -108,5 +108,11 @@ class pi.resources.Base extends pi.Core
     @trigger('update') if (_changed && !silent)
     @
 
+  listen: (callback) ->
+    pi.event.on "#{@constructor.resources_name}_update", callback, null, (e) => e.data[@constructor.resource_name].id is @id 
+
+  off: (callback) ->
+    pi.event.off "#{@constructor.resources_name}_update", callback
+
   trigger: (e) ->
     @constructor.trigger e, _wrap(@)

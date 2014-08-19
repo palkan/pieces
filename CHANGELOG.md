@@ -1,3 +1,9 @@
+## 0.2.2
+* add 'renderable' plugin for any component
+* add 'restful' plugin for any _renderable_ component
+* fix component 'remove' (remove sub-components too)
+* add 'remove_children' to Nod (remove and dispose if child is Nod)
+
 ## 0.2.1 
 * add Paginated module to Controllers
 * resource query response 'bubble' from resource as is (but only resources data is converted to resources)

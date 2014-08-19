@@ -38,6 +38,30 @@ describe "Pieces REST base", ->
         s = Salt.get(2)
         expect(s.salinity).to.eq 'high'
 
+      it "should bind events to item", ->
+        s = Salt.get(1)
+        s2 = Salt.get(2)
+
+        spy = sinon.spy()
+
+        s.listen spy
+
+        s2.set({salinity: 'low'})
+        s.set({salinity: 'very high'})
+
+        expect(spy.callCount).to.eq 1
+
+      it "should unbind events from item", ->
+        s = Salt.get(1)
+
+        spy = sinon.spy()
+        s.listen spy
+        s.set({salinity: 'very high'})
+
+        s.off spy
+        s.set({sugar: 'brown'})
+        expect(spy.callCount).to.eq 1
+
 
     describe "update events", ->
       it "should send update event on create",(done) ->

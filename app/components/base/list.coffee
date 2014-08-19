@@ -1,13 +1,14 @@
 'use strict'
 pi = require '../../core'
 require '../pieces'
+require '../../plugins/base/renderable'
 utils = pi.utils
-
-_renderer_reg = /(\w+)(?:\(([\w\-\/]+)\))?/
 
 # Basic list component
 
 class pi.List extends pi.Base
+  @include_plugins pi.Base.Renderable
+
   @string_matcher: (string) ->
     if string.indexOf(":") > 0
       [selectors, query] = string.split ":"
@@ -54,7 +55,6 @@ class pi.List extends pi.Base
 
   initialize: () ->
     super
-    @item_renderer ||= @_setup_renderer()
     @items_cont = @find(".#{ @list_klass }") || @
     @parse_html_items()
 
@@ -68,8 +68,8 @@ class pi.List extends pi.Base
   
   parse_html_items: () ->
     @items_cont.each ".#{ @item_klass }", (node) =>   
-      @add_item pi.Nod.create(node)
-    @_flush_buffer false
+      @add_item pi.Nod.create(node), false
+    @_flush_buffer()
 
   # Set list elements
   # @params [Array, Null] data if null then clear list
@@ -146,7 +146,7 @@ class pi.List extends pi.Base
   #  3. Update item record (by extending it with new item data (overwriting))
 
   update_item: (item, data, update=true) ->
-    new_item = @item_renderer.render data
+    new_item = @_renderer.render data
 
     # update associated record
     utils.extend item.record, new_item.record, true
@@ -212,7 +212,8 @@ class pi.List extends pi.Base
         return data
       else
         return null
-    item = @item_renderer.render data
+    item = @_renderer.render data
+    return unless item?
     item.is_list_item = true
     item.host = @
     item
@@ -221,18 +222,10 @@ class pi.List extends pi.Base
     item.remove()
     item.dispose()
 
-  _setup_renderer: ->
-    if @options.renderer? and _renderer_reg.test(@options.renderer)
-      [_, name, param] = @options.renderer.match _renderer_reg
-      klass = pi.List.Renderers[utils.camelCase(name)]
-      if klass?
-        return new klass(param)
-    new pi.List.Renderers.Base()
-
-
   _flush_buffer: (append = true) ->
     @items_cont.append @buffer if append
-    @buffer.innerHTML = ''
+    while @buffer.firstChild
+     @buffer.removeChild(@buffer.firstChild)
 
   _item_clicked: (target) ->
     return unless target.is_list_item
@@ -240,19 +233,6 @@ class pi.List extends pi.Base
     if item and item.host is @
       @trigger 'item_click', {item: item}
       true
-
-pi.List.Renderers = {}
-
-class pi.List.Renderers.Base
-  render: (nod) ->
-    return unless nod instanceof pi.Nod
-    @_render nod, nod.data() 
-
-  _render: (nod, data) ->
-    unless nod instanceof pi.Base
-      nod = nod.piecify()
-    nod.record = data
-    nod
 
 pi.Guesser.rules_for 'list', ['pi-list'], ['ul'], 
   (nod) -> 

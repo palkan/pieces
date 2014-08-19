@@ -198,7 +198,7 @@ class pi.utils
         _buf = args
         return
 
-      pi.utils.after period, ->
+      (ths||{}).__debounce_id__ = pi.utils.after period, ->
         _wait = false
         fun.apply(ths,_buf) if _buf?
 

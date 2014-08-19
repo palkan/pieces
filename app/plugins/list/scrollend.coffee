@@ -17,6 +17,8 @@ class pi.List.ScrollEnd extends pi.Plugin
 
     @enable() unless @list.options.scroll_end is false
     @list.on 'update', @scroll_listener(), @, (e) => (e.data.type is 'item_removed' or e.data.type is 'load') 
+    @list.on 'destroyed', =>
+      @disable()
     return
 
   enable: () ->
@@ -27,13 +29,14 @@ class pi.List.ScrollEnd extends pi.Plugin
 
   disable: () ->
     return unless @enabled
+    @.__debounce_id__ && clearTimeout(@__debounce_id__)
     @scroll_native_listener.off 'scroll', @scroll_listener()
     @_scroll_listener = null      
     @enabled = false
 
   scroll_listener: () ->
     return @_scroll_listener if @_scroll_listener?
-    @_scroll_listener = utils.debounce 500, (event) =>
+    @_scroll_listener = utils.debounce 500, ((event) =>
       if @_prev_top <= @scroll_object.scrollTop() and @list.height() - @scroll_object.scrollTop() - @scroll_object.height()  < 50
         @list.trigger 'scroll_end'
-      @_prev_top = @scroll_object.scrollTop()
+      @_prev_top = @scroll_object.scrollTop()), @

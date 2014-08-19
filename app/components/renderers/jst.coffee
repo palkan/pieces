@@ -1,12 +1,12 @@
 'use strict'
 pi = require '../../core'
-require '../base/list'
+require './base'
 utils = pi.utils
 
 # [Renderer]
 # Setup JST template as renderer for list by name
 
-class pi.List.Renderers.Jst extends pi.List.Renderers.Base
+class pi.Renderers.Jst extends pi.Renderers.Base
   constructor: (template) ->
     @templater = JST[template]
 

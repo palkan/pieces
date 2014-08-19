@@ -84,7 +84,7 @@ describe "list component", ->
 
   describe "working with renderers", ->
     beforeEach ->
-      @list.item_renderer = 
+      @list._renderer = 
         render: (data) ->
             nod = Nod.create("<div>#{ data.name }</div>")
             nod.addClass 'item'
@@ -156,7 +156,7 @@ describe "list component", ->
       expect(@list.items[0]).to.be.an.instanceof pi.Base
 
     it "should peicify items nods", ->
-      @list.item_renderer = 
+      @list._renderer = 
         render: (data) ->
           nod = Nod.create("<div>#{ data.name }</div>")
           nod.addClass 'item'

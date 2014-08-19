@@ -1,11 +1,11 @@
 'use strict'
 pi = require '../../core'
-require '../base/list'
+require './base'
 utils = pi.utils
 # [Renderer]
 # Mustache based renderer
 
-class pi.List.Renderers.Mustache extends pi.List.Renderers.Base
+class pi.Renderers.Mustache extends pi.Renderers.Base
   constructor: (template) ->
     throw Error('Mustache not found') unless window.Mustache?
 

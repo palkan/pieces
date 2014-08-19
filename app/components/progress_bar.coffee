@@ -24,8 +24,13 @@ class pi.ProgressBar extends pi.Base
   stop: ->
     @_sid && clearTimeout(@_sid)
     @style(width: "101%")
-    utils.after 200, =>
+    @_sid = utils.after 200, =>
       @style(width: 0)
       @hide()
+
+  dispose: ->
+    @_sid && clearTimeout(@_sid)
+    super
+
 
 pi.Guesser.rules_for 'progress_bar',['pi-progressbar']

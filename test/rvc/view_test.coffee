@@ -24,6 +24,6 @@ describe "pi calls with view", ->
   afterEach ->
     root.html ''
 
-  it "should work with bool condition", ->
+  it "should work with view call", ->
     TestHelpers.clickElement @example.btn.node
     expect(@example.log.text()).to.eq 'bla'

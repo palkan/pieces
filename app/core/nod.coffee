@@ -234,12 +234,20 @@ class pi.Nod extends pi.NodEventDispatcher
       @node.removeChild @node.children[0]
     @
 
+  remove_children: ->
+    while(@node.firstChild)
+      if @node.firstChild._nod
+        @node.firstChild._nod.remove()
+      else
+        @node.removeChild @node.firstChild
+    @
+
   # detach and dispose
   # return null
 
   remove: ->
     @detach()
-    @html('')
+    @remove_children()
     @dispose()
     null
 

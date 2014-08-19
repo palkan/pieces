@@ -55,6 +55,7 @@ class pi.Base extends pi.Nod
   # = init_children() + __components__.all -> piecify()
 
   piecify: ->
+    @__components__.length = 0
     @init_children()
     for c in @__components__
       c.piecify()
@@ -187,10 +188,26 @@ class pi.Base extends pi.Nod
   @register_callback '__postinitialize', as: 'create' 
 
   dispose: ->
+    @trigger 'destroyed'
     super
-    if @pid? && @host?
-      delete @host[@pid]
+    if @host?
+      @host.remove_component @
     return
+
+  remove_component: (child) ->
+    return unless child.pid
+    if _array_rxp.test(child.pid)
+      delete @["#{child.pid[..-3]}"] if @["#{child.pid[..-3]}"]
+    else
+      delete @[child.pid]
+    @__components__.splice(@__components__.indexOf(child),1)
+
+  remove_children: ->
+    for child in @__components__
+      child.remove()
+      @remove_component child
+    super
+
 
 
 event_re = /^on_(.+)/i
