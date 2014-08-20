@@ -11,14 +11,14 @@ describe "select_input component", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi pi-select-field" data-pid="test" data-on-change="@this.placeholder.text(e.data.key)" style="position:relative">
+        <div class="pi pi-select-field" data-pid="test" style="position:relative">
           <input type="hidden" value=""/>
-          <div class="pi placeholder" pid="placeholder">Не выбрано</div>
+          <div class="pi placeholder" pid="placeholder" data-placeholder="Не выбрано"></div>
           <div class="pi pi-list is-hidden" data-pid="dropdown" style="position:relative">
             <ul class="list">
-              <li class="item" data-value="1" data-key="one">One</li>
-              <li class="item" data-value="2" data-key="someone">Two</li>
-              <li class="item" data-value="3" data-key="anyone">Tre</li>
+              <li class="item" data-value="1">One</li>
+              <li class="item" data-value="2">Two</li>
+              <li class="item" data-value="3">Tre</li>
             </ul>
           </div>
         </div>
@@ -52,10 +52,28 @@ describe "select_input component", ->
   describe "events", ->
     it "should trigger change if item selected and update value", (done) ->
       @example.focus()
-      @example.on 'change', (e) =>
-        expect(e.data.value).to.eq 1
-        expect($('.placeholder').text()).to.eq 'one'
+      @example.on 'update', (e) =>
+        expect(e.data).to.eq 1
+        expect($('.placeholder').text()).to.eq 'One'
         expect(@example.value()).to.eq '1'
         done()
 
       TestHelpers.clickElement $('.pi-list .item').node
+
+  describe "set value", ->
+    it "should update selection and placeholder", ->
+      @example.value(2)
+      expect($('.placeholder').text()).to.eq "Two"
+      expect(@example.value()).to.eq '2'
+      expect(@example.dropdown.selected_record().value).to.eq 2
+
+  describe "clear", ->
+    it "should clear selection and update placeholder", ->
+      TestHelpers.clickElement $('.pi-list .item').node
+      expect($('.placeholder').text()).to.eq 'One'
+
+      @example.clear()
+      expect($('.placeholder').text()).to.eq "Не выбрано"
+      expect(@example.value()).to.eq ''
+      expect(@example.dropdown.selected_size()).to.eq 0
+

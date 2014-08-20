@@ -9,6 +9,9 @@ class pi.TextInput extends pi.BaseInput
     super
     @editable = true
     @readonly() if (@options.readonly || @hasClass('is-readonly'))
+    @input.on 'change', (e) =>
+      e.cancel()
+      @trigger 'update', @value()
 
   edit: () ->
     unless @editable

@@ -23,6 +23,7 @@ class pi.utils
   @html_rxp: /^\s*<.+>\s*$/m
   @esc_rxp: /[-[\]{}()*+?.,\\^$|#]/g
   @clickable_rxp: /^(a|button|input|textarea)$/i
+  @input_rxp: /^(input|select|textarea)$/i
   @trim_rxp: /^\s*(.*[^\s])\s*$/m
   @notsnake_rxp: /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g
 
@@ -47,6 +48,9 @@ class pi.utils
 
   @clickable: (node) ->
     @clickable_rxp.test node.nodeName
+
+  @is_input: (node) ->
+    @input_rxp.test node.nodeName
 
   @camelCase: (string) ->
     string = string + ""
@@ -124,6 +128,20 @@ class pi.utils
       else
         return null
     res
+
+
+  # set proprty on path
+  @set_path: (obj, path, val) ->
+    parts = path.split "."
+    res = obj     
+    
+    while(parts.length>1)
+      key = parts.shift()
+      if res[key]?
+        res = res[key]
+      else
+        return null
+    res[parts[0]] = val
 
   # convert path parts to camelCase and then get_path
   @get_class_path: (pckg, path) ->

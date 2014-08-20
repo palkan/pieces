@@ -11,30 +11,44 @@ class pi.Checkbox extends pi.BaseInput
   postinitialize: ->
     super
     @attr('tabindex',0)
-    @selected = false
+    @__selected__ = false
     @select() if (@options.selected || @hasClass('is-selected') || (@value()|0))
-    @on 'click', =>
+    @on 'click', (e) =>
+      e.cancel()
       @toggle_select()
 
-  select: ->
-    unless @selected
+  select: (silent = false) ->
+    unless @__selected__
       @addClass 'is-selected'
-      @selected = true
+      @__selected__ = true
       @input.value 1
-      @trigger 'selected', true
+      @trigger('update', true) unless silent
 
-  deselect: ->
-    if @selected
+  deselect: (silent = false) ->
+    if @__selected__
       @removeClass 'is-selected'
-      @selected = false
+      @__selected__ = false
       @input.value 0
-      @trigger 'selected', false
+      @trigger('update', false) unless silent
 
 
-  toggle_select: ->
-    if @selected
-      @deselect()
+  toggle_select: (silent) ->
+    if @__selected__
+      @deselect(silent)
     else
-      @select()
+      @select(silent)
+
+  value: (val) ->
+    if val?
+      super
+      @__selected__ = !val
+      @toggle_select()
+    else
+      super
+
+  clear: ->
+    @removeClass 'is-selected'
+    @__selected__ = false
+    super
 
 pi.Guesser.rules_for 'checkbox', ['pi-checkbox-wrap'], null
