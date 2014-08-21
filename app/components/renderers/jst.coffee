@@ -11,5 +11,8 @@ class pi.Renderers.Jst extends pi.Renderers.Base
     @templater = JST[template]
 
   render: (data) ->
-    nod = pi.Nod.create @templater(data)
-    @_render nod, data
+    if data instanceof pi.Nod
+      super
+    else
+      nod = pi.Nod.create @templater(data)
+      @_render nod, data

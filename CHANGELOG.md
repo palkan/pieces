@@ -1,3 +1,5 @@
+## 0.2.4
+
 ## 0.2.3
 * add 'controller' property to View
 * PopupContainer prevent close if close function return 'false' 

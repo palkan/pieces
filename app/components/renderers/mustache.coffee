@@ -15,5 +15,8 @@ class pi.Renderers.Mustache extends pi.Renderers.Base
     window.Mustache.parse(@template)
 
   render: (data) ->
-    nod = pi.Nod.create window.Mustache.render(@template,data)
-    @_render nod, data
+    if data instanceof pi.Nod
+      super
+    else
+      nod = pi.Nod.create window.Mustache.render(@template,data)
+      @_render nod, data
