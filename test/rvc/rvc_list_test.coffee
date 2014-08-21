@@ -164,12 +164,12 @@ describe "Pieces RVC", ->
         )
 
       it "should not create item data if data is wrong", (done) ->
-        @t.users.create({}).then(
+        @t.users.create({age: 1}).then(
           (data) ->
             utils.error data
         ).catch(
           (e) ->
-            expect(e.message).to.eq 'Forbidden'
+            expect(e.message).to.eq 'name is missing'
             done()
         )
 

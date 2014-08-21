@@ -15,6 +15,11 @@ _tailing_slash_reg = /\/$/
 class pi.resources.REST extends pi.resources.Base
   @_rscope: "/:path"
 
+  # define how to send instance params on create/update requests to server 
+  # if true then wrap attributes in resource name: {model: {..attributes...}}
+  # otherwise send attributes object 
+  wrap_attributes: false
+
   # initialize resource with name
   # and setup default resource paths
   @set_resource: (plural, singular) ->
@@ -136,15 +141,20 @@ class pi.resources.REST extends pi.resources.Base
       @
 
   save: ->
+    attrs = if @wrap_attributes then @_wrap(@attributes()) else @attributes()
     if @_persisted
-      @update @attributes()
+      @update attrs
     else
-      @create @attributes()
+      @create attrs
 
   # attributes - all object own keys not started with "_" (i.e. "id" is a key, "_temp_id" - is not a key)
-
   attributes: ->
     res = {}
     for own key,val of @ when key[0] != "_"
       res[key] = val
     res
+
+  _wrap: (attributes) ->
+    data = {}
+    data[@constructor.resource_name] = attributes
+    data

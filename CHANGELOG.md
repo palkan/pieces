@@ -1,5 +1,6 @@
 ## 0.2.4
 * fix Form set value 
+* add 'wrap_parameters' property to REST resource
 
 ## 0.2.3
 * add 'controller' property to View
