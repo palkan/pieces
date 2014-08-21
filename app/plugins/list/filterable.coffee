@@ -59,12 +59,20 @@ class pi.List.Filterable extends pi.Plugin
   initialize: (@list) ->
     super
     @list.delegate_to @, 'filter'
-    @list.on 'update', ((e) -> 
-      if e.data.type is 'item_added' and @filtered
-        @_all_items.push e.data.item
-      @filter(@_prevf)), 
+    @list.on 'update', ((e) => @item_updated(e.data.item)), 
       @, 
       (e) => (e.data.type is 'item_added' or e.data.type is 'item_updated') 
+
+  item_updated: (item) ->
+    return unless @matcher
+
+    if @_all_items.indexOf(item)<0
+      @_all_items.unshift item
+
+    if @matcher(item)
+      return
+    else if @filtered
+      @list.remove_item item, true
 
   all_items: ->
     @_all_items.filter((item) -> !item._disposed)
@@ -83,6 +91,7 @@ class pi.List.Filterable extends pi.Plugin
     @list.removeClass 'is-filtered'
     @list.data_provider(@all_items()) if rollback
     @_all_items = null
+    @matcher = null
     @list.trigger 'filter_stop'
 
 
@@ -99,9 +108,9 @@ class pi.List.Filterable extends pi.Plugin
 
     @_prevf = params
 
-    matcher = _matcher record: params
+    @matcher = _matcher record: params
 
-    _buffer = (item for item in scope when matcher(item))
+    _buffer = (item for item in scope when @matcher(item))
     @list.data_provider _buffer
 
     @list.trigger 'filter_update'

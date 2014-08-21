@@ -26,13 +26,22 @@ class pi.List.Searchable extends pi.Plugin
     @update_scope @list.options.search_scope
     @list.delegate_to @, 'search', 'highlight'
     @searching = false
-    @list.on 'update', ((e) -> 
-      if e.data.type is 'item_added' and @searching
-        @_all_items.push e.data.item
-      @search(@_prevq)), 
+    @list.on 'update', ((e) => @item_updated(e.data.item)), 
       @, 
       (e) => (e.data.type is 'item_added' or e.data.type is 'item_updated') 
     return
+
+  item_updated: (item) ->
+    return unless @matcher
+
+    if @_all_items.indexOf(item)<0
+      @_all_items.unshift item
+
+    if @matcher(item)
+      @highlight_item @_prevq, item
+      return
+    else if @searching
+      @list.remove_item item, true
 
   update_scope: (scope) -> 
     @matcher_factory = @_matcher_from_scope(scope)
@@ -68,6 +77,7 @@ class pi.List.Searchable extends pi.Plugin
     @clear_highlight items
     @list.data_provider(items) if rollback
     @_all_items = null
+    @matcher = null
     @list.trigger 'search_stop'
 
   clear_highlight: (nodes) ->
@@ -106,9 +116,9 @@ class pi.List.Searchable extends pi.Plugin
 
     @_prevq = q
 
-    matcher = @matcher_factory q
+    @matcher = @matcher_factory q
 
-    _buffer = (item for item in scope when matcher(item))
+    _buffer = (item for item in scope when @matcher(item))
     @list.data_provider _buffer
 
     if highlight

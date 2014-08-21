@@ -163,6 +163,22 @@ class pi.List extends pi.Base
     @trigger('update', {type:'item_updated',item:item}) if update
     item  
 
+  move_item: (item, index) ->
+    return if (item.data('list-index') is index) || (index>@items.length-1)
+
+    @items.splice @items.indexOf(item), 1
+
+    if index is (@items.length-1)
+      @items.push item
+      @items_cont.append(item)
+    else
+      @items.splice(index,0,item)
+      _after = @items[index+1]
+      _after.insertBefore item
+
+    @_need_update_indeces = true
+    @_update_indeces()
+
   # Find items within list using query
   #
   # @params [String, Object] query 

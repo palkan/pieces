@@ -35,9 +35,9 @@ class pi.Core
     
     # create callbacked version of a function  
     @::["__#{method}"] = (args...) ->
-      @run_callbacks "before_#{callback_name}"
+      @run_callbacks "before_#{callback_name}", args
       res = @constructor::[method].apply(@,args)
-      @run_callbacks "after_#{callback_name}"
+      @run_callbacks "after_#{callback_name}", args
       res 
 
     (@callbacked||=[]).push method
@@ -48,9 +48,9 @@ class pi.Core
       do(method) =>
         @[method] = @["__#{method}"]
 
-  run_callbacks: (type) ->
+  run_callbacks: (type,args) ->
     for callback in (@constructor["_#{type}"]||[])
-      callback.call(@)
+      callback.call(@,args)
 
   # delegate methods to another object or nested object/method (then to is string key)
   delegate_to: (to, methods...) ->

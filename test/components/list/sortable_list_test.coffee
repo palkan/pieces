@@ -14,7 +14,7 @@ describe "sortable list plugin", ->
         <div class="pi" data-component="list" data-plugins="sortable" data-pid="test" style="position:relative">
           <ul class="list">
             <li class="item" data-val="10" data-key="one">One</li>
-            <li class="item" data-val="5" data-key="one">Two</li>
+            <li class="item" data-val="5" data-key="noone">Two</li>
             <li class="item" data-val="15" data-key="anyone">Tre</li>
           </ul>
         </div>
@@ -48,8 +48,19 @@ describe "sortable list plugin", ->
         return unless event.data.type is 'item_updated'
         expect($('@test').first('.item').text()).to.eq 'Tre'
         done()
-      @list.where(record: key: 'anyone')[0].record.val = 2
-      @list.trigger 'update', type: 'item_updated'
+      item = @list.where(record: key: 'anyone')[0]
+      item.record.val = 2
+      @list.trigger 'update', type: 'item_updated', item: item
+
+    it "should resort items if item updated in the middle", (done)->
+      @list.sort {val: 'asc'}
+      @list.on 'update', (event) =>
+        return unless event.data.type is 'item_updated'
+        expect($('@test').first('.item').text()).to.eq 'Two'
+        done()
+      item = @list.where(record: key: 'noone')[0]
+      item.record.val = 2
+      @list.trigger 'update', type: 'item_updated', item: item
 
     it "should resort items if item added", (done)->
       @list.sort {val: 'asc'}
@@ -57,5 +68,13 @@ describe "sortable list plugin", ->
         return unless event.data.type is 'item_added'
         expect($('@test').first('.item').text()).to.eq 'Zero'
         done()
-
       @list.add_item pi.Nod.create('''<li class="item" data-val="2" data-key="some">Zero</li>''')
+
+    it "should resort items if item added to the end", (done)->
+      @list.sort {val: 'asc'}
+      @list.on 'update', (event) =>
+        return unless event.data.type is 'item_added'
+        expect($('@test').nth('.item',4).text()).to.eq 'Zero'
+        done()
+
+      @list.add_item pi.Nod.create('''<li class="item" data-val="20" data-key="some">Zero</li>''')

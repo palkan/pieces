@@ -128,7 +128,7 @@ describe "searchable list plugin", ->
       @list.search ''
       expect(@list.size()).to.eq 2
 
-    it "should refilter after new item added", (done) ->
+    it "should research after new item added", (done) ->
       @list.search 't', true
       expect(@list.size()).to.equal 2
       @list.on 'update', (e) =>

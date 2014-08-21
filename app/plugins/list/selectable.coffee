@@ -18,14 +18,12 @@ class pi.List.Selectable extends pi.Plugin
     
     @list.on 'item_click', @item_click_handler() # TODO: overwrite _item_clicked
 
-    @list.on 'update', @update_handler()
-
     for item in @list.items 
       if item.hasClass 'is-selected'
         item.__selected__ = true
 
     @list.delegate_to @, 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
-
+    @list.on 'update', ((e) => @_check_selected()), @, (e) -> (e.data.type isnt 'item_added') 
     return
 
   type: (value) ->
@@ -44,10 +42,6 @@ class pi.List.Selectable extends pi.Plugin
         @list.toggle_select e.data.item
         if @list.selected().length then @list.trigger('selected', @selected()) else @list.trigger('selection_cleared')
       return      
-
-  update_handler: ->
-    @_update_handler ||= (e) =>
-      @_check_selected() unless e.data?.type? and e.data.type is 'item_added'
 
   _check_selected: ->
     @list.trigger('selection_cleared') unless @list.selected().length
