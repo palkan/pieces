@@ -159,7 +159,7 @@ describe "Pieces RVC", ->
             utils.error data
         ).catch(
           (e) ->
-            expect(e.message).to.eq 'Not Found'
+            expect(e.message).to.eq 'Not found'
             done()
         )
 

@@ -14,9 +14,12 @@ class pi.Net
       utils.debug 'XHR response', xhr.responseText
       response
 
+  @_prepare_error: (xhr) ->
+    xhr.responseText || xhr.statusText
+
   @_is_success: 
     (status) ->
-     (status >= 200 and status <300) or (status is 304) 
+      (status >= 200 and status <300) or (status is 304) 
 
   @_with_prefix: (prefix,key) ->
     if prefix
@@ -114,7 +117,7 @@ class pi.Net
           if @_is_success(req.status)
             resolve @_prepare_response(req)
           else
-            reject Error(req.statusText)
+            reject Error(@_prepare_error(req))
 
 
         req.onerror = =>

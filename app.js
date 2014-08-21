@@ -123,7 +123,7 @@ exports.startServer = function(port, path, callback){
     .post(function(req, res, next) {
       params = req.body
       if(!params.name || !params.age)
-        res.send(403, 'Wrong data')
+        res.send(403)
       else
         res.json({user: {name: params.name,age: params.age, id: ++id}})
       })  

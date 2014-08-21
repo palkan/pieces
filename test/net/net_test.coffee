@@ -130,8 +130,8 @@ describe "Net utils base", ->
           </form>
         """  
       form = net.IframeUpload._build_form form, '#', data, '', 'post'
-      f = new FormerJS(form.node, serialize: true, rails: true)
-      form_data = f._collect_name_values()
+      f = new pi.Former(form.node, serialize: true, rails: true)
+      form_data = f.collect_name_values()
       params = form_data.map((f)-> f.name)
       expect(params).to.include 'item[tags][]'
       expect(params).to.include 'item[id]'
