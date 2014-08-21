@@ -105,13 +105,20 @@ describe "form component", ->
       TestHelpers.changeElement $("#desc input").node
 
     it "should set inputs values", ->
-      @example.value desc: 'Song', title: 'EA', is_active: true, type: 3
+      @example.value desc: 'Song', title: 'EA', is_active: true, type: 3, bull: 'shit' 
       
       expect($("#desc").value()).to.eq 'Song'
       expect($("#title").value()).to.eq 'EA'
       expect($("#is_active").value()).to.eq '1'
       expect($("#type").value()).to.eq '3'
       expect($("#type").placeholder.text()).to.eq 'Tre'
+
+      val = @example.value()
+      expect(val.desc).to.eq 'Song'
+      expect(val.title).to.eq 'EA'
+      expect(val.is_active).to.eq '1'
+      expect(val.type).to.eq '3'
+      expect(val).to.have.keys ['desc', 'title', 'is_active', 'type']
 
     it "should clear inputs values", ->
       @example.clear()

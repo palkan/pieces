@@ -39,9 +39,9 @@ class pi.Former
 
         _current = _result
 
-        name = @options.name_transform(name) if @options.name_transform?
+        name = @transform_name name
 
-        value = @options.parse_value(value) if @options.parse_value? 
+        value = @transform_value value 
 
         _name_parts = name.split "."
 
@@ -102,6 +102,11 @@ class pi.Former
     name = name.replace(@options.fill_prefix, '') if @options.fill_prefix
     name = @options.name_transform(name) if @options.name_transform?
     name
+
+  transform_value: (val) ->
+    if @options.parse_value?
+      return @options.parse_value(val)
+    val
 
   _to_array: (val) ->
     if not val?

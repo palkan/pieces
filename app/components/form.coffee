@@ -15,14 +15,7 @@ class pi.Form extends pi.Base
     @former = new pi.Former(@node, serialize: !!@options.serialize, rails: @options.rails)
     
     # set initial value
-    @former.traverse_nodes @node, 
-      (node) =>
-        if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
-          @_cache[nod.name()] = nod
-          utils.set_path @_value, @former.transform_name(nod.name()), nod.value()
-        else if utils.is_input(node) && node.name
-          @_cache[node.name] = pi.Nod.create node
-          utils.set_path @_value, @former.transform_name(node.name), @former._parse_nod_value(node)
+    @read_values()
 
     # handle components updates 
     @on pi.InputEvent.Change, (e) =>
@@ -75,7 +68,10 @@ class pi.Form extends pi.Base
 
   value: (val) ->
     if val?
+      @_value = {}
       @former.traverse_nodes @node, (node) => @fill_value node, val
+      @read_values()
+      @
     else
       @_value
 
@@ -83,6 +79,16 @@ class pi.Form extends pi.Base
     @_value = {}
     @former.traverse_nodes @node, (node) => @clear_value node
     @trigger pi.InputEvent.Clear unless silent
+
+  read_values: ->
+    @former.traverse_nodes @node, 
+      (node) =>
+        if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
+          @_cache[nod.name()] = nod
+          @update_value nod.name(), nod.value(), true
+        else if utils.is_input(node) && node.name
+          @_cache[node.name] = pi.Nod.create node
+          @update_value node.name, @former._parse_nod_value(node)
 
   find_by_name: (name) ->
     if @_cache[name]?
@@ -106,10 +112,11 @@ class pi.Form extends pi.Base
     else if utils.is_input(node)
       @former._clear_nod node
 
-  update_value: (name, val) ->
+  update_value: (name, val, silent = false) ->
     return unless name
     name = @former.transform_name name
+    val = @former.transform_value val
     utils.set_path @_value, name, val
-    @trigger pi.FormEvent.Update, @_value
+    @trigger pi.FormEvent.Update, @_value unless silent
 
 pi.Guesser.rules_for 'form', ['pi-form'], ['form']

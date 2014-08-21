@@ -26,7 +26,6 @@ class pi.PopupContainer extends pi.Base
   add_container: ->
     @cont = pi.Nod.create('div').piecify()
     @cont.addClass 'pi-popup-container'
-    @cont.hide()
     @overlay.style("z-index",++@z)
     @__containers__.push @cont
     @append @cont
