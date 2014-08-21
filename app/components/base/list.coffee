@@ -68,7 +68,7 @@ class pi.List extends pi.Base
   
   parse_html_items: () ->
     @items_cont.each ".#{ @item_klass }", (node) =>   
-      @add_item pi.Nod.create(node), false
+      @add_item pi.Nod.create(node), true
     @_flush_buffer()
 
   # Set list elements
@@ -78,11 +78,11 @@ class pi.List extends pi.Base
     @clear() if @items.length  
 
     if data?
-      @add_item(item,false) for item in data
+      @add_item(item,true) for item in data
     
     @update('load')
 
-  add_item: (data, update = true) ->
+  add_item: (data, silent = false) ->
     item = @_create_item data
     return unless item?
     
@@ -93,13 +93,13 @@ class pi.List extends pi.Base
     # save item index in DOM element
     item.data('list-index',@items.length-1)
     
-    if update then @items_cont.append(item) else @buffer.appendChild(item.node)
+    unless silent then @items_cont.append(item) else @buffer.appendChild(item.node)
 
-    @trigger('update', {type:'item_added',item:item}) if update
+    @trigger('update', {type:'item_added',item:item}) unless silent
     
-  add_item_at: (data, index, update = true) ->
+  add_item_at: (data, index, silent = false) ->
     if @items.length-1 < index
-        @add_item data,update
+        @add_item data,silent
         return
           
     item = @_create_item data
@@ -113,11 +113,11 @@ class pi.List extends pi.Base
 
     @_need_update_indeces = true
 
-    if update
+    unless silent
       @_update_indeces()
       @trigger('update', {type:'item_added', item:item})
 
-  remove_item: (item,update = true) ->
+  remove_item: (item,silent = false) ->
     index = @items.indexOf(item)
     if index > -1
       @items.splice(index,1)
@@ -127,17 +127,17 @@ class pi.List extends pi.Base
 
       @_need_update_indeces = true
 
-      if update
+      unless silent
         @_update_indeces()
         @trigger('update', {type:'item_removed',item:item})
     return  
 
-  remove_item_at: (index,update = true) ->
+  remove_item_at: (index,silent = false) ->
     if @items.length-1 < index
       return
     
     item = @items[index]
-    @remove_item(item,update)
+    @remove_item(item,silent)
 
   # redraw item with new data
   # How it works:
@@ -145,7 +145,7 @@ class pi.List extends pi.Base
   #  2. Update item html (merge classes)
   #  3. Update item record (by extending it with new item data (overwriting))
 
-  update_item: (item, data, update=true) ->
+  update_item: (item, data, silent=false) ->
     new_item = @_renderer.render data
 
     # update associated record
@@ -160,7 +160,7 @@ class pi.List extends pi.Base
     #merge classes
     item.mergeClasses new_item
     
-    @trigger('update', {type:'item_updated',item:item}) if update
+    @trigger('update', {type:'item_updated',item:item}) unless silent
     item  
 
   move_item: (item, index) ->
@@ -168,7 +168,7 @@ class pi.List extends pi.Base
 
     @items.splice @items.indexOf(item), 1
 
-    if index is (@items.length-1)
+    if index is @items.length
       @items.push item
       @items_cont.append(item)
     else

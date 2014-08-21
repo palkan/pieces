@@ -78,3 +78,11 @@ describe "sortable list plugin", ->
         done()
 
       @list.add_item pi.Nod.create('''<li class="item" data-val="20" data-key="some">Zero</li>''')
+
+    it "should resort items if item added in the middle", (done)->
+      @list.sort {val: 'asc'}
+      @list.on 'update', (event) =>
+        return unless event.data.type is 'item_added'
+        expect($('@test').nth('.item',3).text()).to.eq 'Zero'
+        done()
+      @list.add_item pi.Nod.create('''<li class="item" data-val="11" data-key="some">Zero</li>''')

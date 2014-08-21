@@ -32,7 +32,7 @@ class pi.List.Sortable extends pi.Plugin
 
   _bisect_sort: (item, left, right) ->
     if right-left < 2
-      if @_compare_fun(item,@list.items[right])>0
+      if @_compare_fun(item,@list.items[left])>0
         @list.move_item(item,right)
       else
         @list.move_item(item,left)  
