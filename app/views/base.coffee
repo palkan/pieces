@@ -23,8 +23,8 @@ class pi.BaseView extends pi.Base
     controller_klass ||= @default_controller
 
     if controller_klass?
-      controller = new controller_klass(@)
-      pi.app.page.add_context controller, @options.main
+      @controller = new controller_klass(@)
+      pi.app.page.add_context @controller, @options.main
 
   loaded: (data) ->
     return

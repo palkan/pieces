@@ -203,9 +203,10 @@ class pi.Base extends pi.Nod
     @__components__.splice(@__components__.indexOf(child),1)
 
   remove_children: ->
-    for child in @__components__
-      child.remove()
+    list = @__components__.slice()
+    for child in list
       @remove_component child
+      child.remove()
     super
 
 

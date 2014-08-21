@@ -1,4 +1,5 @@
 'use strict'
 require './base'
 require './plugins'
+require './modules'
 require './list.view'

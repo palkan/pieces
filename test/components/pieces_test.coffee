@@ -258,3 +258,11 @@ describe "pieces core", ->
       expect(@example.some_btn).to.be.an.instanceof pi.Button
       expect(@example.__components__).to.have.length 1
       expect(@example.some_btn).not.to.eq old_btn
+
+    it "should remove children if render null", ->
+      old_btn = @example.some_btn
+      @example.render null
+      expect(old_btn._disposed).to.be.true
+      expect(@example.text()).to.eq ''
+      expect(@example.__components__).to.have.length 0
+      expect(@example.some_btn).to.be.undefined

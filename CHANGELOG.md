@@ -1,3 +1,8 @@
+## 0.2.3
+* add 'controller' property to View
+* PopupContainer prevent close if close function return 'false' 
+* Separate ListView into modules: Loadable, Listable
+
 ## 0.2.2
 * add 'renderable' plugin for any component
 * add 'restful' plugin for any _renderable_ component

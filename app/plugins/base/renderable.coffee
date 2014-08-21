@@ -13,7 +13,7 @@ class pi.Base.Renderable extends pi.Plugin
 
   @included: (klass) ->
     self = @
-    klass.before_initialize -> @attach_plugin self 
+    klass.before_initialize -> @attach_plugin self
 
   initialize: (@target) ->
     super
@@ -22,11 +22,14 @@ class pi.Base.Renderable extends pi.Plugin
     return
 
   render: (data) ->
-    nod = @target._renderer.render data
-    if nod?
-      @target.remove_children()
-      @target.append nod
-      @target.piecify()
+    @target.remove_children()
+    if data?
+      nod = @target._renderer.render data
+      if nod?
+        @target.append nod
+        @target.piecify()
+      else
+        utils.error "failed to render data for: #{@target.pid}}"
     @target
 
   find_renderer: ->
