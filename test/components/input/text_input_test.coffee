@@ -26,7 +26,7 @@ describe "text input component", ->
   describe "editable", ->
 
     it "should trigger event on readonly", (done) ->
-      @test1.on 'editable', (e) =>
+      @test1.on pi.InputEvent.Editable, (e) =>
         expect(e.data).to.be.false
         expect(@test1.editable).to.be.false
         done()
@@ -37,7 +37,7 @@ describe "text input component", ->
       expect(@test2.editable).to.be.false
 
     it "should trigger event on edit", (done) ->
-      @test2.on 'editable', (e) =>
+      @test2.on pi.InputEvent.Editable, (e) =>
         expect(e.data).to.be.true
         expect(@test2.editable).to.be.true
         done()

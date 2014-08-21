@@ -1,6 +1,7 @@
 'use strict'
 pi = require '../../core'
 require '../pieces'
+require '../events/input_events'
 utils = pi.utils
 
 class pi.BaseInput extends pi.Base
@@ -20,4 +21,4 @@ class pi.BaseInput extends pi.Base
 
   clear: (silent = false) ->
     @input.value ''
-    @trigger('clear') unless silent
+    @trigger(pi.InputEvent.Clear) unless silent

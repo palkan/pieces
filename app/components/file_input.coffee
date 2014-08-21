@@ -1,6 +1,7 @@
 'use strict'
 pi = require '../core'
 require './base/base_input'
+require './events/input_events'
 utils = pi.utils
 
 _name_reg = /([^\/\\]+$)/
@@ -23,11 +24,11 @@ class pi.FileInput extends pi.BaseInput
       unless @input.node.files?
         if @input.node.value
           @_files.push {name: @input.node.value.split(_name_reg)[1]}
-          @trigger 'update', @value() 
+          @trigger pi.InputEvent.Change, @value() 
         return
       if @input.node.files.length
         @_files.push(file) for file in @input.node.files
-        @trigger 'update', @value()
+        @trigger pi.InputEvent.Change, @value()
       else
         @clear()
 

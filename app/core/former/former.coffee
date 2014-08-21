@@ -93,17 +93,21 @@ class pi.Former
     current = nod.firstChild
     
     while(current?)
-      result = result.concat @traverse_nodes(current,callback)
+      if current.nodeType is 1 
+        result = result.concat @traverse_nodes(current,callback)
       current = current.nextSibling
     result
+
+  transform_name: (name) ->
+    name = name.replace(@options.fill_prefix, '') if @options.fill_prefix
+    name = @options.name_transform(name) if @options.name_transform?
+    name
 
   _to_array: (val) ->
     if not val?
       []
-    else if val instanceof Array
-      val
-    else
-      [val]
+    else 
+      utils.to_a val
 
   _parse_nod: (nod) ->
     return if @options.disabled is false and nod.disabled
@@ -157,8 +161,7 @@ class pi.Former
 
   _nod_data_value: (name, data) ->
     return unless name
-    name = name.replace(@options.fill_prefix, '') if @options.fill_prefix
-    name = @options.name_transform(name) if @options.name_transform?
+    name = @transform_name name
 
     return if name.indexOf('[]')>-1
 

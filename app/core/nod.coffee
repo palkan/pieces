@@ -295,6 +295,9 @@ class pi.Nod extends pi.NodEventDispatcher
     else
       @node.textContent
 
+  name: ->
+    @node.name || @data('name')
+
   value: (val) ->
     if val?
       @node.value = val

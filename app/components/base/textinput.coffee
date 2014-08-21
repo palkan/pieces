@@ -2,6 +2,7 @@
 pi = require '../../core'
 require '../pieces'
 require './base_input'
+require '../events/input_events'
 utils = pi.utils
 
 class pi.TextInput extends pi.BaseInput
@@ -11,14 +12,14 @@ class pi.TextInput extends pi.BaseInput
     @readonly() if (@options.readonly || @hasClass('is-readonly'))
     @input.on 'change', (e) =>
       e.cancel()
-      @trigger 'update', @value()
+      @trigger pi.InputEvent.Change, @value()
 
   edit: () ->
     unless @editable
       @input.attr 'readonly', null 
       @removeClass 'is-readonly'
       @editable = true
-      @trigger 'editable', true
+      @trigger pi.InputEvent.Editable, true
     @
 
   readonly: () ->
@@ -27,7 +28,7 @@ class pi.TextInput extends pi.BaseInput
       @addClass 'is-readonly'
       @editable = false
       @blur()
-      @trigger 'editable', false
+      @trigger pi.InputEvent.Editable, false
     @        
 
 pi.Guesser.rules_for 'text_input', ['pi-text-input-wrap'], ['input[text]']

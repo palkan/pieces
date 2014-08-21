@@ -52,7 +52,7 @@ describe "select_input component", ->
   describe "events", ->
     it "should trigger change if item selected and update value", (done) ->
       @example.focus()
-      @example.on 'update', (e) =>
+      @example.on pi.InputEvent.Change, (e) =>
         expect(e.data).to.eq 1
         expect($('.placeholder').text()).to.eq 'One'
         expect(@example.value()).to.eq '1'

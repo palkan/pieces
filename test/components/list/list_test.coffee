@@ -158,16 +158,16 @@ describe "list component", ->
     it "should peicify items nods", ->
       @list._renderer = 
         render: (data) ->
-          nod = Nod.create("<div>#{ data.name }</div>")
+          nod = Nod.create("<div>#{ data.title }</div>")
           nod.addClass 'item'
           nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
           nod = nod.piecify()
           pi.utils.extend nod, data
           nod
 
-      @list.add_item {name: 'coffee', author: 'john'}
+      @list.add_item {title: 'coffee', author: 'john'}
 
-      item = @list.where(name: 'coffee')[0]
+      item = @list.where(title: 'coffee')[0]
 
       expect(item).to.be.an.instanceof pi.Base
       expect(item.host).to.eq @list      

@@ -37,6 +37,26 @@ class TestHelpers
     el.dispatchEvent ev 
     return
 
+  @changeElement: (el) ->
+    ev = document.createEvent "HTMLEvents"
+    ev.initEvent(
+      'change',
+      true, #bubble 
+      true
+    )
+    el.dispatchEvent ev 
+    return
+
+  @submitElement: (el) ->
+    ev = document.createEvent "HTMLEvents"
+    ev.initEvent(
+      'submit',
+      false, #bubble 
+      true
+    )
+    el.dispatchEvent ev 
+    return
+
   @clickElement: (el) ->
     TestHelpers.mouseEventElement el, "click"
     return

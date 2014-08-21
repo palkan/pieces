@@ -1,23 +1,77 @@
 'use strict'
 pi = require '../core'
+require './events/input_events'
+require './base/validator'
 utils = pi.utils
+
+Validator = pi.BaseInput.Validator
 
 class pi.Form extends pi.Base
   postinitialize: ->
     super
     @_cache = {}
     @_value = {}
+    @_invalids = []
     @former = new pi.Former(@node, serialize: !!@options.serialize, rails: @options.rails)
     
+    # set initial value
+    @former.traverse_nodes @node, 
+      (node) =>
+        if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
+          @_cache[nod.name()] = nod
+          utils.set_path @_value, @former.transform_name(nod.name()), nod.value()
+        else if utils.is_input(node) && node.name
+          @_cache[node.name] = pi.Nod.create node
+          utils.set_path @_value, @former.transform_name(node.name), @former._parse_nod_value(node)
+
     # handle components updates 
-    @on 'update', (e) =>
-      return if e.target is @
-      @update_value e.target, e.data
+    @on pi.InputEvent.Change, (e) =>
+      e.cancel()
+      if @is_valid(e.target) 
+        @update_value e.target.name(), e.data
 
     # handle native inputs updates
     @on 'change', (e) =>
-      return unless utils.is_input(e.target)
-      @update_value e.target.node.name, @former._parse_nod_value(e.target.node)
+      return unless utils.is_input(e.target.node)
+      if @is_valid(e.target)
+        @update_value e.target.node.name, @former._parse_nod_value(e.target.node)
+
+    @form = if @node.nodeName is 'FORM' then @ else @find('form')
+
+    if @form?
+      @form.on 'submit', (e) =>
+        e.cancel()
+        @submit()
+
+  is_valid: (nod) ->
+    if (types = nod.data('validates'))
+      flag = true
+      for type in types.split(" ")
+        unless Validator.validate(type, nod, @)
+          nod.addClass 'is-invalid'
+          flag = false
+          break 
+        
+      if flag
+        nod.removeClass 'is-invalid'
+        if nod.__invalid__
+          @_invalids.splice @_invalids.indexOf(nod.name()), 1
+          delete nod.__invalid__
+        true
+      else
+        
+        unless nod.__invalid__?
+          @_invalids.push nod.name()
+        nod.__invalid__ = true
+        false
+    else
+      true
+
+  submit: ->
+    if @_invalids.length
+      @trigger pi.FormEvent.Invalid, @_invalids
+    else
+      @trigger pi.FormEvent.Submit, @_value
 
   value: (val) ->
     if val?
@@ -25,26 +79,37 @@ class pi.Form extends pi.Base
     else
       @_value
 
-  clear: ->
+  clear: (silent = false)->
     @_value = {}
-    @former.traverse_nodes @node, (node) => @clear_value node, val
+    @former.traverse_nodes @node, (node) => @clear_value node
+    @trigger pi.InputEvent.Clear unless silent
+
+  find_by_name: (name) ->
+    if @_cache[name]?
+      return @_cache[name]
+
+    nod = @find("[name=#{name}]")
+    if nod?
+      return (@_cache[name] = nod)
 
   fill_value: (node, val) ->
-    if !node._nod && utils.is_input(node)
-      @former._fill_nod node, val
-    else if (nod = node._nod) instanceof pi.BaseInput
-      val = @former._nod_data_value(nod.node.name, val) if nod.node.name?
+    if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
+      val = @former._nod_data_value(nod.name(), val)
       return unless val?
       nod.value val
+    else if utils.is_input(node)
+      @former._fill_nod node, val
 
   clear_value: (node) ->
-    if !node._nod && utils.is_input(node)
-      @former._clear_nod node
-    else if (nod = node._nod) instanceof pi.BaseInput
+    if (nod = node._nod) instanceof pi.BaseInput
       nod.clear()
+    else if utils.is_input(node)
+      @former._clear_nod node
 
   update_value: (name, val) ->
     return unless name
-    name = @former.options.name_transform(name) if @former.options.name_transform?
+    name = @former.transform_name name
     utils.set_path @_value, name, val
-    @trigger 'update', @_value
+    @trigger pi.FormEvent.Update, @_value
+
+pi.Guesser.rules_for 'form', ['pi-form'], ['form']

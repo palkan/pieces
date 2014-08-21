@@ -1,6 +1,7 @@
 'use strict'
 pi = require '../core'
 require './base/base_input'
+require './events/input_events'
 utils = pi.utils
 # checkbox should have structure
 # div.checkbox
@@ -22,14 +23,14 @@ class pi.Checkbox extends pi.BaseInput
       @addClass 'is-selected'
       @__selected__ = true
       @input.value 1
-      @trigger('update', true) unless silent
+      @trigger(pi.InputEvent.Change, true) unless silent
 
   deselect: (silent = false) ->
     if @__selected__
       @removeClass 'is-selected'
       @__selected__ = false
       @input.value 0
-      @trigger('update', false) unless silent
+      @trigger(pi.InputEvent.Change, false) unless silent
 
 
   toggle_select: (silent) ->
@@ -42,13 +43,12 @@ class pi.Checkbox extends pi.BaseInput
     if val?
       super
       @__selected__ = !val
-      @toggle_select()
+      @toggle_select(true)
     else
       super
 
-  clear: ->
-    @removeClass 'is-selected'
-    @__selected__ = false
-    super
+  clear: (silent=false) ->
+    @value false
+    @trigger pi.InputEvent.Clear unless silent
 
 pi.Guesser.rules_for 'checkbox', ['pi-checkbox-wrap'], null

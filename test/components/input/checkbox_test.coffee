@@ -46,7 +46,7 @@ describe "checkbox component", ->
   describe "update event", ->
 
     it "should trigger event on click", (done) ->
-      @test1.on 'update', (e) =>
+      @test1.on pi.InputEvent.Change, (e) =>
         expect(e.data).to.be.true
         expect(@test1.__selected__).to.be.true
         done()
@@ -70,5 +70,5 @@ describe "checkbox component", ->
     it "should clear state", ->
       @test2.clear()
       expect(@test2.hasClass('is-selected')).to.be.false
-      expect(@test2.value()).to.eq ''
+      expect(@test2.value()).to.eq '0'
       expect(@test2.__selected__).to.be.false

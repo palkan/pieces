@@ -20,6 +20,7 @@ class pi.utils
 
   ## regular experssion
   @email_rxp: /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i
+  @digital_rxp: /^[\d\s-\(\)]+$/
   @html_rxp: /^\s*<.+>\s*$/m
   @esc_rxp: /[-[\]{}()*+?.,\\^$|#]/g
   @clickable_rxp: /^(a|button|input|textarea)$/i
@@ -39,6 +40,9 @@ class pi.utils
 
   @trim: (str) ->
     str.replace(@trim_rxp,"$1")
+
+  @is_digital: (str) ->
+    @digital_rxp.test str
 
   @is_email: (str) ->        
     @email_rxp.test str
@@ -137,10 +141,9 @@ class pi.utils
     
     while(parts.length>1)
       key = parts.shift()
-      if res[key]?
-        res = res[key]
-      else
-        return null
+      unless res[key]?
+        res[key] = {}
+      res = res[key]
     res[parts[0]] = val
 
   # convert path parts to camelCase and then get_path
@@ -225,7 +228,7 @@ class pi.utils
 
   @curry: (fun, args = [], ths, last = false) ->
       fun = if ("function" == typeof fun) then fun else ths[fun]
-      args = if (args instanceof Array) then args else [args]
+      args = pi.utils.to_a args
       (rest...)->
         fun.apply(ths||@, if last then rest.concat(args) else args.concat(rest))      
 

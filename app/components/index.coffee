@@ -2,6 +2,7 @@
 require './pieces'
 require './app'
 require './guess/guesser'
+require './events'
 require './base/index'
 require '../plugins/index'
 require './renderers'

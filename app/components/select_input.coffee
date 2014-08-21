@@ -1,6 +1,7 @@
 'use strict'
 pi = require '../core'
 require './base/base_input'
+require './events/input_events'
 utils = pi.utils
 
 # Select input is based on hidden input element and use simple list as options list
@@ -21,7 +22,7 @@ class pi.SelectInput extends pi.BaseInput
     @dropdown.on 'selected', (e) =>
       @value e.data[0].record.value
       @placeholder.text e.data[0].text()
-      @trigger 'update', e.data[0].record.value
+      @trigger pi.InputEvent.Change, e.data[0].record.value
       @blur()
 
     @on 'focus', =>
