@@ -27,6 +27,7 @@ _true = -> true
 
 class pi.EventListener extends pi.Core
   constructor: (@type, @handler, @context = null, @disposable = false, @conditions) ->
+    super
     @handler._uid = "fun"+utils.uid() if not @handler._uid?
     @uid = "#{@type}:#{@handler._uid}"
 
@@ -65,6 +66,7 @@ class pi.EventDispatcher extends pi.Core
   listeners: ''
   listeners_by_key: ''
   constructor: ->
+    super
     @listeners = {} # event_type to listener hash
     @listeners_by_key = {} # key is event_type:handler_uid:context_uid
 

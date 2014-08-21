@@ -39,7 +39,7 @@ class pi.Former
 
         _current = _result
 
-        name = @transform_name name
+        name = @transform_name name, false
 
         value = @transform_value value 
 
@@ -98,8 +98,8 @@ class pi.Former
       current = current.nextSibling
     result
 
-  transform_name: (name) ->
-    name = name.replace(@options.fill_prefix, '') if @options.fill_prefix
+  transform_name: (name, prefix = true) ->
+    name = name.replace(@options.fill_prefix, '') if @options.fill_prefix && prefix
     name = @options.name_transform(name) if @options.name_transform?
     name
 

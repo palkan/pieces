@@ -32,12 +32,21 @@ class pi.Core
       do(_when) =>
         @["#{_when}_#{callback_name}"] = (callback) ->
           (@["_#{_when}_#{callback_name}"]||=[]).push callback
-    _orig = @::[method]
-    @::[method] = (args...) ->
+    
+    # create callbacked version of a function  
+    @::["__#{method}"] = (args...) ->
       @run_callbacks "before_#{callback_name}"
-      res = _orig.apply(@,args)
+      res = @constructor::[method].apply(@,args)
       @run_callbacks "after_#{callback_name}"
       res 
+
+    (@callbacked||=[]).push method
+
+  constructor: ->
+    # apply callbacks to methods
+    for method in (@constructor.callbacked||[])
+      do(method) =>
+        @[method] = @["__#{method}"]
 
   run_callbacks: (type) ->
     for callback in (@constructor["_#{type}"]||[])

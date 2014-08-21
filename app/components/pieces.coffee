@@ -43,13 +43,13 @@ class pi.Base extends pi.Nod
 
     @preinitialize()
     
-    @__initialize()
+    @initialize()
     
     @init_plugins()
     @init_children()
     @setup_events()
 
-    @__postinitialize()
+    @postinitialize()
 
   # re-init children (grandchildren and so on)
   # = init_children() + __components__.all -> piecify()
@@ -123,10 +123,6 @@ class pi.Base extends pi.Nod
     @visible = @enabled = true
     @active = false
 
-  # [private] Use for callbacks (initialize can be overriden by sub-classs) 
-  __initialize: ->
-    @initialize()
-
   # setup instance initial state (but not children)
   initialize: ->       
     @disable() if (@options.disabled || @hasClass('is-disabled'))
@@ -135,7 +131,7 @@ class pi.Base extends pi.Nod
     @_initialized = true
     @trigger 'initialized', true, false
 
-  @register_callback '__initialize', as: 'initialize'
+  @register_callback 'initialize'
 
   init_plugins: ->
     if @options.plugins?
@@ -178,14 +174,10 @@ class pi.Base extends pi.Nod
     delete @options.events
     return
 
-   # [private] Use for callbacks (postinitialize can be overriden by sub-classs) 
-  __postinitialize: ->
-    @postinitialize()
-
   postinitialize: ->
     @trigger 'creation_complete', true, false
 
-  @register_callback '__postinitialize', as: 'create' 
+  @register_callback 'postinitialize', as: 'create' 
 
   dispose: ->
     @trigger 'destroyed'
