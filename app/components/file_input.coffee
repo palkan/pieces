@@ -12,33 +12,40 @@ class pi.FileInput extends pi.BaseInput
 
   postinitialize: ->
     super
+    @_multiple = !!@input.attr('multiple')
     # remove focus from input
     @input.attr('tabindex','-1')
 
-    @input.on 'change', =>
+    @input.on 'change', (e) =>
+      e.cancel()
       @_files.length = 0
       # <IE9 hack
       unless @input.node.files?
         if @input.node.value
           @_files.push {name: @input.node.value.split(_name_reg)[1]}
-          @trigger('files_selected',@_files) 
+          @trigger 'update', @value() 
         return
       if @input.node.files.length
         @_files.push(file) for file in @input.node.files
-        @trigger 'files_selected', @_files
+        @trigger 'update', @value()
       else
         @clear()
+
   multiple: (value) ->
+    @_multiple = value
     if value
       @input.attr 'multiple',''
     else
       @input.attr 'multiple',null
   
   clear: ->
-    super
     @_files.length = 0
+    super
 
-  files: ->
-    @_files
+  value: ->
+    if @_multiple
+      @_files
+    else
+      @_files[0]
 
 pi.Guesser.rules_for 'file_input', ['pi-file-input-wrap'], ['input[file]'], (nod) -> nod.children("input[type=file]").length is 1

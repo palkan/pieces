@@ -18,5 +18,6 @@ class pi.BaseInput extends pi.Base
       else
         @input.node.value
 
-  clear: () ->
+  clear: (silent = false) ->
     @input.value ''
+    @trigger('clear') unless silent

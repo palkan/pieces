@@ -8,6 +8,12 @@
 * add 'restful' plugin for any _renderable_ component
 * fix component 'remove' (remove sub-components too)
 * add 'remove_children' to Nod (remove and dispose if child is Nod)
+* add 'records()' method to List
+* unify inputs events (all send update event with value)
+* add placeholder as required component for SelectInput
+* fix setting value for Checkbox and SelectInput 
+* move FormerJS to Pieces as pi.Former
+* add Form component [todo]
 
 ## 0.2.1 
 * add Paginated module to Controllers

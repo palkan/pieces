@@ -176,6 +176,8 @@ class pi.List extends pi.Base
     matcher = if typeof query == "string" then @constructor.string_matcher(query) else @constructor.object_matcher(query)
     item for item in @items when matcher(item)
 
+  records: ->
+    @items.map((item) -> item.record)
 
   size: () ->
     @items.length
