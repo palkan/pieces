@@ -164,7 +164,7 @@ describe "Pieces RVC", ->
         )
 
       it "should not create item data if data is wrong", (done) ->
-        @t.users.create({name:'vasya'}).then(
+        @t.users.create({}).then(
           (data) ->
             utils.error data
         ).catch(

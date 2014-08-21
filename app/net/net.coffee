@@ -15,7 +15,13 @@ class pi.Net
       response
 
   @_prepare_error: (xhr) ->
-    xhr.responseText || xhr.statusText
+    type = xhr.getResponseHeader 'Content-Type'
+    response = 
+      if /json/.test type
+        JSON.parse xhr.responseText || """{"status":#{xhr.statusText}}"""
+      else
+        xhr.responseText || xhr.statusText
+    
 
   @_is_success: 
     (status) ->

@@ -31,15 +31,19 @@ class pi.controllers.ListController extends pi.controllers.Base
     params = utils.merge(@scope().params,params) 
     @view.loading true
 
-    @resources.query(params)
-    .catch( (error) => @view.error error.message )
-    .then( (response) =>  
-      @view.loading false 
-      response
+    @resources.query(params).then( 
+      (
+        (response) => 
+          @view.loading false 
+          @view.success(response.message) if response?.message?
+          response
+      ),
+      (
+        (error) => 
+          @view.loading false
+          @view.error error.message 
+          throw error
       )
-    .then( (response) => 
-      @view.success(response.message) if response?.message?
-      response
     )
 
   index: (params) ->

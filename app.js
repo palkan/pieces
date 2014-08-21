@@ -122,8 +122,15 @@ exports.startServer = function(port, path, callback){
     })
     .post(function(req, res, next) {
       params = req.body
-      if(!params.name || !params.age)
-        res.send(403)
+      errors = []
+      if(!params.name)
+        errors.push('name is missing')
+      
+      if(!params.age)
+        errors.push('age is missing')
+
+      if(errors.length)
+        res.json(403, errors)
       else
         res.json({user: {name: params.name,age: params.age, id: ++id}})
       })  
