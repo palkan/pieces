@@ -80,4 +80,4 @@ describe "Pieces RVC", ->
         page.switch_back()
         page.switch_back()
         page.switch_to 'test2'
-        expect(page._history.size()).to.eq 2
+        expect(page._history.size()).to.eq 1

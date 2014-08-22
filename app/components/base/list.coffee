@@ -167,7 +167,7 @@ class pi.List extends pi.Base
 
     #try to remove runtime classes
     for klass in item.node.className.split(/\s+/)
-      item.removeClass(klass) unless klass in @merge_classes
+      item.removeClass(klass) if klass and !(klass in @merge_classes)
     #merge classes
     item.mergeClasses new_item
     

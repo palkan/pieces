@@ -322,7 +322,7 @@ class pi.Nod extends pi.NodEventDispatcher
 
   mergeClasses: (nod) ->
     for klass in nod.node.className.split(/\s+/)
-      @addClass klass
+      @addClass(klass) if klass
     @
     
   x: ->

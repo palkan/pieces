@@ -6,7 +6,7 @@ class History
 
   push: (item) ->
     if @_position < 0
-      @_storage.splice (@_storage.length+@_position-1),(-@_position)
+      @_storage.splice (@_storage.length+@_position),(-@_position)
       @_position = 0
     @_storage.push item
 
