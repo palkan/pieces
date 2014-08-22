@@ -68,14 +68,14 @@ class pi.controllers.Test4 extends pi.controllers.ListController
 class pi.TestView extends pi.ListView
   default_controller: pi.controllers.Test 
 
-  loaded: (data) ->
+  reloaded: (data) ->
     if data?.title?
       @title.text data.title 
 
 class pi.Test2View extends pi.BaseView
   default_controller: pi.controllers.Test2 
 
-  loaded: (data) ->
+  reloaded: (data) ->
     if data?.title?
       @input_txt.value data.title 
 

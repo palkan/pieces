@@ -20,9 +20,17 @@ class pi.controllers.Base extends pi.Core
   initialize: ->
     @_initialized = true
 
-  load: (data) ->
+  load: (context_data) ->
     @initialize() unless @_initialized
-    @view.loaded data
+    @view.loaded context_data.data
+    return
+
+  reload: (context_data) ->
+    @view.reloaded context_data.data
+    return
+
+  switched: ->
+    @view.switched()
     return
 
   unload: ->

@@ -25,12 +25,22 @@ class pi.controllers.Page extends pi.Core
     @switch_context null, @_main_context_id
 
 
+  wrap_context_data: (context, data) ->
+    res = {}
+    res.context = context.id if context?
+    if context?.data_wrap?
+      res.data = {}
+      res.data[context.data_wrap] = data
+    else
+      res.data = data
+    res
+
   # Switch context (controller-view).
   # @params [String] from context id of current context
   # @params [String] to context id of new id
   # @params [*] data additional data to be passed to new context's swithed function
 
-  switch_context: (from,to,data, history = false) ->
+  switch_context: (from,to,data={}, exit = false) ->
     if from and from != @context_id
       utils.warning "trying to switch from non-active context"
       return
@@ -42,15 +52,18 @@ class pi.controllers.Page extends pi.Core
       return 
 
     utils.info "context switch: #{from} -> #{to}"
-  
-    @context.unload() if @context? # unload current context
+    
+    if @context?
+      if exit then @context.unload() else @context.switched()
 
-    @_history.push(from) if from? and !history
+    data = @wrap_context_data(@context, data)
+
+    @_history.push(from) if from? and !exit
 
     @context = @_contexts[to]
     @context_id = to
 
-    @context.load data # load new context
+    if exit then @context.reload(data) else @context.load data # load new context or return to prev context
     return true
 
   switch_to: (to, data) ->
@@ -58,13 +71,14 @@ class pi.controllers.Page extends pi.Core
 
   switch_back: (data) ->
     if @context?
-      @switch_context @context_id, @_history.pop(), data, history
+      @switch_context @context_id, @_history.pop(), data, true
   
   dispose: ->
     @context = null
     @context_id = null
     @_contexts = {}
     @_history.clear()
+
 
 pi.app.page = new pi.controllers.Page()
 

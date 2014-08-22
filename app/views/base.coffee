@@ -29,5 +29,11 @@ class pi.BaseView extends pi.Base
   loaded: (data) ->
     return
 
+  reloaded: (data) ->
+    return
+
+  switched: ->
+    return
+
   unloaded: ->
     return

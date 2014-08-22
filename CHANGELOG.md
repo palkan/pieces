@@ -3,6 +3,7 @@
 * add 'wrap_parameters' property to REST resource
 * upd 'register_callback'
 * improve list plugins update handlers
+* update page context switching flow 
 
 ## 0.2.3
 * add 'controller' property to View
