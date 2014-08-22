@@ -81,6 +81,7 @@ class pi.List extends pi.Base
       @add_item(item,true) for item in data
     
     @update('load')
+    @
 
   add_item: (data, silent = false) ->
     item = @_create_item data
@@ -96,6 +97,7 @@ class pi.List extends pi.Base
     unless silent then @items_cont.append(item) else @buffer.appendChild(item.node)
 
     @trigger('update', {type:'item_added',item:item}) unless silent
+    item
     
   add_item_at: (data, index, silent = false) ->
     if @items.length-1 < index
@@ -116,6 +118,7 @@ class pi.List extends pi.Base
     unless silent
       @_update_indeces()
       @trigger('update', {type:'item_added', item:item})
+    item
 
   remove_item: (item,silent = false) ->
     index = @items.indexOf(item)
@@ -130,7 +133,9 @@ class pi.List extends pi.Base
       unless silent
         @_update_indeces()
         @trigger('update', {type:'item_removed',item:item})
-    return  
+      true
+    else
+      false
 
   remove_item_at: (index,silent = false) ->
     if @items.length-1 < index
@@ -138,6 +143,12 @@ class pi.List extends pi.Base
     
     item = @items[index]
     @remove_item(item,silent)
+
+  remove_items: (items) ->
+    for item in items
+      @remove_item(item,true)
+    @update()
+    return
 
   # redraw item with new data
   # How it works:
@@ -178,6 +189,7 @@ class pi.List extends pi.Base
 
     @_need_update_indeces = true
     @_update_indeces()
+    item
 
   # Find items within list using query
   #

@@ -81,6 +81,16 @@ describe "selectable list plugin", ->
 
       @list.remove_item_at 0
 
+    it "should send cleared when selected item is removed after _selected was cached", (done) ->
+      TestHelpers.clickElement $('@test').find('[data-id="1"]').node
+      @list.selected()
+      
+      @list.on 'selection_cleared', (event) =>
+        expect(@list.selected().length).to.equal 0
+        done()
+
+      @list.remove_item_at 0
+
     it "should send cleared when list completely cleared", (done) ->
       TestHelpers.clickElement $('@test').find('[data-id="1"]').node
 

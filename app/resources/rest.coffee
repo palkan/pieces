@@ -10,8 +10,29 @@ _double_slashes_reg = /\/\//
 _tailing_slash_reg = /\/$/
 
 
-# REST resource
+_set_param = (data, from, param) ->
+  return unless from?
+  if Array.isArray(from)
+    for el in from
+      do(el) ->
+        el_data = {}
+        _set_param(el_data, el, param)
+        data.push el_data
+    data
+  else
+    if typeof param is 'string'
+      data[param] = from[param] if from[param]?
+    else if Array.isArray(param)
+      for p in param
+        _set_param(data,from,p)
+    else
+      for own key, vals of param
+        return unless from[key]?
+        if Array.isArray(from[key]) then (data[key]=[]) else (data[key]={})
+        _set_param(data[key], from[key], vals)
+  data
 
+# REST resource
 class pi.resources.REST extends pi.resources.Base
   @_rscope: "/:path"
 
@@ -19,6 +40,14 @@ class pi.resources.REST extends pi.resources.Base
   # if true then wrap attributes in resource name: {model: {..attributes...}}
   # otherwise send attributes object 
   wrap_attributes: false
+
+  # define which attributes send to server
+  # e.g. params('id','name',{tags: ['name','id']})
+  # creates 'attributes' method
+  @params: (args...) ->
+    args.push('id') if args.indexOf('id')<0 
+    @::attributes = ->
+      @__attributes__ ||= _set_param({}, @, args)
 
   # initialize resource with name
   # and setup default resource paths
@@ -106,6 +135,11 @@ class pi.resources.REST extends pi.resources.Base
       el._persisted = true
       el
 
+  @build: ->
+    el = super
+    el._persisted = true if el.id?
+    el
+
   # find element by id;
   # return Promise
   @find: (id) ->
@@ -140,6 +174,10 @@ class pi.resources.REST extends pi.resources.Base
       @trigger 'create'
       @
 
+  set: ->
+    @__attributes__ = null
+    super
+
   save: ->
     attrs = if @wrap_attributes then @_wrap(@attributes()) else @attributes()
     if @_persisted
@@ -147,12 +185,7 @@ class pi.resources.REST extends pi.resources.Base
     else
       @create attrs
 
-  # attributes - all object own keys not started with "_" (i.e. "id" is a key, "_temp_id" - is not a key)
-  attributes: ->
-    res = {}
-    for own key,val of @ when key[0] != "_"
-      res[key] = val
-    res
+  @register_callback 'save'
 
   _wrap: (attributes) ->
     data = {}

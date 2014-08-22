@@ -15,6 +15,9 @@ class pi.TestoRest extends pi.resources.REST
   @set_resource 'testos'
   @routes_scope 'test/:path.json'
   @routes collection: [action: 'destroy_all', path: ':resources', method: 'delete']
+  @params 'type', {flour: ['id', 'weight', {rye: ['type']} ]}, {salt: ['id', 'salinity']}
+
+  @before_save -> @type||='normal'
 
   knead: ->
     @_is_kneading = true
@@ -25,6 +28,7 @@ class pi.TestoRest extends pi.resources.REST
 class pi.resources.TestUsers extends pi.resources.REST
   @set_resource 'users'
   @extend pi.resources.Query 
+  @params 'name','age'
   
 class pi.controllers.Test extends pi.controllers.ListController
   @list_resource pi.resources.TestUsers

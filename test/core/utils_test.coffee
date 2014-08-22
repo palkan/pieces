@@ -93,6 +93,18 @@ describe "pieces utils", ->
       fun(2)
       fun(3)
 
+    it "should invoke on first call after being used", (done) ->
+      spy_fun = sinon.spy()
+      fun = debounce 100, spy_fun
+      fun.call null, 1
+      fun.call null, 2
+      expect(spy_fun.callCount).to.equal 1
+      after 150, =>
+        expect(spy_fun.callCount).to.equal 2
+        fun.call null, 4
+        expect(spy_fun.callCount).to.equal 3
+        done()
+
   describe "merge", ->
     it "should merge with empty object", ->
       to = {a:1,b:2}

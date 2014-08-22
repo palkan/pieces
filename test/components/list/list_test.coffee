@@ -56,6 +56,11 @@ describe "list component", ->
       expect(@list.size()).to.eq 2
       expect($('@test').first('.item').data('id')).to.eq 2
 
+    it "should remove many items", ->
+      @list.remove_items [@list.items[0],@list.items[2]]
+      expect(@list.size()).to.eq 1
+      expect($('@test').first('.item').data('id')).to.eq 2
+
     it "should update element and trigger item's events", (done) ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       

@@ -4,6 +4,11 @@
 * upd 'register_callback'
 * improve list plugins update handlers
 * update page context switching flow 
+* fix debounce
+* upd net error handling
+* add 'params' method to REST to describe attributes for create/update
+* add 'save' callbacks for REST
+* add 'remove_items' to list
 
 ## 0.2.3
 * add 'controller' property to View

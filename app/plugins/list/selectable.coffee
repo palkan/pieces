@@ -23,7 +23,11 @@ class pi.List.Selectable extends pi.Plugin
         item.__selected__ = true
 
     @list.delegate_to @, 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
-    @list.on 'update', ((e) => @_check_selected()), @, (e) -> (e.data.type isnt 'item_added') 
+    @list.on 'update', (
+      (e) => 
+        @_selected = null
+        @_check_selected()
+    ), @, (e) -> (e.data.type isnt 'item_added') 
     return
 
   type: (value) ->

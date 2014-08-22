@@ -92,6 +92,7 @@ class pi.resources.Base extends pi.Core
     @__all__.slice()
 
   constructor: (data) ->
+    super
     @set(data,true)
 
   dispose: ->

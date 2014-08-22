@@ -66,6 +66,12 @@ describe "Pieces REST", ->
             done()
         )
 
+      it "should run save callbacks", ->
+        t = new Testo({})
+        t.create = (data) -> data
+        attrs = t.save()
+        expect(attrs.type).to.eq 'normal'
+
     describe "instance functions", ->
 
       it "should setup member paths", ->
@@ -75,9 +81,24 @@ describe "Pieces REST", ->
         expect(t.destroy_path).to.not.be.undefined
         
       describe "attributes", ->
-        it "should add only own attributes", ->
+        it "should add only described attributes", ->
           t = new Testo({id:1, type: 'puff',_persisted: true})
           expect(t.attributes()).to.have.keys('id','type')
+
+        it "should filter nested attributes", ->
+          t = new Testo({id:1, type: 'puff',_persisted: true, flour: {id:1, color:'white', weight: 'light', amount: 100, rye: {type: 'winter', year: 2014}}})
+          expect(t.attributes()).to.have.keys('id','type','flour')
+          expect(t.attributes().flour).to.have.keys('id','weight','rye')
+          expect(t.attributes().flour.rye).to.have.keys('type')
+
+        it "should filter nested attributes 2", ->
+          t = new Testo({id:1, flour: {id:1, color:'white', weight: 'light'}})
+          t.set salt: [{id: 1, salinity: 'high', title: 'seasalt'},{id:2, salinity:'low', title:'limesos', comment: 'badsalt'}]
+          expect(t.attributes()).to.have.keys('id','flour','salt')
+          expect(t.attributes().salt).to.have.length 2
+          expect(t.attributes().salt[1]).to.have.keys('id', 'salinity') 
+
+
       
       it "should destroy element", (done) ->
         Testo.fetch().then(

@@ -221,7 +221,9 @@ class pi.utils
 
       (ths||{}).__debounce_id__ = pi.utils.after period, ->
         _wait = false
-        fun.apply(ths,_buf) if _buf?
+        if _buf?
+          fun.apply(ths,_buf) 
+          _buf = null
 
       _wait = true
       fun.apply(ths,args) unless _buf?

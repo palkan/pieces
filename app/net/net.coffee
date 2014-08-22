@@ -21,7 +21,9 @@ class pi.Net
         JSON.parse xhr.responseText || """{"status":#{xhr.statusText}}"""
       else
         xhr.responseText || xhr.statusText
-    
+  
+  @_is_app_error: (status) ->
+    (status >= 400 and status < 500)
 
   @_is_success: 
     (status) ->
@@ -122,8 +124,10 @@ class pi.Net
 
           if @_is_success(req.status)
             resolve @_prepare_response(req)
-          else
+          else if @_is_app_error(req.status)
             reject Error(@_prepare_error(req))
+          else
+            reject Error('500 Internal Server Error')
 
 
         req.onerror = =>
