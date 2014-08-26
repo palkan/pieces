@@ -53,10 +53,11 @@ class pi.List.Searchable extends pi.Plugin
   _matcher_from_scope: (scope) ->
     @matcher_factory = 
       if not scope?
-        pi.List.string_matcher
+        (value) ->
+          utils.matchers.nod value
       else 
         (value) -> 
-          pi.List.string_matcher(scope+':'+value) 
+          utils.matchers.nod(scope+':'+value) 
 
   all_items: ->
     @_all_items.filter((item) -> !item._disposed)

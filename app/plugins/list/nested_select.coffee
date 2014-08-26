@@ -7,22 +7,23 @@ utils = pi.utils
 # [Plugin]
 # Add ability to 'select' elements within list and sublists
 
+_null = ->
+
 class pi.List.NestedSelect extends pi.Plugin
   id: 'nested_select'
   initialize: (@list) ->
     super
-    unless @list.has_selectable
-      @list.attach_plugin pi.List.Selectable
 
-    @selectable = @list.selectable
+    @selectable = @list.selectable || {select_all: _null, clear_selection: _null} 
     @list.delegate_to @, 'clear_selection', 'select_all', 'selected'
-    
+
     @list.on 'selection_cleared', (e) =>
       if e.target != @list
         e.cancel()
-        @selectable._check_selected()
-
+        @_check_selected()
     return
+
+  _check_selected: pi.List.Selectable::_check_selected
 
   clear_selection: (silent = false) ->
     @selectable.clear_selection()

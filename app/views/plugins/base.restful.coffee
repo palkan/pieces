@@ -49,16 +49,13 @@ class pi.Base.Restful extends pi.Plugin
     if @resource
       @resource.off @resource_update()
     @resource = resource
-    @resource.listen @resource_update()
+    @resource.on 'update', @resource_update()
     @target.render(resource) if render
 
   resource_update: () ->
     @_resource_update ||= (e) =>
-      utils.debug 'Restful component event', e.data.type
-      @["on_#{e.data.type}"]?.call(@, e.data[@resource.constructor.resource_name])
-
-  on_destroy: (data) ->
-    @target.remove()
+      utils.debug 'Restful component event'
+      @on_update e.currentTarget
 
   on_update: (data) ->
     @target.render data

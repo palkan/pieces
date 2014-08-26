@@ -26,6 +26,11 @@ describe "Pieces REST base", ->
         expect(Salt.get(1).name).to.eq 'seasalt'
         expect(Salt.get(4)).to.be.undefined
 
+      it "should find many items (where)", ->
+        expect(Salt.where({name: 'seasalt'})).to.have.length 1
+        expect(Salt.where({'id>':2})).to.have.length 1
+        expect(Salt.where({'name~':'salt'})).to.have.length 2
+
       it "should destroy item", ->
         res = Salt.remove_by_id(1)
         expect(res.id).to.be.undefined
@@ -44,7 +49,7 @@ describe "Pieces REST base", ->
 
         spy = sinon.spy()
 
-        s.listen spy
+        s.on 'update', spy
 
         s2.set({salinity: 'low'})
         s.set({salinity: 'very high'})
@@ -55,7 +60,7 @@ describe "Pieces REST base", ->
         s = Salt.get(1)
 
         spy = sinon.spy()
-        s.listen spy
+        s.on 'update', spy
         s.set({salinity: 'very high'})
 
         s.off spy

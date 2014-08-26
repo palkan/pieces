@@ -9,40 +9,6 @@ utils = pi.utils
 class pi.List extends pi.Base
   @include_plugins pi.Base.Renderable
 
-  @string_matcher: (string) ->
-    if string.indexOf(":") > 0
-      [selectors, query] = string.split ":"
-      regexp = new RegExp(query,'i')
-      selectors = selectors.split ','
-      (item) ->
-        for selector in selectors
-          return true if !!item.find(selector)?.text().match(regexp)
-        return false
-    else
-      regexp = new RegExp(string,'i')
-      (item) ->
-        !!item.text().match(regexp)
-
-  @object_matcher: (obj, all = true) ->
-    for key,val of obj
-      do (key,val) =>
-        if typeof val is "object"
-          obj[key] = @object_matcher val, all
-        else if !(typeof val is 'function')
-          obj[key] = (value) ->
-            val == value
-
-    (item) ->
-      _any = false
-      for key,matcher of obj
-        if item[key]?
-          if matcher(item[key])
-            _any = true
-            return _any unless all
-          else
-            return false if all
-      return _any
-
   merge_classes: ['is-disabled', 'is-active', 'is-hidden']
 
   preinitialize: () ->
@@ -162,6 +128,9 @@ class pi.List extends pi.Base
     # update associated record
     utils.extend item.record, new_item.record, true
 
+    # remove_children
+    item.remove_children()
+
     # update HTML
     item.html new_item.html()
 
@@ -171,6 +140,9 @@ class pi.List extends pi.Base
     #merge classes
     item.mergeClasses new_item
     
+    # piecify
+    item.piecify()
+
     @trigger('update', {type:'item_updated',item:item}) unless silent
     item  
 
@@ -201,7 +173,7 @@ class pi.List extends pi.Base
   #   list.find(".title:keyword") // match all items for which item.nod.find('.title').text().search(/keyword/) > -1
 
   where: (query) ->
-    matcher = if typeof query == "string" then @constructor.string_matcher(query) else @constructor.object_matcher(query)
+    matcher = if typeof query == "string" then utils.matchers.nod(query) else utils.matchers.object(query)
     item for item in @items when matcher(item)
 
   records: ->

@@ -44,11 +44,11 @@ class pi.List.Selectable extends pi.Plugin
         @list.trigger 'selected', [e.data.item]
       else if @is_check
         @list.toggle_select e.data.item
-        if @list.selected().length then @list.trigger('selected', @selected()) else @list.trigger('selection_cleared')
+        @_check_selected()
       return      
 
   _check_selected: ->
-    @list.trigger('selection_cleared') unless @list.selected().length
+    if @list.selected().length then @list.trigger('selected', @selected()) else @list.trigger('selection_cleared')
 
   select_item: (item) ->
     if not item.__selected__

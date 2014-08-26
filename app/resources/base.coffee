@@ -21,7 +21,7 @@ _wrap = (el) ->
 # Resources used to share and synchronize data between views.
 # All resources should have 'id' field in order to access them by id and to cache resources locally. 
 
-class pi.resources.Base extends pi.Core
+class pi.resources.Base extends pi.EventDispatcher
   # initialize resource with name
   @set_resource: (plural, singular) ->
     @__all_by_id__ = {}
@@ -80,7 +80,8 @@ class pi.resources.Base extends pi.Core
     pi.event.on "#{@resources_name}_update", callback 
 
   @trigger: (event,data) ->
-    pi.event.trigger "#{@resources_name}_update", utils.merge(data,type: event)
+    data.type = event
+    pi.event.trigger "#{@resources_name}_update", data
 
   @off: (callback) ->
     if callback?
@@ -91,8 +92,13 @@ class pi.resources.Base extends pi.Core
   @all: ->
     @__all__.slice()
 
+  # use utils.object_ext to retrieve cached items 
+  @where: (params) ->
+    el for el in @__all__ when utils.matchers.object_ext(params)(el)
+
   constructor: (data) ->
     super
+    @_changes = {}
     @set(data,true)
 
   dispose: ->
@@ -104,16 +110,13 @@ class pi.resources.Base extends pi.Core
   set: (params, silent) ->
     _changed = false
     for own key,val of params
-      (_changed = true) if @[key]!=val
-      @[key] = val
-    @trigger('update') if (_changed && !silent)
+      if @[key]!=val
+        _changed = true
+        @_changes[key] = old_val: @[key], val: val
+        @[key] = val
+    @trigger('update', @_changes) if (_changed && !silent)
     @
 
-  listen: (callback) ->
-    pi.event.on "#{@constructor.resources_name}_update", callback, null, (e) => e.data[@constructor.resource_name].id is @id 
-
-  off: (callback) ->
-    pi.event.off "#{@constructor.resources_name}_update", callback
-
-  trigger: (e) ->
+  trigger: (e, data, bubbles = true) ->
+    super
     @constructor.trigger e, _wrap(@)

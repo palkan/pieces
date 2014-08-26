@@ -11,7 +11,7 @@ describe "nested list plugin", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="nested_select" data-pid="test" style="position:relative">
+        <div class="pi" data-component="list" data-plugins="selectable nested_select" data-pid="test" style="position:relative">
           <ul class="list">          
             <li class="pi item pi-list click1" data-group-id="1" data-id="10" data-plugins="selectable"> 
               <span class="click1">Click1</span>
@@ -73,6 +73,8 @@ describe "nested list plugin", ->
       @list.select_all()
 
   describe "selection cleared", ->
+    beforeEach ->
+      @list.items[1].selectable.type 'check'
 
     it "should not send nested selection cleared", (done)->
       @list.select_item @list.items[0]
@@ -88,11 +90,11 @@ describe "nested list plugin", ->
     it "should send nested selection cleared if all cleared", (done)->
       @list.items[1].select_item @list.items[1].items[0]
 
+
       @list.on 'selection_cleared', (event) =>
         done()
 
       TestHelpers.clickElement $('.click3').node
-      after 200, done
 
   describe "selected records", ->
 
@@ -162,4 +164,75 @@ describe "nested list plugin", ->
       TestHelpers.clickElement $('.click4').node
 
       expect(@list.selected_size()).to.eq 7
+
+
+describe "nested non-selectable list plugin", ->
+  Nod = pi.Nod
+  root = Nod.create 'div'
+  Nod.body.append root.node
+
+  beforeEach ->
+    @test_div = Nod.create 'div'
+    @test_div.style position:'relative'
+    root.append @test_div 
+    @test_div.append """
+        <div class="pi" data-component="list" data-plugins="nested_select" data-pid="test" style="position:relative">
+          <ul class="list">          
+            <li class="pi item pi-list click1" data-group-id="1" data-id="10" data-plugins="selectable"> 
+              <span class="click1">Click1</span>
+              <ul class="list">
+                <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
+                <li class="item click2" data-id="2" data-key="someone">Two<span class="tags">puppy, coward</span></li>
+                <li class="item click20" data-id="3" data-key="anyone">Tre<span class="tags">bully,zombopuppy</span></li>
+              </ul>
+            </li>
+            <li class="pi item pi-list" data-group-id="2" data-id="11" data-plugins="selectable" data-select-type="check"> 
+              <span>Click2</span>
+              <ul class="list">
+                <li class="item click3" data-id="4">A</li>
+                <li class="item click30" data-id="5">B</li>
+                <li class="item" data-id="6">C</li>
+              </ul>
+            </li>
+            <li class="pi item pi-list click10" data-group-id="3" data-id="12" data-plugins="selectable"> 
+              <span>Click3</span>
+              <ul class="list">
+                <li class="item" data-id="7">1</li>
+                <li class="item click4" data-id="8">2</li>
+                <li class="item" data-id="9">3</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      """
+    pi.app.view.piecify()
+    @list = $('@test')
+
+  afterEach ->
+    @test_div.remove()
+
+  describe "selected and selected_item", ->
+
+    it "should not select one upper level item", ->
+      spy_fun = sinon.spy()
+      @list.on 'selected', spy_fun
+      TestHelpers.clickElement $('.click1').node
+      expect(spy_fun.callCount).to.eq 0
+
+    it "should select all", (done)->
+      @list.on 'selected', (event) =>
+        expect(@list.selected()).to.have.length 9
+        expect(event.data[1].record.id).to.eq 2
+        done()
+
+      @list.select_all()
+
+  describe "selection cleared", ->
+    it "should send nested selection cleared if all cleared", (done)->
+      @list.items[1].select_item @list.items[1].items[0]
+
+      @list.on 'selection_cleared', (event) =>
+        done()
+
+      TestHelpers.clickElement $('.click3').node
 

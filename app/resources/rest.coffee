@@ -156,6 +156,10 @@ class pi.resources.REST extends pi.resources.Base
     el = @build data
     el.save()
 
+  constructor: (data) ->
+    super
+    @_snapshot = data
+
   on_destroy: (data) ->
     @constructor.remove @
     data
@@ -164,11 +168,14 @@ class pi.resources.REST extends pi.resources.Base
     params = data[@constructor.resource_name]
     if params? and params.id == @id
       @set params
+      @commit()
+      @
   
   on_create: (data) ->
     params = data[@constructor.resource_name]
     if params?
       @set params, true
+      @commit()
       @_persisted = true
       @constructor.add @
       @trigger 'create'
@@ -184,6 +191,17 @@ class pi.resources.REST extends pi.resources.Base
       @update attrs
     else
       @create attrs
+
+  commit: ->
+    for key, param in @_changes
+      @_snapshot[key] = param.val
+    @_changes = {}
+    @_snapshot
+
+  rollback: ->
+    for key, param in @_changes
+      @[key] = @_snapshot[key]
+    return
 
   @register_callback 'save'
 
