@@ -10,7 +10,7 @@ describe "Pieces RVC", ->
   root = Nod.create 'div'
   Nod.body.append root.node
 
-  (window.JST={})['test/user'] = (data) ->
+  (window.JST||={})['test/user'] = (data) ->
     nod = Nod.create("<div>#{ data.name }</div>")
     nod.addClass 'item'
     nod.append "<span class='age'>#{ data.age }</span>"

@@ -76,8 +76,8 @@ class pi.resources.Base extends pi.EventDispatcher
       return true
     return false
 
-  @listen: (callback) ->
-    pi.event.on "#{@resources_name}_update", callback 
+  @listen: (callback, filter) ->
+    pi.event.on "#{@resources_name}_update", callback, null, filter 
 
   @trigger: (event,data) ->
     data.type = event

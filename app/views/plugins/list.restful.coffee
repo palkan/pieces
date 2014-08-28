@@ -4,6 +4,8 @@ require '../../plugins/plugin'
 require '../../components/base/list'
 utils = pi.utils
 
+_where_rxp = /^(\w+)\.where\(([\w\s\,\:]+)\)$/i
+
 # [Plugin]
 #
 # Bind resources to List (handle create, update and destroy events)  
@@ -12,19 +14,34 @@ class pi.List.Restful extends pi.Plugin
   initialize: (@list) ->
     super
     @items_by_id = {}
-    if @list.options.rest? and $r[utils.camelCase(@list.options.rest)]?
-      resources = $r[utils.camelCase(@list.options.rest)]
-      @bind resources, @list.options.load_rest
+    if (rest = @list.options.rest)? 
+      if (matches = rest.match(_where_rxp))
+        rest = matches[1]
+        params = {}
+        for param in matches[2].split(/\s*\,\s*/)
+          [key,val] = param.split ":"
+          params[key] = utils.serialize val
+      if $r[utils.camelCase(rest)]?
+        resources = $r[utils.camelCase(rest)]
+        @bind resources, @list.options.load_rest, params
 
     @list.delegate_to @, 'find_by_id'
     return
 
-  bind: (resources, load = false) ->
+  bind: (resources, load = false, params) ->
     if @resources
       @resources.off @resources_update()
     @resources = resources
-    @resources.listen @resource_update()
-    @load(resources.all()) if load
+    if params?
+      matcher = utils.matchers.object(params)
+      filter = (e) => matcher(e.data[@resources.resource_name])
+    @resources.listen @resource_update(), filter
+    
+    if load
+      if params?
+        @load(resources.where(params))
+      else
+        @load(resources.all())
 
   find_by_id: (id) ->
     return @items_by_id[id] if @items_by_id[id]?

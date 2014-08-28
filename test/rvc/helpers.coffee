@@ -6,6 +6,9 @@ pi.log_level = "debug"
 class pi.Testo extends pi.resources.Base
   @set_resource 'testos'
 
+class pi.resources.Testo extends pi.resources.Base
+  @set_resource 'testos'
+
 
 class pi.Salt extends pi.resources.Base
   @set_resource 'salts'
