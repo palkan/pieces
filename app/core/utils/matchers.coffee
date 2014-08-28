@@ -38,7 +38,10 @@ class pi.utils.matchers
   @object: (obj, all = true) ->
     for key,val of obj
       do (key,val) =>
-        if typeof val is "object"
+        if not val?
+          obj[key] = (value) ->
+            not value?
+        else if typeof val is "object"
           obj[key] = @object val, all
         else if !(typeof val is 'function')
           obj[key] = (value) ->
@@ -47,12 +50,11 @@ class pi.utils.matchers
     (item) ->
       _any = false
       for key,matcher of obj
-        if item[key]?
-          if matcher(item[key])
-            _any = true
-            return _any unless all
-          else
-            return false if all
+        if matcher(item[key])
+          _any = true
+          return _any unless all
+        else
+          return false if all
       return _any
 
   # given Nod object returns true if nod contains string as textContent
@@ -80,7 +82,7 @@ class pi.utils.matchers
   @object_ext: (obj, all = true) ->
     matchers = {}
     for own key, val of obj
-      if (typeof val is 'object' and !(Array.isArray(val)))
+      if val? and (typeof val is 'object' and !(Array.isArray(val)))
         matchers[key] = @object_ext val, all
       else
         if (matches = key.match(_key_operand))

@@ -19,7 +19,7 @@ class pi.List.Restful extends pi.Plugin
         rest = matches[1]
         params = {}
         for param in matches[2].split(/\s*\,\s*/)
-          [key,val] = param.split ":"
+          [key,val] = param.split /\s*\:\s*/
           params[key] = utils.serialize val
       if $r[utils.camelCase(rest)]?
         resources = $r[utils.camelCase(rest)]
