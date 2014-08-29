@@ -99,6 +99,7 @@ class pi.resources.REST extends pi.resources.Base
     @_rscope = scope
 
   @_interpolate_path: (path,params) ->
+    path = @_rscope.replace(":path",path).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg,'')
     path_parts = path.split _path_reg
     path = ""
     flag = false
@@ -108,7 +109,7 @@ class pi.resources.REST extends pi.resources.Base
       else
         path+=part
       flag = !flag
-    (@_rscope.replace(":path",path)).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg,'')
+    path
 
   @error: (action, message) ->
     pi.event.trigger "net_error", resource: @resources_name, action: action, message: message

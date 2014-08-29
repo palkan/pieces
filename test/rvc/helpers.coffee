@@ -25,6 +25,9 @@ class pi.TestoRest extends pi.resources.REST
   knead: ->
     @_is_kneading = true
 
+class pi.TestoRest2 extends pi.resources.REST
+  @set_resource 'testos'
+  @routes_scope 'types/:type/test/:path.json'
 
 ## RVC ##
 

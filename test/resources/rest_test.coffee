@@ -5,6 +5,7 @@ describe "Pieces REST", ->
   
   describe "rest resources test", ->
     Testo = pi.TestoRest
+    Testo2 = pi.TestoRest2
     R = $r.REST
 
     beforeEach ->
@@ -22,6 +23,9 @@ describe "Pieces REST", ->
       
       it "should interpolate with scope", ->
         expect(Testo._interpolate_path(":resources/:id/edit", resources: "testos", id: 1)).to.eq "test/testos/1/edit.json"
+
+      it "should interpolate with scope including params", ->
+        expect(Testo2._interpolate_path(":id/edit", id: 1, type: 'yeast')).to.eq "types/yeast/test/1/edit.json"
 
 
     describe "class functions", ->

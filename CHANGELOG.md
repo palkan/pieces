@@ -9,6 +9,7 @@
 * add 'params' method to REST to describe attributes for create/update
 * add 'save' callbacks for REST
 * add 'remove_items' to list
+* upd path iterpolation (now scope can contain params)
 
 ## 0.2.3
 * add 'controller' property to View
