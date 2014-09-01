@@ -83,7 +83,7 @@ class pi.Net
   
   @request: (method, url, data, options={}, xhr) ->
     new Promise( 
-      (resolve, reject, progress) =>
+      (resolve, reject) =>
         req = xhr || new XMLHttpRequest()
 
         use_json = if options.json? then options.json else @use_json
@@ -112,10 +112,10 @@ class pi.Net
 
         _headers = null
 
-        if typeof progress is 'function'  
+        if typeof options.progress is 'function'  
           req.upload.onprogress = (event) => 
             value = if event.lengthComputable then event.loaded * 100 / event.total else 0
-            progress(Math.round(value)) if progress?
+            options.progress(Math.round(value))
 
 
         req.onreadystatechange = =>
