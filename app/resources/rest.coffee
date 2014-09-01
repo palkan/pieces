@@ -10,28 +10,6 @@ _double_slashes_reg = /\/\//
 _tailing_slash_reg = /\/$/
 
 
-_set_param = (data, from, param) ->
-  return unless from?
-  if Array.isArray(from)
-    for el in from
-      do(el) ->
-        el_data = {}
-        _set_param(el_data, el, param)
-        data.push el_data
-    data
-  else
-    if typeof param is 'string'
-      data[param] = from[param] if from[param]?
-    else if Array.isArray(param)
-      for p in param
-        _set_param(data,from,p)
-    else
-      for own key, vals of param
-        return unless from[key]?
-        if Array.isArray(from[key]) then (data[key]=[]) else (data[key]={})
-        _set_param(data[key], from[key], vals)
-  data
-
 # REST resource
 class pi.resources.REST extends pi.resources.Base
   @_rscope: "/:path"
@@ -47,7 +25,7 @@ class pi.resources.REST extends pi.resources.Base
   @params: (args...) ->
     args.push('id') if args.indexOf('id')<0 
     @::attributes = ->
-      @__attributes__ ||= _set_param({}, @, args)
+      @__attributes__ ||= utils.extract({}, @, args)
 
   # initialize resource with name
   # and setup default resource paths
@@ -83,7 +61,7 @@ class pi.resources.REST extends pi.resources.Base
       for spec in data.member
         do (spec) =>
           @::[spec.action] = (params={}) ->
-            @constructor._request(spec.path, spec.method, utils.merge(params, id: @id)).then(
+            @constructor._request(spec.path, spec.method, utils.merge(params, id: @id), @).then(
               (response) =>
                 if @["on_#{spec.action}"]? 
                   @["on_#{spec.action}"](response)
@@ -98,14 +76,16 @@ class pi.resources.REST extends pi.resources.Base
   @routes_scope: (scope) ->
     @_rscope = scope
 
-  @_interpolate_path: (path,params) ->
+  @_interpolate_path: (path,params,target) ->
     path = @_rscope.replace(":path",path).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg,'')
     path_parts = path.split _path_reg
     path = ""
     flag = false
     for part in path_parts
       if flag
-        path+=params[part]
+        val = if params[part]? then params[part] else target?[part]
+        throw Error("undefined param: #{part}") unless val?
+        path+=val
       else
         path+=part
       flag = !flag
@@ -115,8 +95,8 @@ class pi.resources.REST extends pi.resources.Base
     pi.event.trigger "net_error", resource: @resources_name, action: action, message: message
 
 
-  @_request: (path, method, params) ->
-    path = @_interpolate_path path, utils.merge(params,{resources: @resources_name, resource: @resource_name})
+  @_request: (path, method, params, target) ->
+    path = @_interpolate_path path, utils.merge(params,{resources: @resources_name, resource: @resource_name}), target
 
     pi.net[method].call(null, path, params)
     .catch( (error) =>  
@@ -186,8 +166,9 @@ class pi.resources.REST extends pi.resources.Base
     @__attributes__ = null
     super
 
-  save: ->
+  save: (params={}) ->
     attrs = if @wrap_attributes then @_wrap(@attributes()) else @attributes()
+    utils.extend attrs, params, true
     if @_persisted
       @update attrs
     else

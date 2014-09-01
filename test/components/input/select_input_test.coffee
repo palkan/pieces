@@ -77,3 +77,11 @@ describe "select_input component", ->
       expect(@example.value()).to.eq ''
       expect(@example.dropdown.selected_size()).to.eq 0
 
+    it "should clear selection and set default value", ->
+      @example.options.default_value = 2
+      TestHelpers.clickElement $('.pi-list .item').node
+      expect($('.placeholder').text()).to.eq 'One'
+      @example.clear()
+      expect($('.placeholder').text()).to.eq "Two"
+      expect(@example.value()).to.eq '2'
+      expect(@example.dropdown.selected_size()).to.eq 1

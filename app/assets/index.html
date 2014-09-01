@@ -42,7 +42,7 @@
       <div class="content">
         <div class="inline">
           <form pid="form" class="pi">
-            <div pid="btn" data-on-files_selected="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap"> <span>choose file</span>
+            <div pid="btn" data-on-changed="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap"> <span>choose file</span>
               <input type="file" name="attachment[file]" class="file-input">
             </div>
             <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">

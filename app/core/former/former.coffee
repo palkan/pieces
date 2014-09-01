@@ -189,7 +189,7 @@ class pi.Former
         else nod.value
 
   _parse_file_value: (nod) ->
-    unless nod.files.length
+    unless nod.files?.length
       return
 
     if nod.multiple

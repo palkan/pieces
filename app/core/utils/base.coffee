@@ -197,6 +197,31 @@ class pi.utils
         target[key] = prop
     target
 
+  # fill data with params
+  # e.g. 'params' is ['id','name',{tags: ['name','id']}] then 'data' will contain only them from 'source'
+  @extract: (data, source, param) ->
+    return unless source?
+    if Array.isArray(source)
+      for el in source
+        do(el) =>
+          el_data = {}
+          @extract(el_data, el, param)
+          data.push el_data
+      data
+    else
+      if typeof param is 'string'
+        data[param] = source[param] if source[param]?
+      else if Array.isArray(param)
+        for p in param
+          @extract(data,source,p)
+      else
+        for own key, vals of param
+          return unless source[key]?
+          if Array.isArray(source[key]) then (data[key]=[]) else (data[key]={})
+          @extract(data[key], source[key], vals)
+    data
+
+
   ## Array utils
   
   @uniq: (arr) ->

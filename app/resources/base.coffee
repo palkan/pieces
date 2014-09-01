@@ -10,14 +10,6 @@ pi.export(pi.resources,"$r")
 _singular = (str) ->
   str.replace /s$/,''
 
-_wrap = (el) ->
-  if el instanceof pi.resources.Base
-    data = {}
-    data[el.constructor.resource_name] = el
-    data
-  else
-    el
-
 # Resources used to share and synchronize data between views.
 # All resources should have 'id' field in order to access them by id and to cache resources locally. 
 
@@ -55,7 +47,7 @@ class pi.resources.Base extends pi.EventDispatcher
   
       if el.id and add
         @add el  
-        @trigger('create', _wrap(el)) unless silent
+        @trigger('create', @_wrap(el)) unless silent
       el
     else
       el.set(data)
@@ -67,14 +59,12 @@ class pi.resources.Base extends pi.EventDispatcher
     return false
 
   @remove: (el, silent) ->
-    if el instanceof @
-      if @__all_by_id__[el.id]?
-        @__all__.splice @__all__.indexOf(el), 1
-        delete @__all_by_id__[el.id]
-      @trigger('destroy', _wrap(el)) unless silent
-      el.dispose()
-      return true
-    return false
+    if @__all_by_id__[el.id]?
+      @__all__.splice @__all__.indexOf(el), 1
+      delete @__all_by_id__[el.id]
+    @trigger('destroy', @_wrap(el)) unless silent
+    el.dispose()
+    return true
 
   @listen: (callback, filter) ->
     pi.event.on "#{@resources_name}_update", callback, null, filter 
@@ -96,6 +86,14 @@ class pi.resources.Base extends pi.EventDispatcher
   @where: (params) ->
     el for el in @__all__ when utils.matchers.object_ext(params)(el)
 
+  @_wrap: (el) ->
+    if el instanceof pi.resources.Base
+      data = {}
+      data[el.constructor.resource_name] = el
+      data
+    else
+      el
+
   constructor: (data) ->
     super
     @_changes = {}
@@ -106,6 +104,12 @@ class pi.resources.Base extends pi.EventDispatcher
       delete @[key]
     @disposed = true
     @
+
+  attributes: ->
+    res = {}
+    for key, change of @_changes
+      res[key] = change.val
+    res
 
   set: (params, silent) ->
     _changed = false
@@ -119,4 +123,4 @@ class pi.resources.Base extends pi.EventDispatcher
 
   trigger: (e, data, bubbles = true) ->
     super
-    @constructor.trigger e, _wrap(@)
+    @constructor.trigger e, @constructor._wrap(@)

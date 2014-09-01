@@ -1,6 +1,10 @@
 ## 0.2.5
 * fix bug with double-piecification on list item update
 * fix nested_select events; add deeply-nested lists support
+* add resources View
+* add 'default-value' to SelectField 
+* make REST.save to accept 'params' (which overwrite attributes)
+* REST routes support instance properties 
 
 ## 0.2.4
 * fix Form set value 

@@ -8,7 +8,7 @@ script(id="file_item_mst", type="x-tmpl-mustache")
   .content
     .inline
       form.pi(pid="form")
-        .pi.pi-button-blue.pi-file-input-wrap(pid="btn",data-on-files_selected="@host.host.list.data_provider(e.data)") 
+        .pi.pi-button-blue.pi-file-input-wrap(pid="btn",data-on-changed="@host.host.list.data_provider(e.data)") 
           span choose file
           input.file-input(type="file", name="attachment[file]") 
         .pi.pi-checkbox-wrap(data-on-selected="@host.btn.multiple(e.data)")
