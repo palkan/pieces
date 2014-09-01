@@ -171,7 +171,12 @@ class pi.Net
 
               resolve(response.innerHtml) unless as_json
 
-              response = JSON.parse response.innerHTML
+              response = 
+                try
+                  JSON.parse response.innerHTML
+                catch e
+                  JSON.parse response.innerText
+
               resolve response
           ).catch((e) -> reject e)
       )
