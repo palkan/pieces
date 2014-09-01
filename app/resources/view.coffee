@@ -21,7 +21,6 @@ class pi.resources.ViewItem extends pi.EventDispatcher
     else
       pi.resources.Base::attributes.call(@)
 
-
 # Resource View is a temporary projection of resource
 class pi.resources.View extends pi.EventDispatcher
   # generate new view for resource
