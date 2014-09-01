@@ -29,13 +29,16 @@ describe "nested list plugin", ->
                 <li class="item" data-id="6">C</li>
               </ul>
             </li>
-            <li class="pi item pi-list click10" data-group-id="3" data-id="12" data-plugins="selectable"> 
-              <span>Click3</span>
-              <ul class="list">
-                <li class="item" data-id="7">1</li>
-                <li class="item click4" data-id="8">2</li>
-                <li class="item" data-id="9">3</li>
-              </ul>
+            <li class="pi item"> 
+              <span>Nested sublist</span>
+              <div class="pi pi-list click10" pid="list" data-group-id="3" data-id="12" data-plugins="selectable"> 
+                <span>Click3</span>
+                <ul class="list">
+                  <li class="item" data-id="7">1</li>
+                  <li class="item click4" data-id="8">2</li>
+                  <li class="item" data-id="9">3</li>
+                </ul>
+              </div>
             </li>
           </ul>
         </div>
@@ -72,29 +75,42 @@ describe "nested list plugin", ->
 
       @list.select_all()
 
-  describe "selection cleared", ->
+  describe "events", ->
     beforeEach ->
       @list.items[1].selectable.type 'check'
 
-    it "should not send nested selection cleared", (done)->
-      @list.select_item @list.items[0]
+    describe "selection_cleared", ->
 
-      @list.items[1].select_item @list.items[1].items[0]
+      it "should not send nested selection cleared", (done)->
+        @list.select_item @list.items[0]
 
-      @list.on 'selection_cleared', (event) =>
-        done("should not send nested event!")
+        @list.items[1].select_item @list.items[1].items[0]
 
-      TestHelpers.clickElement $('.click3').node
-      after 200, done
+        @list.on 'selection_cleared', (event) =>
+          done("should not send nested event!")
 
-    it "should send nested selection cleared if all cleared", (done)->
-      @list.items[1].select_item @list.items[1].items[0]
+        TestHelpers.clickElement $('.click3').node
+        after 200, done
+
+      it "should send nested selection cleared if all cleared", (done)->
+        @list.items[1].select_item @list.items[1].items[0]
 
 
-      @list.on 'selection_cleared', (event) =>
-        done()
+        @list.on 'selection_cleared', (event) =>
+          done()
 
-      TestHelpers.clickElement $('.click3').node
+        TestHelpers.clickElement $('.click3').node
+
+    describe "selected", ->
+      it "should send selected event with all selected items", (done)->
+        @list.select_item @list.items[0]
+        @list.items[1].select_item @list.items[1].items[1]
+
+        @list.on 'selected', (e) =>
+          expect(e.data).to.have.length 3
+          done()
+
+        TestHelpers.clickElement $('.click3').node
 
   describe "selected records", ->
 
@@ -102,7 +118,7 @@ describe "nested list plugin", ->
       @list.select_item @list.items[0]
 
       @list.items[1].select_item @list.items[1].items[0]
-      @list.items[2].select_item @list.items[2].items[2]
+      @list.items[2].list.select_item @list.items[2].list.items[2]
 
       expect(@list.selected_records().map((rec) -> rec.id)).to.eql [10, 4, 9]
 
@@ -141,7 +157,8 @@ describe "nested list plugin", ->
       expect(@list.selected_size()).to.eq 5
 
     it "should select inner as check and outer as radio", ->
-      item.selectable.type('check') for item in @list.items
+      item.selectable?.type('check') for item in @list.items
+      @list.items[2].list.selectable.type 'check'
       TestHelpers.clickElement $('.click1').node
       TestHelpers.clickElement $('.click2').node
       TestHelpers.clickElement $('.click10').node
@@ -154,7 +171,8 @@ describe "nested list plugin", ->
 
     it "should select as check", ->
       @list.selectable.type 'check'
-      item.selectable.type('check') for item in @list.items
+      item.selectable?.type('check') for item in @list.items
+      @list.items[2].list.selectable.type 'check'
       TestHelpers.clickElement $('.click1').node
       TestHelpers.clickElement $('.click2').node
       TestHelpers.clickElement $('.click10').node
@@ -164,6 +182,30 @@ describe "nested list plugin", ->
       TestHelpers.clickElement $('.click4').node
 
       expect(@list.selected_size()).to.eq 7
+
+    xit "should select when nested_select_type is radio", ->
+      @list.selectable.type 'check'
+      item.selectable?.type('check') for item in @list.items
+      @list.items[2].list.selectable.type 'check'
+      @list.nested_select.type 'radio'
+      TestHelpers.clickElement $('.click1').node
+      expect(@list.selected_size()).to.eq 1
+  
+      TestHelpers.clickElement $('.click2').node
+      TestHelpers.clickElement $('.click10').node
+      expect(@list.selected_size()).to.eq 1
+  
+      TestHelpers.clickElement $('.click3').node
+      TestHelpers.clickElement $('.click20').node
+      expect(@list.selected_size()).to.eq 1
+  
+      TestHelpers.clickElement $('.click30').node
+      TestHelpers.clickElement $('.click4').node
+      expect(@list.selected_size()).to.eq 1
+
+      TestHelpers.clickElement $('.click4').node
+      expect(@list.selected_size()).to.eq 0
+      
 
 
 describe "nested non-selectable list plugin", ->

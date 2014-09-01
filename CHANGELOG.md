@@ -1,3 +1,7 @@
+## 0.2.5
+* fix bug with double-piecification on list item update
+* fix nested_select events; add deeply-nested lists support
+
 ## 0.2.4
 * fix Form set value 
 * add 'wrap_parameters' property to REST resource

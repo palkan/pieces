@@ -123,7 +123,7 @@ class pi.List extends pi.Base
   #  3. Update item record (by extending it with new item data (overwriting))
 
   update_item: (item, data, silent=false) ->
-    new_item = @_renderer.render data
+    new_item = @_renderer.render data, false
 
     # update associated record
     utils.extend item.record, new_item.record, true

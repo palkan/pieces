@@ -41,14 +41,15 @@ class pi.List.Selectable extends pi.Plugin
       if @is_radio and not e.data.item.__selected__
         @clear_selection(true) # here we only want to clear selection on this list
         @list.select_item e.data.item
-        @list.trigger 'selected', [e.data.item]
       else if @is_check
         @list.toggle_select e.data.item
-        @_check_selected()
+      else
+        return
+      @_check_selected()
       return      
 
   _check_selected: ->
-    if @list.selected().length then @list.trigger('selected', @selected()) else @list.trigger('selection_cleared')
+    if @list.selected().length then @list.trigger('selected', @list.selected()) else @list.trigger('selection_cleared')
 
   select_item: (item) ->
     if not item.__selected__

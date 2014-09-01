@@ -40,7 +40,7 @@ class pi.utils.matchers
       do (key,val) =>
         if not val?
           obj[key] = (value) ->
-            not value?
+            !value
         else if typeof val is "object"
           obj[key] = @object val, all
         else if !(typeof val is 'function')
