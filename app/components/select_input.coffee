@@ -31,7 +31,9 @@ class pi.SelectInput extends pi.BaseInput
     @on 'blur', =>
       @dropdown.hide()
 
-    if @placeholder.text() is ''
+    if @options.default_value?
+      @value @options.default_value
+    else if @placeholder.text() is ''
       @placeholder.text(@placeholder.options.placeholder)
 
   value: (val) ->
@@ -49,7 +51,10 @@ class pi.SelectInput extends pi.BaseInput
 
   clear: ->
     @dropdown.clear_selection(true)
-    @placeholder.text(@placeholder.options.placeholder)
-    super
+    if @options.default_value?
+      @value @options.default_value
+    else
+      @placeholder.text(@placeholder.options.placeholder)
+      super
 
 pi.Guesser.rules_for 'select_input', ['pi-select-field'], null
