@@ -84,3 +84,21 @@ describe "Pieces REST base", ->
 
         Testo.remove_by_id(10)
         expect(@view.all()).to.have.length 0
+
+    describe "serialize", ->
+      beforeEach ->
+        @view = new View(Testo,null, params: ['type', 'changed'])
+
+      afterEach ->
+        @view.clear_all()
+        @view.off()
+
+      it "should serialize data correctly", ->
+        el = @view.build type: 'sugar', id: '12'
+        el.changed = true
+
+        data = @view.serialize()
+
+        expect(data).to.have.length 1
+        expect(data[0]).to.have.keys ['type', 'changed']
+        expect(data[0].changed).to.eq true

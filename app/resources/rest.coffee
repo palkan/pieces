@@ -10,28 +10,6 @@ _double_slashes_reg = /\/\//
 _tailing_slash_reg = /\/$/
 
 
-_set_param = (data, from, param) ->
-  return unless from?
-  if Array.isArray(from)
-    for el in from
-      do(el) ->
-        el_data = {}
-        _set_param(el_data, el, param)
-        data.push el_data
-    data
-  else
-    if typeof param is 'string'
-      data[param] = from[param] if from[param]?
-    else if Array.isArray(param)
-      for p in param
-        _set_param(data,from,p)
-    else
-      for own key, vals of param
-        return unless from[key]?
-        if Array.isArray(from[key]) then (data[key]=[]) else (data[key]={})
-        _set_param(data[key], from[key], vals)
-  data
-
 # REST resource
 class pi.resources.REST extends pi.resources.Base
   @_rscope: "/:path"
@@ -47,7 +25,7 @@ class pi.resources.REST extends pi.resources.Base
   @params: (args...) ->
     args.push('id') if args.indexOf('id')<0 
     @::attributes = ->
-      @__attributes__ ||= _set_param({}, @, args)
+      @__attributes__ ||= utils.extract({}, @, args)
 
   # initialize resource with name
   # and setup default resource paths
@@ -105,7 +83,7 @@ class pi.resources.REST extends pi.resources.Base
     flag = false
     for part in path_parts
       if flag
-        val = params[part] || target?[part]
+        val = if params[part]? then params[part] else target?[part]
         throw Error("undefined param: #{part}") unless val?
         path+=val
       else

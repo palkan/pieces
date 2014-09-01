@@ -4,7 +4,7 @@ require './base'
 utils = pi.utils
 
 class pi.resources.ViewItem extends pi.EventDispatcher
-  constructor: (@view, data) ->
+  constructor: (@view, data, @options={}) ->
     super
     @_changes = {}
     @set(data,true)
@@ -15,11 +15,17 @@ class pi.resources.ViewItem extends pi.EventDispatcher
     super
     @view.trigger e, @view._wrap(@)
 
+  attributes: ->
+    if @options.params?
+      utils.extract({},@,@options.params)
+    else
+      pi.resources.Base::attributes.call(@)
+
 
 # Resource View is a temporary projection of resource
 class pi.resources.View extends pi.EventDispatcher
   # generate new view for resource
-  constructor: (@resources, scope) ->
+  constructor: (@resources, scope, @options={}) ->
     super
     @__all_by_id__ = {}
     @__all__ = []
@@ -49,7 +55,7 @@ class pi.resources.View extends pi.EventDispatcher
   build: (data={}, silent = false, add = true) ->
     unless (el = @get(data.id))
       data = data.attributes() if data instanceof pi.resources.Base
-      el = new pi.resources.ViewItem(@,data)
+      el = new pi.resources.ViewItem(@,data,@options)
       if el.id and add
         @add el  
         @trigger('create', @_wrap(el)) unless silent
@@ -64,6 +70,12 @@ class pi.resources.View extends pi.EventDispatcher
       data
     else
       el
+
+  serialize: ->
+    res = []
+    for el in @all()
+      res.push el.attributes()
+    res
 
   listen: (callback) ->
     @on "update", callback
