@@ -27,6 +27,9 @@ describe "Pieces REST", ->
       it "should interpolate with scope including params", ->
         expect(Testo2._interpolate_path(":id/edit", id: 1, type: 'yeast')).to.eq "types/yeast/test/1/edit.json"
 
+      it "should interpolate with target params", ->
+        t = Testo2.build type: 'yeast', id: 1
+        expect(Testo2._interpolate_path(":id/edit",{},t)).to.eq "types/yeast/test/1/edit.json"
 
     describe "class functions", ->
       it "should setup class methods", ->
@@ -70,11 +73,12 @@ describe "Pieces REST", ->
             done()
         )
 
-      it "should run save callbacks", ->
+      it "should run save callbacks and add save additional params", ->
         t = new Testo({})
         t.create = (data) -> data
-        attrs = t.save()
+        attrs = t.save(sugar: true)
         expect(attrs.type).to.eq 'normal'
+        expect(attrs.sugar).to.be.true
 
     describe "instance functions", ->
 
