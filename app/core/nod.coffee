@@ -92,8 +92,7 @@ class pi.Nod extends pi.NodEventDispatcher
       else new @(node)
 
   @_create_html: (html) ->
-    temp = document.createElement 'div'
-    temp.innerHTML = html
+    temp = _fragment html
     node = temp.firstChild
     temp.removeChild node
     new @(node)
