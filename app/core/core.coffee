@@ -31,7 +31,9 @@ class pi.Core
     for _when in ["before","after"]
       do(_when) =>
         @["#{_when}_#{callback_name}"] = (callback) ->
-          (@["_#{_when}_#{callback_name}"]||=[]).push callback
+          if @::["_#{_when}_#{callback_name}"] and not @::hasOwnProperty("_#{_when}_#{callback_name}")
+            @::["_#{_when}_#{callback_name}"] = @::["_#{_when}_#{callback_name}"].slice()
+          (@::["_#{_when}_#{callback_name}"]||=[]).push callback
     
     # create callbacked version of a function  
     @::["__#{method}"] = (args...) ->
@@ -49,7 +51,7 @@ class pi.Core
         @[method] = @["__#{method}"]
 
   run_callbacks: (type,args) ->
-    for callback in (@constructor["_#{type}"]||[])
+    for callback in (@["_#{type}"]||[])
       callback.call(@,args)
 
   # delegate methods to another object or nested object/method (then to is string key)
