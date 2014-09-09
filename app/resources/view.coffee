@@ -37,12 +37,12 @@ class pi.resources.View extends pi.EventDispatcher
     @resources_name = @resources.resources_name
     @resource_name = @resources.resource_name
     
-    @_filter = if scope? then utils.matchers.object_ext(scope) else -> true
+    @_filter = if (scope? and scope != false) then utils.matchers.object_ext(scope) else -> true
 
     @resources.listen (e) =>
-      # handle only update and destroy events
       el = e.data[@resource_name]
-      return unless @_filter(el)
+      if el?
+        return unless @_filter(el)
 
       @["on_#{e.data.type}"]?(el)
   
@@ -55,12 +55,16 @@ class pi.resources.View extends pi.EventDispatcher
   on_destroy: (el) ->
     if (view_item = @get(el.id))
       @remove view_item
-
+ 
   # create new resource
   build: (data={}, silent = false, add = true) ->
     unless (el = @get(data.id))
-      data = data.attributes() if data instanceof pi.resources.Base
-      el = new pi.resources.ViewItem(@,data,@options)
+      if data instanceof pi.resources.Base and @options.copy is false
+        el = data
+      else
+        if data instanceof pi.resources.Base
+          data = data.attributes()
+        el = new pi.resources.ViewItem(@,data,@options)
       if el.id and add
         @add el  
         @trigger('create', @_wrap(el)) unless silent
@@ -70,9 +74,9 @@ class pi.resources.View extends pi.EventDispatcher
 
   _wrap: (el) ->
     if el instanceof pi.resources.ViewItem
-      data = {}
-      data[el.view.resource_name] = el
-      data
+      utils.wrap el.view.resource_name, el
+    else if el instanceof pi.resources.Base
+      utils.wrap el.constructor.resource_name, el
     else
       el
 

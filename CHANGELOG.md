@@ -1,6 +1,6 @@
 ## 0.3.0
 * add associations to resources
-* add scrollable
+* add 'load' type event to resources and restful list
 
 ## 0.2.5
 * fix bug with double-piecification on list item update

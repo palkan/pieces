@@ -17,10 +17,32 @@ class pi.resources.Association extends pi.resources.View
     if @owner?
       unless data[@owner_name_id]?
         data[@owner_name_id] = @owner.id
-    super
+    unless data instanceof pi.resources.Base
+      data = @resources.build data, false
+    super data, silent, add
+
+  on_update: (el) ->
+    if @options.copy is false
+      @trigger 'update', @_wrap(el)
+    else
+      super
+
+  on_destroy: (el) ->
+    if @options.copy is false
+      @trigger 'destroy', @_wrap(el)
+    else
+      super
 
   on_create: (el) ->
     if (view_item = @get(el.id))
-      view_item.set(el.attributes())
+      if @options.copy is false
+        @trigger 'create', @_wrap(el)
+      else
+        view_item.set(el.attributes())
     else
       @build el
+
+  on_load: ->
+    if @options.scope
+      @load @resources.where(@options.scope)
+      @trigger 'load',{}

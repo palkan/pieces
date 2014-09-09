@@ -151,6 +151,12 @@ class pi.utils
     path = path.split('.').map((p) => @camelCase(p)).join('.')
     @get_path pckg, path
 
+  # generate new object containing as key provided object
+  @wrap: (key, obj) ->
+    data = {}
+    data[key] = obj
+    data
+
   # Clone object (without excepted fields) 
   # @param [Object] obj
   # @param [Array|null] except Array of keys to except (not recursively) 

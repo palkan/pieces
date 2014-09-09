@@ -23,12 +23,14 @@ class pi.resources.Base extends pi.EventDispatcher
 
   # fill resources with data
 
-  @load: (data) ->
+  @load: (data,silent=false) ->
     if data?
-      @build(el,true) for el in data
+      elements = (@build(el,true) for el in data)
+      @trigger('load',{}) unless silent
+      elements
 
   @clear_all: ->
-    el.dispose for el in @__all__
+    el.dispose() for el in @__all__
     @__all_by_id__ = {}
     @__all__.length = 0
 
@@ -88,9 +90,7 @@ class pi.resources.Base extends pi.EventDispatcher
 
   @_wrap: (el) ->
     if el instanceof pi.resources.Base
-      data = {}
-      data[el.constructor.resource_name] = el
-      data
+      utils.wrap el.constructor.resource_name, el
     else
       el
 

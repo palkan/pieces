@@ -3,7 +3,7 @@ TestHelpers = require '../rvc/helpers'
 
 describe "Pieces REST base", ->
   describe "resources association test", ->
-    Chef = pi.Chef
+    Chef = pi.resources.Chef
     Testo = pi.Testo2
     Eater = pi.Eater
     Assoc = pi.resources.Association
@@ -62,12 +62,35 @@ describe "Pieces REST base", ->
         Testo.remove_by_id 10
         expect(spy2.callCount).to.eq 1
 
+       it "should trigger resources events with belongs_to scope", ->
+        chef = Chef.get(1)
+        testos = chef.testos()
+        spy = sinon.spy()
+        testos.listen spy
+
+        t = Testo.get(10)
+        t.set(value: 12)
+
+        Testo.remove t
+
+        expect(spy.callCount).to.eq 2
+
       it "should init association on build", ->
         chef = Chef.build({id:3, name: 'Juan', eaters: [{id:3, kg_eaten: 12, name: 'Julio'}], testos: [{id:4, type: 'puff'}]})
         expect(chef.eaters().all()).to.have.length 1
         expect(chef.eaters().get(3).kg_eaten).to.eq 12
         expect(chef.testos().all()).to.have.length 1
         expect(chef.testos().get(4).chef_id).to.eq 3
+
+      it "should add resources already created", ->
+        Testo.build id:90, type:'60s', chef_id:5
+        chef = Chef.build id: 5, name: 'DelayedChef'
+        expect(chef.testos().all()).to.have.length 1
+
+      it "should add resources created outside with load", ->
+        chef = Chef.build id: 6, name: 'Cheffo'
+        Testo.load [{id:90, type:'70s', chef_id:6}]
+        expect(chef.testos().all()).to.have.length 1
 
     describe "add elements", ->
       beforeEach ->
@@ -84,15 +107,17 @@ describe "Pieces REST base", ->
         Eater.get(1).set({age: 101})
         expect(@chef.eaters().get(1).age).to.eq 101
 
-      it "should add elements and set owner_id", ->
+      it "should add elements, set owner_id and not copy", ->
         spy = sinon.spy()
         @chef.testos().listen spy
         @chef.testos().build {id:13, type:'none'}
         
         expect(spy.callCount).to.eq 1
-        expect(@chef.testos().all()).to.have.length 1
+        expect(@chef.testos().all()).to.have.length 2
 
         expect(@chef.testos().get(13).chef_id).to.eq @chef.id
+        expect(@chef.testos().get(13)).to.be.an.instanceof Testo
+
 
       it "should add elements created outside with belongs_to", ->
         spy = sinon.spy()
@@ -100,7 +125,7 @@ describe "Pieces REST base", ->
         Testo.build {id:13, type:'none', chef_id: @chef.id}
         
         expect(spy.callCount).to.eq 1
-        expect(@chef.testos().all()).to.have.length 1
+        expect(@chef.testos().all()).to.have.length 2
         expect(@chef.testos().get(13).type).to.eq 'none'
 
       it "should add elements and handle remove", ->
