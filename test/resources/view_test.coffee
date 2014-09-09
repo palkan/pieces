@@ -87,7 +87,7 @@ describe "Pieces REST base", ->
 
     describe "serialize", ->
       beforeEach ->
-        @view = new View(Testo,null, params: ['type', 'changed'])
+        @view = new View(Testo,null, params: ['type', 'changed'], id_alias: false)
 
       afterEach ->
         @view.clear_all()

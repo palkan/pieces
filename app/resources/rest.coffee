@@ -19,13 +19,17 @@ class pi.resources.REST extends pi.resources.Base
   # otherwise send attributes object 
   wrap_attributes: false
 
+  # params filter array
+  __filter_params__: false
+
   # define which attributes send to server
   # e.g. params('id','name',{tags: ['name','id']})
   # creates 'attributes' method
   @params: (args...) ->
-    args.push('id') if args.indexOf('id')<0 
-    @::attributes = ->
-      @__attributes__ ||= utils.extract({}, @, args)
+    if not @::hasOwnProperty("__filter_params__")
+      @::__filter_params__ = []
+      @::__filter_params__.push('id')
+    @::__filter_params__ = @::__filter_params__.concat args
 
   # initialize resource with name
   # and setup default resource paths
@@ -162,13 +166,20 @@ class pi.resources.REST extends pi.resources.Base
       @trigger 'create'
       @
 
+  attributes: ->
+    if @__filter_params__
+      @__attributes__ ||= utils.extract({}, @, @__filter_params__)
+    else
+      @__attributes__ = super
+
   set: ->
     @__attributes__ = null
     super
 
   save: (params={}) ->
-    attrs = if @wrap_attributes then @_wrap(@attributes()) else @attributes()
+    attrs = @attributes()
     utils.extend attrs, params, true
+    attrs = if @wrap_attributes then @_wrap(attrs) else attrs
     if @_persisted
       @update attrs
     else

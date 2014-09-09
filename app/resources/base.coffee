@@ -97,7 +97,14 @@ class pi.resources.Base extends pi.EventDispatcher
   constructor: (data) ->
     super
     @_changes = {}
+    @initialize data
+
+  initialize: (data) ->
+    return if @_initialized
     @set(data,true)
+    @_initialized = true
+
+  @register_callback 'initialize'
 
   dispose: ->
     for own key,_ of @

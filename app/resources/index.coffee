@@ -1,5 +1,6 @@
 'use strict'
 require './base'
 require './view'
+require './association'
 require './rest'
 require './modules'

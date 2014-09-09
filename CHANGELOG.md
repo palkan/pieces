@@ -1,3 +1,7 @@
+## 0.3.0
+* add associations to resources
+* add scrollable
+
 ## 0.2.5
 * fix bug with double-piecification on list item update
 * fix nested_select events; add deeply-nested lists support

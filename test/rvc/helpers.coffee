@@ -6,6 +6,22 @@ pi.log_level = "debug"
 class pi.Testo extends pi.resources.Base
   @set_resource 'testos'
 
+class pi.Testo2 extends pi.resources.REST
+  @set_resource 'testos'
+
+class pi.Eater extends pi.resources.REST
+  @set_resource 'eaters'
+  @params 'name', 'age', 'weight'
+
+class pi.Chef extends pi.resources.REST
+  @extend pi.resources.HasMany
+  @set_resource 'chefs'
+
+  @has_many 'testos', source: pi.Testo2, belongs_to: true, route: true, attribute: true
+  @has_many 'eaters', source: pi.Eater, params: ['kg_eaten'], attribute: true, id_alias: 'eater_id'
+
+  @params 'name', 'age', 'coolness'
+
 class pi.resources.Testo extends pi.resources.Base
   @set_resource 'testos'
 

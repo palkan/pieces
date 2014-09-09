@@ -52,7 +52,7 @@ class pi.Core
 
   run_callbacks: (type,args) ->
     for callback in (@["_#{type}"]||[])
-      callback.call(@,args)
+      callback.apply(@,args)
 
   # delegate methods to another object or nested object/method (then to is string key)
   delegate_to: (to, methods...) ->

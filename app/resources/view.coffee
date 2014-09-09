@@ -6,6 +6,8 @@ utils = pi.utils
 class pi.resources.ViewItem extends pi.EventDispatcher
   constructor: (@view, data, @options={}) ->
     super
+    if @options.params? and @options.params.indexOf('id')<0
+      @options.params.push 'id'
     @_changes = {}
     @set(data,true)
 
@@ -17,7 +19,11 @@ class pi.resources.ViewItem extends pi.EventDispatcher
 
   attributes: ->
     if @options.params?
-      utils.extract({},@,@options.params)
+      data = utils.extract({},@,@options.params)
+      if @options.id_alias?
+        data[@options.id_alias] = data.id if @options.id_alias
+        delete data.id
+        data
     else
       pi.resources.Base::attributes.call(@)
 
