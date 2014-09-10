@@ -180,7 +180,7 @@ class pi.Base extends pi.Nod
   @register_callback 'postinitialize', as: 'create' 
 
   dispose: ->
-    @trigger 'destroyed'
+    @trigger 'destroyed', true, false
     super
     if @host?
       @host.remove_component @

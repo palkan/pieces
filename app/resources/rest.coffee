@@ -118,11 +118,11 @@ class pi.resources.REST extends pi.resources.Base
     if data[@resource_name]?
       el = @build data[@resource_name], true
       el._persisted = true
+      el.commit()
       el
 
   @build: ->
     el = super
-    el._persisted = true if el.id?
     el
 
   # find element by id;
@@ -159,21 +159,23 @@ class pi.resources.REST extends pi.resources.Base
   on_create: (data) ->
     params = data[@constructor.resource_name]
     if params?
+      @_persisted = true
       @set params, true
       @commit()
-      @_persisted = true
       @constructor.add @
       @trigger 'create'
       @
 
   attributes: ->
-    if @__filter_params__
-      @__attributes__ ||= utils.extract({}, @, @__filter_params__)
-    else
-      @__attributes__ = super
+    if @__attributes__changed__
+      if @__filter_params__
+        @__attributes__ = utils.extract({}, @, @__filter_params__)
+      else
+        @__attributes__ = super
+    @__attributes__
 
   set: ->
-    @__attributes__ = null
+    @__attributes__changed__ = true
     super
 
   save: (params={}) ->

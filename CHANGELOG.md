@@ -1,3 +1,9 @@
+## 0.3.1
+* add 'key' param to association
+* by default 'belongs_to' associations set 'copy' to false
+* add 'destroy' param to association
+* many associations fixes
+
 ## 0.3.0
 * add associations to resources
 * add 'load' type event to resources and restful list

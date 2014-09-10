@@ -46,7 +46,6 @@ class pi.resources.Base extends pi.EventDispatcher
   @build: (data={}, silent = false, add = true) ->
     unless (data.id && (el = @get(data.id)))
       el = new @(data)
-  
       if el.id and add
         @add el  
         @trigger('create', @_wrap(el)) unless silent
@@ -73,7 +72,7 @@ class pi.resources.Base extends pi.EventDispatcher
 
   @trigger: (event,data) ->
     data.type = event
-    pi.event.trigger "#{@resources_name}_update", data
+    pi.event.trigger "#{@resources_name}_update", data, false
 
   @off: (callback) ->
     if callback?
@@ -94,9 +93,10 @@ class pi.resources.Base extends pi.EventDispatcher
     else
       el
 
-  constructor: (data) ->
+  constructor: (data={}) ->
     super
     @_changes = {}
+    @_persisted = true if data.id?
     @initialize data
 
   initialize: (data) ->
@@ -112,6 +112,11 @@ class pi.resources.Base extends pi.EventDispatcher
     @disposed = true
     @
 
+  @register_callback 'dispose', as: 'destroy'
+
+  remove: (silent = false) ->
+    @constructor.remove @, silent
+
   attributes: ->
     res = {}
     for key, change of @_changes
@@ -120,14 +125,18 @@ class pi.resources.Base extends pi.EventDispatcher
 
   set: (params, silent) ->
     _changed = false
+    _was_id = @id
     for own key,val of params
-      if @[key]!=val
+      if @[key]!=val and not (typeof @[key] is 'function')
         _changed = true
         @_changes[key] = old_val: @[key], val: val
         @[key] = val
-    @trigger('update', @_changes) if (_changed && !silent)
+    type = if params.id? and not _was_id then 'create' else 'update'
+    @trigger(type, (if type is 'create' then @ else @_changes)) if (_changed && !silent)
     @
 
-  trigger: (e, data, bubbles = true) ->
+  @register_callback 'set', as: 'update'
+
+  trigger: (e, data, bubbles = false) ->
     super
     @constructor.trigger e, @constructor._wrap(@)

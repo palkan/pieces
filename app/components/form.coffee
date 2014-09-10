@@ -78,6 +78,8 @@ class pi.Form extends pi.Base
   clear: (silent = false)->
     @_value = {}
     @former.traverse_nodes @node, (node) => @clear_value node
+    if @former.options.clear_hidden is false
+      @read_values()
     @trigger pi.InputEvent.Clear unless silent
 
   read_values: ->

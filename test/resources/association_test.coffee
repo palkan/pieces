@@ -82,6 +82,14 @@ describe "Pieces REST base", ->
         expect(chef.testos().all()).to.have.length 1
         expect(chef.testos().get(4).chef_id).to.eq 3
 
+      it "should update association on update", ->
+        chef = Chef.build({id: 4, name: 'Juan'})
+        chef.set eaters: [{id:3, kg_eaten: 12, name: 'Julio'}], testos: [{id:4, type: 'puff'}]
+        expect(chef.eaters().all()).to.have.length 1
+        expect(chef.eaters().get(3).kg_eaten).to.eq 12
+        expect(chef.testos().all()).to.have.length 1
+        expect(chef.testos().get(4).chef_id).to.eq 4
+
       it "should add resources already created", ->
         Testo.build id:90, type:'60s', chef_id:5
         chef = Chef.build id: 5, name: 'DelayedChef'
@@ -139,6 +147,18 @@ describe "Pieces REST base", ->
         Eater.remove_by_id(1)
         expect(@chef.eaters().all()).to.have.length 0
 
+    describe "destroy elements", ->
+      beforeEach ->
+        @chef = Chef.get(1)
+
+      it "should destroy dependant elements", ->
+        expect(@chef.testos().all()).to.have.length 1
+
+        tid = @chef.testos().all()[0].id
+
+        Chef.remove_by_id 1
+        expect(Testo.get(tid)).to.be.undefined
+
     describe "serialize", ->
       beforeEach ->
         @chef = Chef.build({id:3, name: 'Juan', eaters: [Eater.get(1), Eater.get(2)], testos: [{id:4, type: 'puff'}]})
@@ -151,3 +171,49 @@ describe "Pieces REST base", ->
         expect(data.eaters).to.have.length 2
         expect(data.eaters[0]).to.have.keys ['eater_id', 'kg_eaten']
         expect(data.testos[0]).to.have.keys ['id','chef_id','type']
+
+    describe "reload after persist", ->
+      it "should reload created associations", ->
+        chef = Chef.build({name: 'Juan', eaters: [Eater.get(1), Eater.get(2)], testos: [{id: 4, type: 'puff'}]})
+        expect(chef.testos().all()).to.have.length 1
+        expect(chef.eaters().all()).to.have.length 2
+
+        chef.set id: 3
+
+        expect(chef.eaters().all()).to.have.length 2
+        expect(chef.testos().all()).to.have.length 0
+
+        Testo.get(4).set(chef_id: 3)
+
+        expect(chef.testos().all()).to.have.length 1
+  
+    describe "several resources with REST associations", ->
+      M = pi.resources.Meeting
+      U = pi.resources.TestUsers
+
+      beforeEach ->
+        @m1 = M.build name: 'first', age: 22
+        @m2 = M.build name: 'second', age: 33
+
+      it "should load association", (done) ->
+        @m1.load_users().then(
+          =>
+            expect(@m1.users_loaded).to.be.true
+            expect(@m1.users().all()).to.have.length 2
+            expect(@m2.users().all()).to.have.length 0
+            expect(U.all()).to.have.length 0
+            @m2.load_users().then(
+              =>
+                expect(@m1.users_loaded).to.be.true
+                expect(@m2.users_loaded).to.be.true
+                expect(@m1.users().all()).to.have.length 2
+                expect(@m2.users().all()).to.have.length 4
+                expect(U.all()).to.have.length 0
+                done()
+            )
+        ).catch(
+          (e) => done(e)
+        )
+        
+
+

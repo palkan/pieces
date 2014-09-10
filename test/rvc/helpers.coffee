@@ -17,10 +17,11 @@ class pi.resources.Chef extends pi.resources.REST
   @extend pi.resources.HasMany
   @set_resource 'chefs'
 
-  @has_many 'testos', source: pi.Testo2, belongs_to: true, route: true, attribute: true, copy: false
+  @has_many 'testos', source: pi.Testo2, belongs_to: true, route: true, attribute: true, destroy: true
   @has_many 'eaters', source: pi.Eater, params: ['kg_eaten'], attribute: true, id_alias: 'eater_id', scope: false
 
   @params 'name', 'age', 'coolness'
+
 
 class pi.resources.Testo extends pi.resources.Base
   @set_resource 'testos'
@@ -50,6 +51,14 @@ class pi.resources.TestUsers extends pi.resources.REST
   @set_resource 'users'
   @extend pi.resources.Query 
   @params 'name','age'
+
+
+class pi.resources.Meeting extends pi.resources.REST
+  @extend pi.resources.HasMany
+  @set_resource 'meetings'
+
+  @has_many 'users', source: pi.resources.TestUsers, params: ['role_id'], attribute: true, scope: false, route: true, path: '/users/?filter[age]=:age'
+  @params 'name', 'age'
   
 class pi.controllers.Test extends pi.controllers.ListController
   @list_resource pi.resources.TestUsers

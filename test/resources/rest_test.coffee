@@ -146,11 +146,13 @@ describe "Pieces REST", ->
 
 
       it "should save old element", (done) ->
-        Testo.listen (e) ->
+        Testo.listen ((e) ->
           expect(e.data.type).to.eq 'update'
           expect(e.data.testo.id).to.eq 1
           expect(Testo.get(1).type).to.eq 'dirt'
           done()
+          ),
+          ((e) -> e.data.type is 'update')
 
         Testo.find(1).then( (item) ->
           item.type = 'susi'

@@ -23,7 +23,7 @@ class pi.resources.ViewItem extends pi.EventDispatcher
       if @options.id_alias?
         data[@options.id_alias] = data.id if @options.id_alias
         delete data.id
-        data
+      data
     else
       pi.resources.Base::attributes.call(@)
 
@@ -56,16 +56,28 @@ class pi.resources.View extends pi.EventDispatcher
     if (view_item = @get(el.id))
       @remove view_item
  
+  # if 'force' is true then destroy items even if they are not copied
+  clear_all: (force = false)->
+    unless (@options.copy is false) and (force is false)
+      if force and !@options.copy
+        @__all_by_id__ = {}
+        el.remove() for el in @__all__
+      else
+        el.dispose() for el in @__all__
+    @__all_by_id__ = {}
+    @__all__.length = 0
+  
   # create new resource
-  build: (data={}, silent = false, add = true) ->
+  build: (data={}, silent = false, params={}) ->
     unless (el = @get(data.id))
       if data instanceof pi.resources.Base and @options.copy is false
         el = data
       else
         if data instanceof pi.resources.Base
           data = data.attributes()
+        utils.extend data, params, true
         el = new pi.resources.ViewItem(@,data,@options)
-      if el.id and add
+      if el.id
         @add el  
         @trigger('create', @_wrap(el)) unless silent
       el

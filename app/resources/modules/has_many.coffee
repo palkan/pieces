@@ -23,15 +23,16 @@ class pi.resources.HasMany
     # add assoc method
     @::[name] = ->
       unless @["__#{name}__"]?
-        options = {}
+        options = name: name, owner: @
         if params.belongs_to is true
-          default_scope = {}
-          default_scope["#{@constructor.resource_name}_id"] = @id
+          options.key = params.key || "#{@constructor.resource_name}_id"
+          options.copy = false unless params.copy?
+          options._scope = params.scope
+          default_scope = utils.wrap options.key, @id
           unless params.scope?
-            options.scope = default_scope
+            options.scope = if @._persisted then default_scope else false
           else
             options.scope = params.scope 
-          options.owner = @
           if params.params?
             params.params.push "#{@constructor.resource_name}_id"
         utils.extend options, params
@@ -42,20 +43,23 @@ class pi.resources.HasMany
     # add route and handler
     if params.route is true
       @routes member: [{action: "load_#{name}", path: params.path, method: params.method}] 
-      @::["on_load_#{name}}"] = (data) ->
+      @::["on_load_#{name}"] = (data) ->
         @["#{name}_loaded"] = true
         if data[name]?
           @[name]().load data[name]
 
     # add callbacks
-    @before_initialize (data) ->
+    @after_update (data) ->
       if data[name]
-        @id = data.id # because we need when belongs_to is true
+        @["#{name}_loaded"] = true
         @[name]().load data[name]
-        delete data[name]
 
     @after_initialize ->
       @[name]() # just call association on init to load already created resources
+
+    if params.destroy is true
+      @before_destroy ->
+        @[name]().clear_all(true)
 
     # hack attributes
     if params.attribute is true

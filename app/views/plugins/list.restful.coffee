@@ -37,12 +37,16 @@ class pi.List.Restful extends pi.Plugin
       @bind resources, @list.options.load_rest, @scope
 
     @list.delegate_to @, 'find_by_id'
+    @list.on 'destroyed', =>
+      @bind null
+      @items_by_id = null
     return
 
   bind: (resources, load = false, params) ->
     if @resources
-      @resources.off @resources_update()
+      @resources.off @resource_update()
     @resources = resources
+    return unless @resources?
     if params?
       matcher = utils.matchers.object(params)
       filter = (e) => 
@@ -80,12 +84,14 @@ class pi.List.Restful extends pi.Plugin
       @load @resources.all()
 
   on_create: (data) ->
-    @items_by_id[data.id] = @list.add_item data
+    unless @find_by_id(data.id)
+      @items_by_id[data.id] = @list.add_item data
 
   on_destroy: (data) ->
     if (item = @find_by_id(data.id))
       @list.remove_item item
-      delete @items_by_id[item.id]
+      delete @items_by_id[data.id]
+    return
 
   on_update: (data) ->
     if (item = @find_by_id(data.id))
