@@ -67,8 +67,8 @@ class pi.List extends pi.Base
     
   add_item_at: (data, index, silent = false) ->
     if @items.length-1 < index
-        @add_item data,silent
-        return
+      return @add_item(data,silent)
+      
           
     item = @_create_item data
     @items.splice(index,0,item)

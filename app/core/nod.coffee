@@ -517,7 +517,29 @@ class pi.NodRoot extends pi.Nod
     window.innerWidth || @node.clientWidth
 
 pi.Nod.root = new pi.NodRoot()
-pi.Nod.win = new pi.Nod window
+
+class pi.NodWin extends pi.Nod
+  @instance: null
+
+  constructor: ->
+    throw "NodWin is already defined!" if pi.NodWin.instance
+    pi.NodWin.instance = @
+    @delegate_to pi.Nod.root, 'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight'
+    super window
+
+  width: ->
+    @node.innerWidth
+
+  height: ->
+    @node.innerHeight
+
+  x: ->
+    0
+
+  y: ->
+    0
+
+pi.Nod.win = new pi.NodWin()
 pi.Nod.body = new pi.Nod document.body
 
 pi.$ = (q) ->

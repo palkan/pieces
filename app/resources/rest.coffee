@@ -86,7 +86,7 @@ class pi.resources.REST extends pi.resources.Base
     
     # check if attributes wrapped
     if @::wrap_attributes and params[@resource_name]?
-      vars = utils.extend params[@resource_name], params
+      vars = utils.extend params[@resource_name], params, false, [@resource_name]
     else
       vars = params
 

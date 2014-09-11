@@ -5,6 +5,7 @@
 * add modifiers to Compiler
 * fix empty string serialize
 * support wrapped resource params within interpolation
+* add NodWin
 
 ## 0.3.1
 * add 'key' param to association
