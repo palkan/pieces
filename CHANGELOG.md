@@ -1,3 +1,9 @@
+## 0.3.2
+* seperate Compiler from Pieces Base
+* support multiple args in pi_call
+* add nested_select global select types
+* add modifiers to Compiler
+
 ## 0.3.1
 * add 'key' param to association
 * by default 'belongs_to' associations set 'copy' to false

@@ -1,5 +1,6 @@
 'use strict'
 pi = require '../core'
+require './compiler'
 utils = pi.utils
 Nod = pi.Nod
 
@@ -170,7 +171,7 @@ class pi.Base extends pi.Nod
   setup_events: ->
     for event, handlers of @options.events
       for handler in handlers.split(/;\s*/)
-        @on event, pi.str_to_event_handler(handler, this)
+        @on event, pi.Compiler.str_to_event_handler(handler, this)
     delete @options.events
     return
 
@@ -237,121 +238,8 @@ pi.init_component = (nod, host) ->
   else
     new component(nod.node,host,pi._gather_options(nod))
 
-_method_reg = /([\w\.]+)\.(\w+)/
 
-pi.call = (component, method_chain, fixed_args) ->   
-  try
-    utils.debug "pi call: component - #{component}; method chain - #{method_chain}"
-    target = switch 
-      when typeof component is 'object' then component 
-      when component[0] is '@' then pi.find(component[1..])
-      else @[component] 
-
-    return target if !method_chain
-
-    [method,target] =
-      if method_chain.indexOf(".") < 0
-        [method_chain, target]
-      else
-        [_, target_chain, method_] = method_chain.match _method_reg
-        target_ = target
-        for key_ in target_chain.split('.') 
-          do (key_) ->
-            target_ = if typeof target_[key_] is 'function' then target_[key_].call(target_) else target_[key_]
-        [method_, target_]
-    if target[method]?.call?
-      target[method].apply(target, ((if typeof arg is 'function' then arg.apply(@) else arg) for arg in fixed_args))
-    else
-      target[method]
-  catch error
-    utils.error error
-
-_str_reg = /^['"].+['"]$/
-
-pi.prepare_arg = (arg, host) ->
-  if _method_reg.test(arg) or arg[0] is '@' 
-    pi.str_to_fun arg, host
-  else
-    if _str_reg.test(arg) then arg[1...-1] else utils.serialize arg
-
-
-_condition_regexp = /^([\w\.\(\)@'"-=><]+)\s*\?\s*([\w\.\(\)@'"-]+)\s*(?:\:\s*([\w\.\(\)@'"-]+)\s*)$/
-_fun_reg = /^(@?\w+)(?:\.([\w\.]+)(?:\(([@\w\.\(\),'"-]+)\))?)?$/
-_op_reg = /(>|<|=)/
-
-_operators = 
-  # more
-  ">": (left, right) ->
-        (args...) ->
-          a = left.apply?(@,args) || left
-          b = right.apply?(@,args) || right
-          a > b
-  #less
-  "<": (left, right) ->
-        (args...) ->
-          a = left.apply?(@,args) || left
-          b = right.apply?(@,args) || right
-          a < b
-  #equals (non strict)
-  "=": (left, right) ->
-        (args...) ->
-          a = left.apply?(@,args) || left
-          b = right.apply?(@,args) || right
-          a == b
-
-_conditional = (condition, resolve, reject) ->
-  (args...) ->
-    if condition.apply(@, args)
-      resolve.apply @, args
-    else
-      reject.apply @, args
-
-_null = -> true
-
-_call_reg = /\(\)/
-
-pi.str_to_fun = (callstr, host) ->
-  callstr = callstr.replace _call_reg, ''
-  if (matches = callstr.match(_condition_regexp))
-    condition = pi.compile_condition matches[1], host
-    resolve = pi.compile_fun matches[2], host
-    reject = if matches[3] then pi.compile_fun(matches[3],host) else _null
-    _conditional condition, resolve, reject
-  else
-    pi.compile_fun callstr, host
-
-pi.compile_condition = (callstr, host) ->
-  if (matches=callstr.match(_op_reg))
-    parts = callstr.split _op_reg
-    _operators[matches[1]] pi.prepare_arg(parts[0]), pi.prepare_arg(parts[2])
-  else
-    pi.compile_fun callstr, host
-
-pi.compile_fun = (callstr, host) ->
-  matches = callstr.match _fun_reg
-  target = switch 
-    when matches[1] == '@this' then host 
-    when matches[1] == '@app' then pi.app
-    when matches[1] == '@host' then host.host # TODO: make more readable
-    when matches[1] == '@view' then host.view() # TODO: if we don't use Views?? 
-    else matches[1]
-  if matches[2]
-    utils.curry(pi.call,[target, matches[2], (if matches[3] then (pi.prepare_arg(arg,host) for arg in matches[3].split(",")) else [])])
-  else
-    utils.curry(pi.call,[target, undefined, undefined])
-
-
-
-# the same as pi.str_to_fun, but call with event object
-
-pi.str_to_event_handler = (callstr, host) ->
-  callstr = callstr.replace /\be\b/, "e"
-  _f = pi.str_to_fun callstr, host
-  (e) ->
-    _f.call({e: e})
-
-# shortcut for 
-
+# shortcut
 pi.piecify = (nod,host) ->
   pi.init_component nod, host||nod.parent('.pi')
 
@@ -362,7 +250,7 @@ pi.event = new pi.EventDispatcher()
 # return component by its path (relative to app.view)
 # find('a.b.c') -> app.view.a.b.c
 
-pi.find = (pid_path) ->
+pi.find = (pid_path, from) ->
   utils.get_path pi.app.view, pid_path
 
 utils.extend(
@@ -371,7 +259,7 @@ utils.extend(
   pi_call: (target, action) ->
     if !@_pi_call or @_pi_action != action
       @_pi_action = action
-      @_pi_call = pi.str_to_fun action, target
+      @_pi_call = pi.Compiler.str_to_fun action, target
     @_pi_call.call null
   )
 
@@ -382,9 +270,9 @@ Nod.root.ready ->
     'click', 
     (e) ->
       if e.target.attr("href")[0] == "@"
+        e.cancel()
         utils.debug "handle pi click: #{e.target.attr("href")}"
         e.target.pi_call e.target, e.target.attr("href")
-        e.cancel()
       return
     )
 

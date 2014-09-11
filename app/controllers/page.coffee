@@ -82,10 +82,7 @@ class pi.controllers.Page extends pi.Core
 
 pi.app.page = new pi.controllers.Page()
 
-# override str_to_fun to handle page calls
-_orig = pi.str_to_fun
-
-pi.str_to_fun = (callstr, host) ->
-  if callstr[0..1] is '@@'
-    callstr = "@app.page.context." + callstr[2..] 
-  _orig callstr, host  
+pi.Compiler.modifiers.push (str) -> 
+  if str[0..1] is '@@'
+    str = "@app.page.context." + str[2..]
+  str

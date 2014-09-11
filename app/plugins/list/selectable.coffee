@@ -54,6 +54,7 @@ class pi.List.Selectable extends pi.Plugin
   select_item: (item) ->
     if not item.__selected__
       item.__selected__ = true
+      @_selected_item = item
       @_selected = null  #TODO: add more intelligent cache
       item.addClass 'is-selected'
 
@@ -61,6 +62,7 @@ class pi.List.Selectable extends pi.Plugin
     if item.__selected__
       item.__selected__ = false
       @_selected = null
+      @_selected_item = null if @_selected_item is item
       item.removeClass 'is-selected'
   
   toggle_select: (item) ->

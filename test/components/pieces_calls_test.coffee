@@ -6,6 +6,9 @@ describe "pieces calls", ->
   root = Nod.create 'div'
   Nod.body.append root.node
 
+  Compiler = pi.Compiler
+
+
   beforeEach ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
@@ -14,7 +17,52 @@ describe "pieces calls", ->
   afterEach ->
     root.html ''
 
-  
+  describe "pi compiler", ->
+    it "should detect simple args", ->
+      expect(Compiler.is_simple_arg("23")).to.be.true
+      expect(Compiler.is_simple_arg("'a3v'")).to.be.true
+      expect(Compiler.is_simple_arg("@some")).to.be.false
+      expect(Compiler.is_simple_arg("e.data")).to.be.false
+
+    it "should create conditional function", ->
+      dummy =
+        up: ->
+          @is_up = 1
+        down: ->
+          @is_up = 2
+
+      fun = Compiler._conditional((-> true), dummy.up, dummy.down)
+      fun.call dummy
+      expect(dummy.is_up).to.eq 1
+
+      fun = Compiler._conditional((-> false), dummy, dummy.down)
+      fun.call dummy
+      expect(dummy.is_up).to.eq 2
+
+    it "should prepare simple arg", ->
+      expect(Compiler.prepare_arg("123")).to.eq 123
+      expect(Compiler.prepare_arg("false")).to.be.false
+      expect(Compiler.prepare_arg("'testo'")).to.eq 'testo'
+
+    it "should parse string (call without args)", ->
+      res = Compiler.parse_str("app.kill.some")
+      expect(res.target).to.eq 'app'
+      expect(res.method_chain).to.eq 'kill.some'
+      expect(res.args).to.have.length 0
+
+    it "should parse string (call with 1 arg)", ->
+      res = Compiler.parse_str("app.kill.some('human')")
+      expect(res.target).to.eq 'app'
+      expect(res.method_chain).to.eq 'kill.some'
+      expect(res.args).to.have.length 1
+
+    it "should parse string (call with 2 args)", ->
+      res = Compiler.parse_str("app.kill.some(1,'human')")
+      expect(res.target).to.eq 'app'
+      expect(res.method_chain).to.eq 'kill.some'
+      expect(res.args).to.have.length 2
+
+
   describe "pi complex call queries", ->
     beforeEach  ->
       @test_div.append('<a class="pi" data-component="test_component" href="@this.text(@this.data(\'value\'))" data-value="13" data-pid="test1" style="position:relative">ping</a>')
@@ -60,6 +108,26 @@ describe "pieces calls", ->
     it "should work with call to host", ->
       TestHelpers.clickElement $('@test2').btn2.node
       expect($('@test2').visible).to.be.false
+
+    it "should work with call with multiple args", ->
+      @test_div.find('.test2').append('''<span class="pi" pid="span2" data-on-click="@this.addClass('a','b')">abc</div>''')
+      pi.app.view.piecify()
+      TestHelpers.clickElement $('@test2').span2.node
+      expect($('@test2').span2.hasClass('a')).to.be.true
+      expect($('@test2').span2.hasClass('b')).to.be.true
+
+    it "should work with call with multiple and nested args", ->
+      @test_div.find('.test2').append('''<span class="pi" pid="span2" data-on-click="@this.addClass('a',e.type)">abc</div>''')
+      pi.app.view.piecify()
+      TestHelpers.clickElement $('@test2').span2.node
+      expect($('@test2').span2.hasClass('a')).to.be.true
+      expect($('@test2').span2.hasClass('click')).to.be.true
+
+    it "should work with simple call with brackets", ->
+      @test_div.find('.test2').append('''<span class="pi" pid="span2" data-on-click="@this.deactivate()">abc</div>''')
+      pi.app.view.piecify()
+      TestHelpers.clickElement $('@test2').span2.node
+      expect($('@test2').span2.active).to.be.false
 
   describe "pi conditional calls", ->
     beforeEach  ->

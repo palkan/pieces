@@ -16,12 +16,18 @@ class pi.List.NestedSelect extends pi.Plugin
   initialize: (@list) ->
     super
 
-    @selectable = @list.selectable || {select_all: _null, clear_selection: _null} 
+    @selectable = @list.selectable || {select_all: _null, clear_selection: _null, type: _null, _selected_item: null} 
     @list.delegate_to @, 'clear_selection', 'select_all', 'selected'
 
     @type @list.options.nested_select_type||""
 
     @list.on 'selection_cleared,selected', (e) =>
+      if @_watching_radio and e.type is 'selected' 
+          if e.target is @list
+            item = @list.selectable._selected_item
+          else
+            item = e.data[0].host.selectable._selected_item
+          @update_radio_selection item
       if e.target != @list
         e.cancel()
         @_check_selected()
@@ -31,11 +37,30 @@ class pi.List.NestedSelect extends pi.Plugin
 
   type: (value) ->
     @is_radio = !!value.match('radio')
+    if @is_radio 
+      @enable_radio_watch()
+    else
+      @disable_radio_watch()
+
+  enable_radio_watch: ->
+    @_watching_radio = true
+
+  disable_radio_watch: ->
+    @_watching_radio = false
+
+
+  update_radio_selection: (item) ->
+    return if not item or (@_prev_selected_list is item.host)
+    @_prev_selected_list = item.host
+    if @list.selected_size()>1
+      @list.clear_selection(true)
+      item.host.select_item item
+      return
 
   clear_selection: (silent = false) ->
-    @selectable.clear_selection()
+    @selectable.clear_selection(silent)
     for item in @list.find_cut('.pi-list')
-      item._nod.clear_selection?()          
+      item._nod.clear_selection?(silent)          
     @list.trigger('selection_cleared') unless silent
   
   select_all: () ->

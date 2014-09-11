@@ -183,10 +183,10 @@ describe "nested list plugin", ->
 
       expect(@list.selected_size()).to.eq 7
 
-    xit "should select when nested_select_type is radio", ->
-      @list.selectable.type 'check'
-      item.selectable?.type('check') for item in @list.items
-      @list.items[2].list.selectable.type 'check'
+    it "should select when nested_select_type is radio", ->
+      @list.selectable.type 'check radio'
+      item.selectable?.type('check radio') for item in @list.items
+      @list.items[2].list.selectable.type 'check radio'
       @list.nested_select.type 'radio'
       TestHelpers.clickElement $('.click1').node
       expect(@list.selected_size()).to.eq 1
