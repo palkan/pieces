@@ -78,6 +78,7 @@ class pi.utils
       when val is 'undefined' then undefined
       when val == 'true' then true
       when val == 'false' then false
+      when val is '' then ''
       when isNaN(Number(val)) then val 
       else Number(val)
 

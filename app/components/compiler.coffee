@@ -68,7 +68,7 @@ class pi.Compiler
       else
         target[method]
     catch error
-      utils.error error, error.stack?
+      utils.error error, error.stack
 
   @is_simple_arg: (arg) ->
     not (_method_rxp.test(arg) or arg[0] is '@')

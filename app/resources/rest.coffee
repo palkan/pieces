@@ -83,11 +83,18 @@ class pi.resources.REST extends pi.resources.Base
   @_interpolate_path: (path,params,target) ->
     path = @_rscope.replace(":path",path).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg,'')
     path_parts = path.split _path_reg
+    
+    # check if attributes wrapped
+    if @::wrap_attributes and params[@resource_name]?
+      vars = utils.extend params[@resource_name], params
+    else
+      vars = params
+
     path = ""
     flag = false
     for part in path_parts
       if flag
-        val = if params[part]? then params[part] else target?[part]
+        val = if vars[part]? then vars[part] else target?[part]
         throw Error("undefined param: #{part}") unless val?
         path+=val
       else

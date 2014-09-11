@@ -62,6 +62,12 @@ describe "pieces calls", ->
       expect(res.method_chain).to.eq 'kill.some'
       expect(res.args).to.have.length 2
 
+    it "should parse string with sub-call", ->
+      res = Compiler.parse_str("@app.update_section(1,e.data)")
+      expect(res.target).to.eq '@app'
+      expect(res.method_chain).to.eq 'update_section'
+      expect(res.args).to.have.length 2
+
 
   describe "pi complex call queries", ->
     beforeEach  ->

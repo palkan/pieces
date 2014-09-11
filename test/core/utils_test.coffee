@@ -37,6 +37,9 @@ describe "pieces utils", ->
       expect(pi.utils.serialize("true")).to.be.true
       expect(pi.utils.serialize("false")).to.be.false
 
+    it "should recognize empty string", ->
+      expect(pi.utils.serialize("")).to.eql ""
+
     it "should recognize integer number", ->
       expect(pi.utils.serialize("123")).to.equal(123)
 

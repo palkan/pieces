@@ -6,6 +6,7 @@ describe "Pieces REST", ->
   describe "rest resources test", ->
     Testo = pi.TestoRest
     Testo2 = pi.TestoRest2
+    Wrap = pi.TestoWrap
     R = $r.REST
 
     beforeEach ->
@@ -30,6 +31,9 @@ describe "Pieces REST", ->
       it "should interpolate with target params", ->
         t = Testo2.build type: 'yeast', id: 1
         expect(Testo2._interpolate_path(":id/edit",{},t)).to.eq "types/yeast/test/1/edit.json"
+
+      it "should interpolate with wrapped params", ->
+        expect(Wrap._interpolate_path(":id/:type/edit",{testo:{type: 'gut', id:12}})).to.eq "/12/gut/edit"
 
     describe "class functions", ->
       it "should setup class methods", ->

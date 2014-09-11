@@ -9,6 +9,10 @@ class pi.Testo extends pi.resources.Base
 class pi.Testo2 extends pi.resources.REST
   @set_resource 'testos'
 
+class pi.TestoWrap extends pi.resources.REST
+  @set_resource 'testos'
+  wrap_attributes: true
+
 class pi.Eater extends pi.resources.REST
   @set_resource 'eaters'
   @params 'name', 'age', 'weight'

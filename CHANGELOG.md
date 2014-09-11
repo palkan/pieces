@@ -3,6 +3,8 @@
 * support multiple args in pi_call
 * add nested_select global select types
 * add modifiers to Compiler
+* fix empty string serialize
+* support wrapped resource params within interpolation
 
 ## 0.3.1
 * add 'key' param to association
