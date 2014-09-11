@@ -192,6 +192,7 @@ class pi.List extends pi.Base
     @items_cont.detach_children()
     @items.length = 0
     @trigger 'update', {type:'clear'}
+    @_check_empty()
 
   _update_indeces: ->
     item.data('list-index',i) for item,i in @items
