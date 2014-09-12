@@ -274,6 +274,21 @@ describe "form component", ->
       pi.app.view.piecify()
       @example = $('@test')
     
+    it "should validate initial state on submit", ->
+      @example.validate()
+
+      expect($("#fullname").hasClass('is-invalid')).to.be.true
+      expect(@example._invalids).to.include 'user[fullname]'
+      
+      expect($("#email").hasClass('is-invalid')).to.be.true
+      expect(@example._invalids).to.include 'user[email]'
+
+      expect($("#phone").hasClass('is-invalid')).to.be.true
+      expect(@example._invalids).to.include 'user[phone]'
+
+      expect($("#type").hasClass('is-invalid')).to.be.true
+      expect(@example._invalids).to.include 'type'
+
     it "should handle presence validation", ->
       TestHelpers.changeElement $("#fullname input").node
 

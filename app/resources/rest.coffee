@@ -85,7 +85,7 @@ class pi.resources.REST extends pi.resources.Base
     path_parts = path.split _path_reg
     
     # check if attributes wrapped
-    if @::wrap_attributes and params[@resource_name]?
+    if @::wrap_attributes and params[@resource_name]? and (typeof params[@resource_name] is 'object')
       vars = utils.extend params[@resource_name], params, false, [@resource_name]
     else
       vars = params

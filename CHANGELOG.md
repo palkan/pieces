@@ -1,3 +1,6 @@
+## 0.3.3
+* add Form.validate method (now run before submit always)
+
 ## 0.3.2
 * seperate Compiler from Pieces Base
 * support multiple args in pi_call

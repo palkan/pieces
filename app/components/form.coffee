@@ -20,13 +20,13 @@ class pi.Form extends pi.Base
     # handle components updates 
     @on pi.InputEvent.Change, (e) =>
       e.cancel()
-      if @is_valid(e.target) 
+      if @validate_nod(e.target) 
         @update_value e.target.name(), e.data
 
     # handle native inputs updates
     @on 'change', (e) =>
       return unless utils.is_input(e.target.node)
-      if @is_valid(e.target)
+      if @validate_nod(e.target)
         @update_value e.target.node.name, @former._parse_nod_value(e.target.node)
 
     @form = if @node.nodeName is 'FORM' then @ else @find('form')
@@ -36,34 +36,8 @@ class pi.Form extends pi.Base
         e.cancel()
         @submit()
 
-  is_valid: (nod) ->
-    if (types = nod.data('validates'))
-      flag = true
-      for type in types.split(" ")
-        unless Validator.validate(type, nod, @)
-          nod.addClass 'is-invalid'
-          flag = false
-          break 
-        
-      if flag
-        nod.removeClass 'is-invalid'
-        if nod.__invalid__
-          @_invalids.splice @_invalids.indexOf(nod.name()), 1
-          delete nod.__invalid__
-        true
-      else
-        
-        unless nod.__invalid__?
-          @_invalids.push nod.name()
-        nod.__invalid__ = true
-        false
-    else
-      true
-
   submit: ->
-    if @_invalids.length
-      @trigger pi.FormEvent.Invalid, @_invalids
-    else
+    if @validate() is true
       @trigger pi.FormEvent.Submit, @_value
 
   value: (val) ->
@@ -107,6 +81,41 @@ class pi.Form extends pi.Base
       nod.value val
     else if utils.is_input(node)
       @former._fill_nod node, val
+
+  validate: ->
+    @former.traverse_nodes @node, (node) => @validate_value node
+    if @_invalids.length
+      @trigger pi.FormEvent.Invalid, @_invalids
+      false
+    else
+      true
+
+  validate_value: (node) ->
+    if (nod = node._nod) instanceof pi.BaseInput
+      @validate_nod nod
+
+  validate_nod: (nod) ->
+    if (types = nod.data('validates'))
+        flag = true
+        for type in types.split(" ")
+          unless Validator.validate(type, nod, @)
+            nod.addClass 'is-invalid'
+            flag = false
+            break 
+          
+        if flag
+          nod.removeClass 'is-invalid'
+          if nod.__invalid__
+            @_invalids.splice @_invalids.indexOf(nod.name()), 1
+            delete nod.__invalid__
+          true
+        else
+          unless nod.__invalid__?
+            @_invalids.push nod.name()
+          nod.__invalid__ = true
+          false
+      else
+        true
 
   clear_value: (node) ->
     if (nod = node._nod) instanceof pi.BaseInput
