@@ -1,5 +1,7 @@
 ## 0.3.3
 * add Form.validate method (now run before submit always)
+* add Scrollable
+* fix events aliases bug
 
 ## 0.3.2
 * seperate Compiler from Pieces Base
