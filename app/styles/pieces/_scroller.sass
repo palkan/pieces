@@ -1,0 +1,37 @@
+$track-width: 8px
+.pi-scroll-pane
+  position: relative
+  overflow: hidden
+  &:hover
+    .pi-scroll-track
+      opacity: 1
+  .pi-scroll-content
+    overflow: scroll
+    overflow-x: hidden
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    bottom: 0
+    -ms-overflow-style: none
+    &::-webkit-scrollbar
+      visibility: hidden
+  .pi-scroll-track
+    opacity: 0
+    width: $track-width
+    background: rgba($black, 0.1)
+    position: absolute
+    top: 0
+    bottom: 0
+    right: 0
+    transition: opacity .2s
+    &.is-active
+      opacity: 1
+      .pi-scroll-thumb
+        background: rgba($black, 0.7)
+
+  .pi-scroll-thumb
+    position: absolute
+    background: rgba($black, 0.5)
+    width: $track-width
+    cursor: pointer

@@ -215,3 +215,24 @@ describe "event dispatcher", ->
       expect(el.listeners.mouseover).to.have.length(1)
       expect(spy_native.callCount).to.eq(2)
       expect(spy_fun.callCount).to.eq(2)
+
+    describe "aliases", ->
+      afterEach ->
+        delete pi.NodEvent.aliases.clicko
+        delete pi.NodEvent.reversed_aliases.click
+
+      it "should work with alias", ->
+        pi.NodEvent.register_alias 'clicko', 'click' 
+        @test_div.append """
+          <div id='cont'>
+            <button class='pi'>Button</button>
+          </div>
+            """
+        el = pi.$ '.pi'
+        
+        spy_fun = sinon.spy()
+        
+        el.on "clicko", spy_fun
+
+        TestHelpers.clickElement el.node
+        expect(spy_fun.callCount).to.eq(1)

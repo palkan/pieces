@@ -51,7 +51,7 @@ class pi.NodEvent extends pi.Event
 
     @origTarget = @event.target || @event.srcElement
     @target = pi.Nod.create @origTarget
-    @type = if @constructor.is_aliased[event.type] then @constructor.reversed_aliases[event.type] else event.type
+    @type = if @constructor.is_aliased(event.type) then @constructor.reversed_aliases[event.type] else event.type
     @ctrlKey = @event.ctrlKey
     @shiftKey = @event.shiftKey
     @altKey = @event.altKey
@@ -142,7 +142,8 @@ class pi.NodEventDispatcher extends pi.EventDispatcher
 
   constructor: ->
     super
-    @native_event_listener = (event) => @trigger _prepare_event(event)  
+    @native_event_listener = (event) => 
+      @trigger _prepare_event(event)  
 
   listen: (selector, event, callback, context) ->
     @on event, callback, context, _selector(selector)

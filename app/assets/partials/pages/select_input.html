@@ -5,7 +5,7 @@
     <div pid="select_field" data-on-change="@this.placeholder.text(e.data.value)" class="pi pi-select-field">
       <input type="hidden"/>
       <div pid="placeholder" class="pi placeholder">Не выбрано</div>
-      <div pid="dropdown" class="pi is-hidden list-container pi-select-list">
+      <div pid="dropdown" data-plugins="scrollable" style="height: 200px" class="pi is-hidden list-container pi-select-list pi-scroll-pane">
         <ul class="list">
           <li data-value="John" class="item">John</li>
           <li data-value="Vagon" class="item">Vagon</li>

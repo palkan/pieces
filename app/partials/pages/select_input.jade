@@ -4,7 +4,7 @@
     .pi.pi-select-field(pid="select_field", data-on-change="@this.placeholder.text(e.data.value)")
       input(type="hidden")
       .pi.placeholder(pid="placeholder") Не выбрано
-      .pi.is-hidden.list-container.pi-select-list(pid="dropdown")
+      .pi.is-hidden.list-container.pi-select-list.pi-scroll-pane(pid="dropdown",data-plugins="scrollable",style="height: 200px")
         ul.list
           li.item(data-value="John")
             |John

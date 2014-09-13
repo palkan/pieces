@@ -419,9 +419,15 @@ _prop_hash(
 
 _geometry_styles ["top", "left", "width", "height"]
 
+for d in ["width", "height"]
+  do ->
+    prop = "client#{ utils.capitalize(d) }"
+    pi.Nod::[prop] = -> @node[prop]  
+
 for d in ["top", "left", "width", "height"]
-  prop = "scroll#{ utils.capitalize(d) }"
-  pi.Nod::[prop] = -> @node[prop]  
+  do ->
+    prop = "scroll#{ utils.capitalize(d) }"
+    pi.Nod::[prop] = -> @node[prop]  
 
 
 #singleton class for document.documentElement
