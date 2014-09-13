@@ -223,7 +223,7 @@ class pi.Nod extends pi.NodEventDispatcher
   # remove node from parent node
 
   detach: ->
-    @node.parentNode.removeChild @node
+    @node.parentNode?.removeChild @node
     @
 
   # detach all node children

@@ -52,17 +52,26 @@ class pi.PopupContainer extends pi.Base
     @target.hide()
     @cont.append @target
 
+    @setup_target @target
+    
     @show()
     
     utils.after @show_delay, =>
       @overlay.show()
       @target.show()
+      unless @opened
+        @opened = true
+        @trigger 'opened', true
 
     @__popups__.push @target
 
-    unless @opened
-      @opened = true
-      @trigger 'opened'
+  setup_target: (target) ->
+    options = target.__popup_options__
+    
+    if options.close is false
+      @addClass 'no-close'
+    else
+      @removeClass 'no-close'
 
   handle_close: ->
     return unless (options = @target?.__popup_options__)
@@ -85,6 +94,10 @@ class pi.PopupContainer extends pi.Base
     @target.hide()
     @overlay.hide()
 
+    if @__overlays__.length is 1
+      @opened = false
+      @trigger 'opened', false
+
     new Promise(
       (resolve) =>
         utils.after @hide_delay, =>
@@ -106,10 +119,10 @@ class pi.PopupContainer extends pi.Base
             @cont = @__containers__[@__containers__.length - 1].enable()
             @overlay = @__overlays__[@__overlays__.length - 1].enable()
             @target = @__popups__[@__popups__.length - 1]
+            @setup_target @target
           else
-            @opened = false
             @hide()
-            @trigger 'closed'
+
           @_closing = false
           resolve()
         )
