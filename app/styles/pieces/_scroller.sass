@@ -4,6 +4,7 @@ $track-width: 8px
   overflow: hidden
   &:hover
     .pi-scroll-track
+      transition-delay: 0
       opacity: 1
   .pi-scroll-content
     overflow: scroll
@@ -25,6 +26,7 @@ $track-width: 8px
     bottom: 0
     right: 0
     transition: opacity .2s
+    transition-delay: 0.5s
     &.is-active
       opacity: 1
       .pi-scroll-thumb
@@ -35,3 +37,4 @@ $track-width: 8px
     background: rgba($black, 0.5)
     width: $track-width
     cursor: pointer
+    min-height: 20px
