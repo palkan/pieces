@@ -28,7 +28,7 @@ class pi.List.Searchable extends pi.Plugin
     @searching = false
     @list.on 'update', ((e) => @item_updated(e.data.item)), 
       @, 
-      (e) => (e.data.type is 'item_added' or e.data.type is 'item_updated') 
+      (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list)
     return
 
   item_updated: (item) ->
