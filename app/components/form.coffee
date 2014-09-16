@@ -12,7 +12,7 @@ class pi.Form extends pi.Base
     @_cache = {}
     @_value = {}
     @_invalids = []
-    @former = new pi.Former(@node, serialize: !!@options.serialize, rails: @options.rails)
+    @former = new pi.Former(@node, serialize: !!@options.serialize, rails: @options.rails, clear_hidden: @options.clear_hidden)
     
     # set initial value
     @read_values()

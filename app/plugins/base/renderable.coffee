@@ -25,6 +25,7 @@ class pi.Base.Renderable extends pi.Plugin
     @target.remove_children()
     if data?
       nod = @target._renderer.render data
+      nod.host = @target
       if nod?
         @target.append nod
         @target.piecify()
