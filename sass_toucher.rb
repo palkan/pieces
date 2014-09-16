@@ -22,15 +22,18 @@ end
 targets = Dir.glob("app/styles/**/")
 
 puts targets
- 
+
 listener = Listen.to *targets, filter: /\.*sass$/ do |modified, added, removed|
+  puts modified
   file_to_run = (modified || added).first
   next if compilable_sass_files.include? file_to_run
   puts "changed: #{file_to_run}"
   compilable_sass_files.each {|f| touch f }
 end
 
-listener.start
+puts listener.alive?
+
+listener.run
 sleep
  
 Signal.trap 'INT' do

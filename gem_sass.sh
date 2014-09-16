@@ -1,5 +1,5 @@
 #!/bin/bash
-for file in `find -iname app/styles/pieces/*.sass`; do
+for file in `find app/styles/pieces/*.sass`; do
   f="${file##*styles/}"
   cp "$file" "./pieces-rails/app/assets/stylesheets/${f%.sass}.css.sass"
 done

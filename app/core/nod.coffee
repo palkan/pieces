@@ -19,7 +19,7 @@ _geometry_styles = (sty) ->
       pi.Nod::[name] = (val) ->
         if val is undefined 
           return @node["offset#{utils.capitalize(name)}"]
-        @node.style[name] = Math.round(val)+"px"
+        @_with_raf name, => @node.style[name] = Math.round(val)+"px"
         @
       return
   return
@@ -68,6 +68,20 @@ _fragment = (html) ->
   while(temp.firstChild)
     f.appendChild temp.firstChild 
   f
+
+
+_raf = 
+  if window.requestAnimationFrame?
+    window.requestAnimationFrame
+  else
+    (callback) ->
+      callback()
+
+_caf =
+  if window.cancelAnimationFrame?
+    window.cancelAnimationFrame
+  else
+    -> true
 
 class pi.Nod extends pi.NodEventDispatcher
   constructor: (@node) ->
@@ -338,8 +352,27 @@ class pi.Nod extends pi.NodEventDispatcher
       offset += node.offsetTop
     offset
 
+  _with_raf: (name, fun) ->
+    if @["__#{name}_rid"]
+      _caf(@["__#{name}_rid"])
+      delete @["__#{name}_rid"]
+
+    @["__#{name}_rid"] = _raf(fun)
+
   move: (x,y) ->
-    @style left: "#{x}px", top: "#{y}px"
+    @_with_raf 'move', => @style(left: "#{x}px", top: "#{y}px")
+
+  moveX: (x) ->
+    @left x
+
+  moveY: (y) ->
+    @top y
+
+  scrollX: (x) ->
+    @_with_raf 'scrollX', => @node.scrollLeft = x
+
+  scrollY: (y) ->
+    @_with_raf 'scrollY', => @node.scrollTop = y
 
   position: () ->
     x: @x(), y: @y() 
@@ -419,9 +452,15 @@ _prop_hash(
 
 _geometry_styles ["top", "left", "width", "height"]
 
+for d in ["width", "height"]
+  do ->
+    prop = "client#{ utils.capitalize(d) }"
+    pi.Nod::[prop] = -> @node[prop]  
+
 for d in ["top", "left", "width", "height"]
-  prop = "scroll#{ utils.capitalize(d) }"
-  pi.Nod::[prop] = -> @node[prop]  
+  do ->
+    prop = "scroll#{ utils.capitalize(d) }"
+    pi.Nod::[prop] = -> @node[prop]  
 
 
 #singleton class for document.documentElement
@@ -550,19 +589,23 @@ pi.$ = (q) ->
 
 pi.export(pi.$, '$')
 
-if window.window.bowser?
-  klasses = []
-  if window.bowser.msie
-    klasses.push 'ie', "ie#{window.bowser.version|0}"
+info = utils.browser.info()
+klasses = []
 
-  if window.bowser.mobile
-    klasses.push 'mobile'
+if info.msie is true
+  klasses.push 'ie'
+  versions = info.version.split(".")
+  version = if versions.length then versions[0] else version
+  klasses.push "ie#{version}"
 
-  if window.bowser.tablet
-    klasses.push 'tablet'
+if info.mobile is true
+  klasses.push 'mobile'
 
-  if klasses.length
-    pi.Nod.root.addClass.apply pi.Nod.root, klasses
+if info.tablet is true
+  klasses.push 'tablet'
+
+if klasses.length
+  pi.Nod.root.addClass.apply pi.Nod.root, klasses
 
 pi.Nod.root.initialize()
 
