@@ -9,10 +9,12 @@ describe "pieces core", ->
   beforeEach ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
-    root.append @test_div 
+    root.append @test_div
+    TestHelpers.mock_raf() 
 
   afterEach ->
     root.html ''
+    TestHelpers.unmock_raf()
 
   describe "Nod extensions", ->
     it "should find cut", ->

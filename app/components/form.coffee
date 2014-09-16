@@ -37,6 +37,7 @@ class pi.Form extends pi.Base
         @submit()
 
   submit: ->
+    @read_values()
     if @validate() is true
       @trigger pi.FormEvent.Submit, @_value
 
@@ -96,26 +97,26 @@ class pi.Form extends pi.Base
 
   validate_nod: (nod) ->
     if (types = nod.data('validates'))
-        flag = true
-        for type in types.split(" ")
-          unless Validator.validate(type, nod, @)
-            nod.addClass 'is-invalid'
-            flag = false
-            break 
-          
-        if flag
-          nod.removeClass 'is-invalid'
-          if nod.__invalid__
-            @_invalids.splice @_invalids.indexOf(nod.name()), 1
-            delete nod.__invalid__
-          true
-        else
-          unless nod.__invalid__?
-            @_invalids.push nod.name()
-          nod.__invalid__ = true
-          false
-      else
+      flag = true
+      for type in types.split(" ")
+        unless Validator.validate(type, nod, @)
+          nod.addClass 'is-invalid'
+          flag = false
+          break 
+        
+      if flag
+        nod.removeClass 'is-invalid'
+        if nod.__invalid__
+          @_invalids.splice @_invalids.indexOf(nod.name()), 1
+          delete nod.__invalid__
         true
+      else
+        unless nod.__invalid__?
+          @_invalids.push nod.name()
+        nod.__invalid__ = true
+        false
+    else
+      true
 
   clear_value: (node) ->
     if (nod = node._nod) instanceof pi.BaseInput

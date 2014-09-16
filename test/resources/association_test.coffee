@@ -100,6 +100,11 @@ describe "Pieces REST base", ->
         Testo.load [{id:90, type:'70s', chef_id:6}]
         expect(chef.testos().all()).to.have.length 1
 
+      it "should not add resources on update if not persisted", ->
+        chef = Chef.build name: 'Cheffo'
+        Eater.get(1).set(name: 'Romario')
+        expect(chef.eaters().all()).to.have.length 0
+
     describe "add elements", ->
       beforeEach ->
         @chef = Chef.get(1)

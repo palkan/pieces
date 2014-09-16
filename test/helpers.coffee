@@ -77,7 +77,7 @@ class TestHelpers
     )
     el.dispatchEvent ev 
   @mock_net: ->
-    pi._orig_net = pi.net
+    @_orig_net = pi.net
     pi.net = (pi._mock_net ||= ( ->
       net =
         request: (method, url, data, options) ->
@@ -117,6 +117,13 @@ class TestHelpers
       )())
     return
   @unmock_net: ->
-    pi.net = pi._orig_net
+    pi.net = @_orig_net
+
+  @mock_raf: ->
+    @_orig_raf = pi.Nod::_with_raf
+    pi.Nod::_with_raf = (name, callback) -> callback()
+
+  @unmock_raf: ->
+    pi.Nod::_with_raf = @_orig_raf
 
 module.exports = TestHelpers

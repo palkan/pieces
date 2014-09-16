@@ -8,6 +8,7 @@ class pi.resources.Association extends pi.resources.View
   # generate new view for resource
   constructor: (@resources, scope, @options={}) ->
     super
+    @_only_update = false
     @owner = @options.owner
     if options.belongs_to is true
       if options.owner._persisted
@@ -26,6 +27,8 @@ class pi.resources.Association extends pi.resources.View
                 @options.scope = utils.wrap(@options.key,@owner.id)
               @reload()
           )
+    else
+      @_only_update = true unless @options.scope
 
   clear_all: ->
     @owner["#{@options.name}_loaded"] = false if @options.route
@@ -54,7 +57,7 @@ class pi.resources.Association extends pi.resources.View
         @trigger 'update', @_wrap(el)
       else
         super
-    else
+    else if @_only_update is false
       @build el
 
   on_destroy: (el) ->

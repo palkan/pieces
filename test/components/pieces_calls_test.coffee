@@ -13,9 +13,11 @@ describe "pieces calls", ->
     @test_div = Nod.create 'div'
     @test_div.style position:'relative'
     root.append @test_div 
+    TestHelpers.mock_raf()
 
   afterEach ->
     root.html ''
+    TestHelpers.unmock_raf()
 
   describe "pi compiler", ->
     it "should detect simple args", ->

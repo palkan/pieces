@@ -2,6 +2,8 @@
 * add Form.validate method (now run before submit always)
 * add Scrollable
 * fix events aliases bug
+* fix Association bug (resource update for not 'belongs_to' association)
+* Form now read all values before submit
 
 ## 0.3.2
 * seperate Compiler from Pieces Base
