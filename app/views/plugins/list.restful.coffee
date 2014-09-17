@@ -39,14 +39,16 @@ class pi.List.Restful extends pi.Plugin
     @list.delegate_to @, 'find_by_id'
     @list.on 'destroyed', =>
       @bind null
-      @items_by_id = null
     return
 
   bind: (resources, load = false, params) ->
     if @resources
       @resources.off @resource_update()
     @resources = resources
-    return unless @resources?
+    unless @resources?
+       @items_by_id = {}
+       @list.clear() unless @list._disposed
+       return
     if params?
       matcher = utils.matchers.object(params)
       filter = (e) => 

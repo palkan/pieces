@@ -50,6 +50,12 @@ describe "Restful List", ->
       it "should load elements on initialize", ->
         expect(@list.size()).to.eq 3
 
+      it "should reload elements on unbind-bind", ->
+        expect(@list.size()).to.eq 3
+        @list.restful.bind null
+        @list.restful.bind Testo, true, salt_id:1
+        expect(@list.size()).to.eq 3
+
     describe "CRUD", ->
       it "should add element", ->
         Testo.build(type:'dirt',id:7, salt_id: 1)

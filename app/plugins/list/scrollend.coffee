@@ -34,6 +34,7 @@ class pi.List.ScrollEnd extends pi.Plugin
 
   scroll_listener: () ->
     @_scroll_listener ||= utils.debounce 500, ((event) =>
+      return if @list._disposed
       if @_prev_top <= @scroll_object.scrollTop() and @list.height() - @scroll_object.scrollTop() - @scroll_object.height()  < 50
         @list.trigger 'scroll_end'
       @_prev_top = @scroll_object.scrollTop()), @
