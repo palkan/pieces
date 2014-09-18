@@ -29,7 +29,9 @@ class pi.utils.browser
         outerStyle.overflow = "scroll"
         outerStyle.top = '-9999px'
         document.body.appendChild outer
-        outer.offsetWidth - outer.clientWidth
+        w = outer.offsetWidth - outer.clientWidth
+        document.body.removeChild outer
+        w
 
   @info: ->
     unless @_info

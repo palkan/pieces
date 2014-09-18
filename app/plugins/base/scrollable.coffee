@@ -10,11 +10,14 @@ _style_type = {}
 
 binfo = utils.browser.info()
 
-if (utils.browser.scrollbar_width() is 0 and not binfo.webkit) or binfo.msie
-  _style_type.padding = true
-  _style_type.position = true
-else if (utils.browser.scrollbar_width()>0 and not binfo.chrome) or utils.browser.scrollbar_width() is 0
-  _style_type.position = true
+if (utils.browser.scrollbar_width() is 0 and not binfo.webkit) or (binfo.msie and (binfo.version|0)>9)
+  _style_type.padding = 17
+  _style_type.position = 17
+else if (utils.browser.scrollbar_width()>0)
+  _style_type.position = 17
+else if binfo.chrome
+  _style_type.padding = 7
+  _style_type.position = 17
 
 utils.info 'scroller type', _style_type
 
@@ -28,6 +31,8 @@ class pi.Base.Scrollable extends pi.Plugin
     @create_scroller()
     @hide_native_scroller()
 
+    @always_show = @pane.hasClass 'has-scroller' 
+
     @setup_events()
     @update_thumb()
 
@@ -36,17 +41,18 @@ class pi.Base.Scrollable extends pi.Plugin
     @thumb = Nod.create('div').addClass('pi-scroll-thumb')
     @track.append @thumb
     @pane.append @track
-    @pane.addClass 'has-scroller'
+    @pane.addClass 'pi-scroll-pane'
+
 
   hide_native_scroller: ->
     cssRule = {}
    
-    if _style_type.padding is true
+    if _style_type.padding
       currentPadding = window.getComputedStyle(@content.node,null).getPropertyValue('padding-right').replace(/[^0-9.]+/g, '')
-      cssRule.paddingRight = "#{+currentPadding + (utils.browser.scrollbar_width()||17)}px"
+      cssRule.paddingRight = "#{+currentPadding + (utils.browser.scrollbar_width()||_style_type.padding)}px"
    
-    if _style_type.position is true
-      cssRule.right = "-#{(utils.browser.scrollbar_width()||17)}px"
+    if _style_type.position
+      cssRule.right = "-#{(utils.browser.scrollbar_width()||_style_type.position)}px"
     
     @content.style(cssRule)
 
@@ -128,6 +134,14 @@ class pi.Base.Scrollable extends pi.Plugin
     st = @content.scrollTop()
     
     @_last_scroll = st
+
+    if ch is sh
+      @thumb.hide()
+      @track.hide() unless @always_show
+      return
+    else if not @thumb.visible
+      @thumb.show() 
+      @track.show() unless @always_show
 
     h = Math.max(20, ch * (ch / sh))
     y = (ch - h)*(st/(sh-ch))

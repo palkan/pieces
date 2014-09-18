@@ -24,7 +24,7 @@ class pi.List.NestedSelect extends pi.Plugin
     @list.on 'selection_cleared,selected', (e) =>
       if @_watching_radio and e.type is 'selected' 
           if e.target is @list
-            item = @list.selectable._selected_item
+            item = @selectable._selected_item
           else
             item = e.data[0].host.selectable._selected_item
           @update_radio_selection item
