@@ -11,13 +11,16 @@ utils = pi.utils
 
 _null = ->
 
-class pi.List.NestedSelect extends pi.Plugin
+class pi.List.NestedSelect extends pi.List.Selectable
   id: 'nested_select'
   initialize: (@list) ->
-    super
+    pi.Plugin::initialize.apply @, arguments
 
     @selectable = @list.selectable || {select_all: _null, clear_selection: _null, type: _null, _selected_item: null} 
     @list.delegate_to @, 'clear_selection', 'select_all', 'selected'
+
+    unless @list.has_selectable is true
+      @list.delegate_to @, 'selected_records', 'selected_record', 'selected_item', 'selected_size'
 
     @type @list.options.nested_select_type||""
 
@@ -32,8 +35,6 @@ class pi.List.NestedSelect extends pi.Plugin
         e.cancel()
         @_check_selected()
     return
-
-  _check_selected: pi.List.Selectable::_check_selected
 
   type: (value) ->
     @is_radio = !!value.match('radio')
@@ -52,7 +53,7 @@ class pi.List.NestedSelect extends pi.Plugin
   update_radio_selection: (item) ->
     return if not item or (@_prev_selected_list is item.host)
     @_prev_selected_list = item.host
-    if @list.selected_size()>1
+    if @list.selected().length > 1
       @list.clear_selection(true)
       item.host.select_item item
       return
