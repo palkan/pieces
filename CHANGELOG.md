@@ -4,6 +4,7 @@
 * fix events aliases bug
 * fix Association bug (resource update for not 'belongs_to' association)
 * Form now read all values before submit
+* add ability to bind scroll_object by selector to ScrollEnd
 
 ## 0.3.2
 * seperate Compiler from Pieces Base

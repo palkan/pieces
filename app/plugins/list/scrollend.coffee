@@ -10,7 +10,13 @@ class pi.List.ScrollEnd extends pi.Plugin
   id: 'scroll_end'
   initialize: (@list) ->
     super
-    @scroll_object = if @list.options.scroll_object == 'window' then pi.Nod.win else @list.items_cont
+    @scroll_object = 
+      if @list.options.scroll_object == 'window' 
+        pi.Nod.win 
+      else if @list.options.scroll_object
+        pi.$(@list.options.scroll_object)
+      else
+        @list.items_cont
     @_prev_top = @scroll_object.scrollTop()
 
     @enable() unless @list.options.scroll_end is false
