@@ -17,7 +17,7 @@ class pi.List.NestedSelect extends pi.List.Selectable
     pi.Plugin::initialize.apply @, arguments
 
     @selectable = @list.selectable || {select_all: _null, clear_selection: _null, type: _null, _selected_item: null} 
-    @list.delegate_to @, 'clear_selection', 'select_all', 'selected'
+    @list.delegate_to @, 'clear_selection', 'select_all', 'selected', 'where', 'select_item', 'deselect_item'
 
     unless @list.has_selectable is true
       @list.delegate_to @, 'selected_records', 'selected_record', 'selected_item', 'selected_size'
@@ -36,6 +36,26 @@ class pi.List.NestedSelect extends pi.List.Selectable
         @_check_selected()
     return
 
+  select_item: (item, force = false) ->
+    if not item.__selected__
+      if @_watching_radio
+        @clear_selection(true)
+      item.host.selectable?.select_item?(item,force)
+      @_check_selected()
+      item
+
+  deselect_item: (item, force = false) ->
+    if item.__selected__
+      item.host.selectable?.deselect_item?(item,force)
+      @_check_selected()
+      item
+
+  where: (query) ->
+    ref = pi.List::where.call(@list, query)
+    for item in @list.find_cut('.pi-list')
+      ref = ref.concat item._nod.where(query)
+    ref   
+
   type: (value) ->
     @is_radio = !!value.match('radio')
     if @is_radio 
@@ -48,7 +68,6 @@ class pi.List.NestedSelect extends pi.List.Selectable
 
   disable_radio_watch: ->
     @_watching_radio = false
-
 
   update_radio_selection: (item) ->
     return if not item or (@_prev_selected_list is item.host)

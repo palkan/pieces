@@ -27,6 +27,8 @@ class pi.utils
   @input_rxp: /^(input|select|textarea)$/i
   @trim_rxp: /^\s*(.*[^\s])\s*$/m
   @notsnake_rxp: /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g
+  @str_rxp: /(^'|'$)/
+
 
   # Generate uniq string (but int) id
   @uid: ->
@@ -79,7 +81,8 @@ class pi.utils
       when val == 'true' then true
       when val == 'false' then false
       when val is '' then ''
-      when isNaN(Number(val)) then val 
+      when isNaN(Number(val)) and typeof val is 'string' then (val+"").replace(@str_rxp,'')
+      when isNaN(Number(val)) then val
       else Number(val)
 
   ## Sorting utils

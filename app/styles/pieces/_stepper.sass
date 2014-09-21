@@ -1,0 +1,39 @@
+$step-width: 14px
+
+.pi-stepper
+  @extend .pi-text-input-wrap
+  .text-input
+    padding-right: 30px
+  .step-up, .step-down
+    background: $grey-bg
+    width: $step-width
+    border-left: 1px solid $light-grey
+    position: absolute
+    right: 0
+    cursor: pointer
+    &:hover
+      background: lighten($grey-bg,10%)
+    &:active
+      background: darken($grey-bg,10%)
+    &:before
+      font-family: FontAwesome
+      font-size: 14px
+      width: ($step-width - 1)
+      position: absolute
+      left: 0
+      top: 0
+      line-height: 15px
+      text-align: center
+  .step-up
+    top: 0
+    bottom: 15px
+    &:before
+      content: "\f0de"
+      top: 4px
+  .step-down
+    border-top: 1px solid $light-grey
+    top: 15px
+    bottom: 00px
+    &:before
+      content: "\f0dd"
+      top: -2px

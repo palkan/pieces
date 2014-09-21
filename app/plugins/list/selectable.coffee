@@ -36,37 +36,32 @@ class pi.List.Selectable extends pi.Plugin
 
   item_click_handler: ->
     @_item_click_handler ||= (e) =>
-      return unless e.data.item.enabled
-
-      if @is_radio and not e.data.item.__selected__
-        @clear_selection(true) # here we only want to clear selection on this list
-        @list.select_item e.data.item
-      else if @is_check
-        @list.toggle_select e.data.item
-      else
-        return
-      @_check_selected()
+      @list.toggle_select e.data.item, true
+      @_check_selected() if e.data.item.enabled
       return      
 
   _check_selected: ->
     if @list.selected().length then @list.trigger('selected', @list.selected()) else @list.trigger('selection_cleared')
 
-  select_item: (item) ->
-    if not item.__selected__
+  # 'force' defines whether function is triggered by user interaction
+  select_item: (item, force = false) ->
+    if not item.__selected__ and (item.enabled or not force)
+      if @is_radio and force
+        @clear_selection(true)
       item.__selected__ = true
       @_selected_item = item
       @_selected = null  #TODO: add more intelligent cache
       item.addClass 'is-selected'
 
-  deselect_item: (item) ->
-    if item.__selected__
+  deselect_item: (item, force = false) ->
+    if item.__selected__ and ((item.enabled and @is_check) or (not force))
       item.__selected__ = false
       @_selected = null
       @_selected_item = null if @_selected_item is item
       item.removeClass 'is-selected'
   
-  toggle_select: (item) ->
-    if item.__selected__ then @deselect_item(item) else @select_item(item)
+  toggle_select: (item, force) ->
+    if item.__selected__ then @deselect_item(item,force) else @select_item(item,force)
 
   clear_selection: (silent = false) ->
     @deselect_item(item) for item in @list.items

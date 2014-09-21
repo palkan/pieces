@@ -25,6 +25,12 @@ class pi.Core
     @[from] = @[to]
     return
 
+  @included: ->
+    true
+
+  @extended: ->
+    true
+
   # register before and after callbacks for method
   @register_callback: (method, options={}) ->
     callback_name = options.as || method

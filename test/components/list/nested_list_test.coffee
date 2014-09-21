@@ -21,10 +21,10 @@ describe "nested list plugin", ->
                 <li class="item click20" data-id="3" data-key="anyone">Tre<span class="tags">bully,zombopuppy</span></li>
               </ul>
             </li>
-            <li class="pi item pi-list" data-group-id="2" data-id="11" data-plugins="selectable"> 
+            <li class="pi item pi-list" data-group-id="2" data-key="a" data-id="11" data-plugins="selectable"> 
               <span>Click2</span>
               <ul class="list">
-                <li class="item click3" data-id="4">A</li>
+                <li class="item click3" data-key="a" data-id="4">A</li>
                 <li class="item click30" data-id="5">B</li>
                 <li class="item" data-id="6">C</li>
               </ul>
@@ -35,8 +35,8 @@ describe "nested list plugin", ->
                 <span>Click3</span>
                 <ul class="list">
                   <li class="item" data-id="7">1</li>
-                  <li class="item click4" data-id="8">2</li>
-                  <li class="item" data-id="9">3</li>
+                  <li class="item click4" data-id="8" data-key="a">2</li>
+                  <li class="item" data-id="9" data-key="a">3</li>
                 </ul>
               </div>
             </li>
@@ -111,6 +111,17 @@ describe "nested list plugin", ->
           done()
 
         TestHelpers.clickElement $('.click3').node
+
+  describe "where", ->
+    it "should find items within nested lists and host list", ->
+      expect(@list.where(record: {key: 'a'})).to.have.length 4
+
+  describe "select and deselect item", ->
+    it "should select and deselect items", (done) ->
+      @list.on 'selected', (e) =>
+        expect(e.data[0].record.id).to.eq 7
+        done()
+      @list.select_item(@list.where(record: {id: 7})[0])
 
   describe "selected records", ->
 

@@ -434,7 +434,9 @@ _prop_hash(
 _prop_hash(
   "style", 
   (prop, val) -> 
-    if val is undefined 
+    if val is null
+      @node.style[prop] = null
+    else if val is undefined 
       return @node.style[prop]
     @node.style[prop] = val
 )
@@ -565,6 +567,14 @@ class pi.NodWin extends pi.Nod
     pi.NodWin.instance = @
     @delegate_to pi.Nod.root, 'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight'
     super window
+
+  scrollY: (y) ->
+    x = @scrollLeft()
+    @_with_raf 'scrollY', => @node.scrollTo(x,y)
+
+  scrollX: (x) ->
+    y = @scrollTop()
+    @_with_raf 'scrollX', => @node.scrollTo(x,y)
 
   width: ->
     @node.innerWidth

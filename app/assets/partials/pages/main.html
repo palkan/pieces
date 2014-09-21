@@ -10,11 +10,12 @@
   <div class="content">
     <div class="inline">
       <form pid="form" class="pi">
-        <div pid="btn" data-on-changed="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap"> <span>choose file</span>
+        <div pid="btn" data-on-changed="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap">
+           
+          choose file
           <input type="file" name="attachment[file]" class="file-input"/>
         </div>
-        <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">
-          <label class="checkbox-label">Multiple?</label>
+        <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">Multiple?
           <input type="hidden" name="attachment[multiple]"/>
         </div>
       </form>
@@ -98,7 +99,7 @@
     </div>
   </div>
 </div>
-<div pid="file_input_section" class="section white pi scroller-example">
+<div pid="scroller_section" class="section white pi scroller-example">
   <h1 class="title">Scroller</h1>
   <div class="content">
     <div pid="content" data-plugins="scrollable" class="long-content pi has-scroller">
@@ -133,6 +134,38 @@
         
         Aenean interdum est vel vehicula sagittis. Duis feugiat, orci eu porttitor lacinia, eros tellus feugiat arcu, eget dapibus mauris metus fermentum libero. Aliquam eu maximus est. Vestibulum quam augue, pulvinar ut nulla sed, sodales varius enim. Nullam eget tellus feugiat, efficitur nibh ac, fringilla mi. Integer scelerisque eget dolor in dapibus. Aenean lacinia placerat nisi, commodo ornare ante pharetra vitae. Nullam risus lorem, scelerisque eget neque eu, facilisis vehicula arcu. Fusce ante quam, dictum ut ligula ac, porttitor iaculis odio. Aliquam egestas felis mauris, ut lobortis nunc suscipit euismod. Integer ac gravida sem, in dignissim mi.
       </div>
+    </div>
+  </div>
+</div>
+<div pid="radio_group_section" class="section white pi">
+  <h1 class="title">Radio Group</h1>
+  <div class="content">
+    <div data-pid="txt" data-on-changed="@host.rg.value(e.data)" class="pi pi-text-input-wrap inline">
+      <input type="text" class="text-input"/>
+    </div>
+    <div data-on-changed="e.data ? @host.rg.addClass('inline') : @host.rg.removeClass('inline')" class="pi pi-checkbox-wrap inline">Inline?
+      <input type="hidden"/>
+    </div>
+    <div pid="rg" data-on-changed="@host.txt.value(e.data)" class="pi pi-radio-group">
+      <input type="hidden" value="Sam"/>
+      <ul class="list">
+        <li data-value="John" class="pi-radio-button item">John</li>
+        <li data-value="Vagon" class="pi-radio-button item">Vagon</li>
+        <li data-value="Jack" class="pi-radio-button item">Jack</li>
+        <li data-value="Sam" class="pi-radio-button item">Sam</li>
+        <li data-value="Elliot" class="pi-radio-button item">Elliot</li>
+        <li data-value="Julia" class="pi-radio-button item">Julia</li>
+        <li data-value="Edward" class="pi-radio-button item">Edward</li>
+        <li data-value="Simon" class="pi-radio-button item">Simon</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div pid="stepper_section" class="section white pi">
+  <h1 class="title">Stepper</h1>
+  <div class="content">
+    <div data-step="10" data-min="-10" data-max="100" data-prefix="$" data-suffix="'.00'" class="pi pi-stepper">
+      <input type="text" value="20" class="text-input"/><span class="step step-up"></span><span class="step step-down"></span>
     </div>
   </div>
 </div>

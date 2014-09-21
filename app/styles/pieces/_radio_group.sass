@@ -1,5 +1,4 @@
-.pi-checkbox-wrap
-  display: inline-block
+.pi-radio-button
   cursor: pointer
   user-select: none
   position: relative
@@ -14,18 +13,24 @@
     color: $cb-color
     top: 0
     left: 0
-    content: "\f096"
+    content: "\f1db"
   &:after
-    top: 8px
-    left: 2px
+    left: 10px
     font-size: 0px
-    transition: font-size 100ms $easeInSine, top 100ms $easeInSine
+    transition: font-size 100ms $easeInSine, left 100ms $easeInSine
     color: $black
-    content: "\f00c"
+    content: "\f111"
   &:focus:before
     color: $cb-focus-color
   &.is-selected:after
-    top: -1px
-    font-size: 16px
+    left: 5px
+    font-size: 8px
   &.is-disabled
     opacity: .7
+
+.pi-radio-group.inline
+  .pi-radio-button
+    margin-left: 10px
+    display: inline-block
+    &:first-child
+      margin-left: 0

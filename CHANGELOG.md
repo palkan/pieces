@@ -1,3 +1,9 @@
+## 0.3.4
+* add RadioGroup component
+* add Stepper component
+* refactor 'select_item' and 'deselect_item'
+* upd Checkbox styles 
+
 ## 0.3.3
 * add Form.validate method (now run before submit always)
 * add Scrollable

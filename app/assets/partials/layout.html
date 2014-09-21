@@ -13,32 +13,34 @@
   </head>
 </html>
 <body>
-  <header>
-    <div class="header-top"><a href="/">
-        <div class="logo inline"></div></a>
-      <div class="description inline">
-        <p class="name">PIECES</p>
-        <p>javascript ?</p>
-        <p>library ?</p>
-        <p>framework ?</p>
+  <div pid="main" class="main-wrap pi">
+    <header>
+      <div class="header-top"><a href="/">
+          <div class="logo inline"></div></a>
+        <div class="description inline">
+          <p class="name">PIECES</p>
+          <p>javascript ?</p>
+          <p>library ?</p>
+          <p>framework ?</p>
+        </div>
+        <div class="social inline-right"><a href="http://github.com/palkan/pieces" target="_blank" class="social-link fa fa-github">  </a></div>
       </div>
-      <div class="social inline-right"><a href="http://github.com/palkan/pieces" target="_blank" class="social-link fa fa-github">  </a></div>
+      <div class="nav-content">
+        <nav></nav>
+      </div>
+    </header>
+    <div class="main">
     </div>
-    <div class="nav-content">
-      <nav></nav>
-    </div>
-  </header>
-  <div class="main">
+    <footer>
+      <div class="content">
+        <div class="name"><span class="copy">&copy; 2014 palkan</span></div>
+      </div>
+    </footer>
   </div>
   <div pid="popup" data-show-delay="0" class="pi pi-popup is-hidden"></div>
   <script src="js/vendor.js"></script>
   <script src="js/pieces.js"></script>
   <script>require('pi');</script>
   <script src="js/demo.js"></script>
-  <script>pi.log_level = 'info';pi.app.initialize();</script>
-  <footer>
-    <div class="content">
-      <div class="name"><span class="copy">&copy; 2014 palkan</span></div>
-    </div>
-  </footer>
+  <script>pi.log_level = 'debug';pi.app.initialize();</script>
 </body>

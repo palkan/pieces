@@ -1,0 +1,25 @@
+
+<div pid="radio_group_section" class="section white pi">
+  <h1 class="title">Radio Group</h1>
+  <div class="content">
+    <div data-pid="txt" data-on-changed="@host.rg.value(e.data)" class="pi pi-text-input-wrap inline">
+      <input type="text" class="text-input"/>
+    </div>
+    <div data-on-changed="e.data ? @host.rg.addClass('inline') : @host.rg.removeClass('inline')" class="pi pi-checkbox-wrap inline">Inline?
+      <input type="hidden"/>
+    </div>
+    <div pid="rg" data-on-changed="@host.txt.value(e.data)" class="pi pi-radio-group">
+      <input type="hidden" value="Sam"/>
+      <ul class="list">
+        <li data-value="John" class="pi-radio-button item">John</li>
+        <li data-value="Vagon" class="pi-radio-button item">Vagon</li>
+        <li data-value="Jack" class="pi-radio-button item">Jack</li>
+        <li data-value="Sam" class="pi-radio-button item">Sam</li>
+        <li data-value="Elliot" class="pi-radio-button item">Elliot</li>
+        <li data-value="Julia" class="pi-radio-button item">Julia</li>
+        <li data-value="Edward" class="pi-radio-button item">Edward</li>
+        <li data-value="Simon" class="pi-radio-button item">Simon</li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -15,169 +15,204 @@
   </head>
 </html>
 <body>
-  <header>
-    <div class="header-top"><a href="/">
-        <div class="logo inline"></div></a>
-      <div class="description inline">
-        <p class="name">PIECES</p>
-        <p>javascript ?</p>
-        <p>library ?</p>
-        <p>framework ?</p>
+  <div pid="main" class="main-wrap pi">
+    <header>
+      <div class="header-top"><a href="/">
+          <div class="logo inline"></div></a>
+        <div class="description inline">
+          <p class="name">PIECES</p>
+          <p>javascript ?</p>
+          <p>library ?</p>
+          <p>framework ?</p>
+        </div>
+        <div class="social inline-right"><a href="http://github.com/palkan/pieces" target="_blank" class="social-link fa fa-github">  </a></div>
       </div>
-      <div class="social inline-right"><a href="http://github.com/palkan/pieces" target="_blank" class="social-link fa fa-github">  </a></div>
-    </div>
-    <div class="nav-content">
-      <nav></nav>
-    </div>
-  </header>
-  <div class="main">
-    <script id="file_item_mst" type="x-tmpl-mustache">
-      <li class="item">
-        <div class="field name">{{name}}</div>
-        <div class="field size">{{size}}</div>
-      </li>
-    </script>
-    <div pid="file_input_section" data-component="uploader" data-url="/upload" class="section white pi file-input-ex">
-      <h1 class="title">File input</h1>
-      <div class="content">
-        <div class="inline">
-          <form pid="form" class="pi">
-            <div pid="btn" data-on-changed="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap"> <span>choose file</span>
-              <input type="file" name="attachment[file]" class="file-input">
-            </div>
-            <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">
-              <label class="checkbox-label">Multiple?</label>
-              <input type="hidden" name="attachment[multiple]">
-            </div>
-          </form>
-          <button pid="upload_btn" class="pi pi-button-red is-disabled">upload</button>
-        </div>
-        <div pid="list" data-renderer="mustache(file_item_mst)" data-on-empty="e.data ? @host.upload_btn.disable : @host.upload_btn.enable" class="pi inline list-container">
-          <h2 class="title">Selected files</h2>
-          <ul class="list"></ul>
-        </div>
+      <div class="nav-content">
+        <nav></nav>
       </div>
-    </div>
-    <div pid="search_input_section" class="section white pi">
-      <h1 class="title">Search input</h1>
-      <div class="content">
-        <div data-on-query="@host.list.search(e.data)" class="pi pi-search-field"><i data-on-click="@host.reset" class="pi reset-btn fa fa-times"></i>
-          <input type="text" class="text-input">
-        </div>
-        <div pid="list" data-plugins="searchable" data-highlight="true" class="pi inline list-container">
-          <ul class="list">
-            <li data-name="John" class="item">
-              <div class="field name">John</div>
-            </li>
-            <li data-name="Vagon" class="item">
-              <div class="field name">Vagon</div>
-            </li>
-            <li data-name="Jack" class="item">
-              <div class="field name">Jack</div>
-            </li>
-            <li data-name="Sam" class="item">
-              <div class="field name">Sam</div>
-            </li>
-            <li data-name="Elliot" class="item">
-              <div class="field name">Elliot</div>
-            </li>
-            <li data-name="Julia" class="item">
-              <div class="field name">Julia</div>
-            </li>
-            <li data-name="Edward" class="item">
-              <div class="field name">Edward</div>
-            </li>
-            <li data-name="Simon" class="item">
-              <div class="field name">Simon</div>
-            </li>
-          </ul>
+    </header>
+    <div class="main">
+      <script id="file_item_mst" type="x-tmpl-mustache">
+        <li class="item">
+          <div class="field name">{{name}}</div>
+          <div class="field size">{{size}}</div>
+        </li>
+      </script>
+      <div pid="file_input_section" data-component="uploader" data-url="/upload" class="section white pi file-input-ex">
+        <h1 class="title">File input</h1>
+        <div class="content">
+          <div class="inline">
+            <form pid="form" class="pi">
+              <div pid="btn" data-on-changed="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap">
+                 
+                choose file
+                <input type="file" name="attachment[file]" class="file-input">
+              </div>
+              <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">Multiple?
+                <input type="hidden" name="attachment[multiple]">
+              </div>
+            </form>
+            <button pid="upload_btn" class="pi pi-button-red is-disabled">upload</button>
+          </div>
+          <div pid="list" data-renderer="mustache(file_item_mst)" data-on-empty="e.data ? @host.upload_btn.disable : @host.upload_btn.enable" class="pi inline list-container">
+            <h2 class="title">Selected files</h2>
+            <ul class="list"></ul>
+          </div>
         </div>
       </div>
-    </div>
-    <div pid="select_input_section" class="section white pi">
-      <h1 class="title">Select input</h1>
-      <div class="content">
-        <div pid="select_field" data-on-change="@this.placeholder.text(e.data.value)" class="pi pi-select-field">
-          <input type="hidden">
-          <div pid="placeholder" class="pi placeholder">Не выбрано</div>
-          <div pid="dropdown" data-plugins="scrollable" style="height: 200px" class="pi is-hidden list-container pi-select-list pi-scroll-pane">
+      <div pid="search_input_section" class="section white pi">
+        <h1 class="title">Search input</h1>
+        <div class="content">
+          <div data-on-query="@host.list.search(e.data)" class="pi pi-search-field"><i data-on-click="@host.reset" class="pi reset-btn fa fa-times"></i>
+            <input type="text" class="text-input">
+          </div>
+          <div pid="list" data-plugins="searchable" data-highlight="true" class="pi inline list-container">
             <ul class="list">
-              <li data-value="John" class="item">John</li>
-              <li data-value="Vagon" class="item">Vagon</li>
-              <li data-value="Jack" class="item">Jack</li>
-              <li data-value="Sam" class="item">Sam</li>
-              <li data-value="Elliot" class="item">Elliot</li>
-              <li data-value="Julia" class="item">Julia</li>
-              <li data-value="Edward" class="item">Edward</li>
-              <li data-value="Simon" class="item">Simon</li>
+              <li data-name="John" class="item">
+                <div class="field name">John</div>
+              </li>
+              <li data-name="Vagon" class="item">
+                <div class="field name">Vagon</div>
+              </li>
+              <li data-name="Jack" class="item">
+                <div class="field name">Jack</div>
+              </li>
+              <li data-name="Sam" class="item">
+                <div class="field name">Sam</div>
+              </li>
+              <li data-name="Elliot" class="item">
+                <div class="field name">Elliot</div>
+              </li>
+              <li data-name="Julia" class="item">
+                <div class="field name">Julia</div>
+              </li>
+              <li data-name="Edward" class="item">
+                <div class="field name">Edward</div>
+              </li>
+              <li data-name="Simon" class="item">
+                <div class="field name">Simon</div>
+              </li>
             </ul>
           </div>
         </div>
       </div>
-    </div>
-    <div pid="popup_section" class="section white pi">
-      <h1 class="title">Popup</h1>
-      <div class="content">
-        <button data-on-click="@popup.open(@host.p1)" class="pi pi-button-red">popup!</button>
-      </div>
-      <div class="popups is-hidden">
-        <div pid="p1" class="popup pi">
-          <I>am Popup!</I>
-          <button data-on-click="@popup.open(@host.host.p2)" class="pi pi-button-red">popup 2!</button>
+      <div pid="select_input_section" class="section white pi">
+        <h1 class="title">Select input</h1>
+        <div class="content">
+          <div pid="select_field" data-on-change="@this.placeholder.text(e.data.value)" class="pi pi-select-field">
+            <input type="hidden">
+            <div pid="placeholder" class="pi placeholder">Не выбрано</div>
+            <div pid="dropdown" data-plugins="scrollable" style="height: 200px" class="pi is-hidden list-container pi-select-list pi-scroll-pane">
+              <ul class="list">
+                <li data-value="John" class="item">John</li>
+                <li data-value="Vagon" class="item">Vagon</li>
+                <li data-value="Jack" class="item">Jack</li>
+                <li data-value="Sam" class="item">Sam</li>
+                <li data-value="Elliot" class="item">Elliot</li>
+                <li data-value="Julia" class="item">Julia</li>
+                <li data-value="Edward" class="item">Edward</li>
+                <li data-value="Simon" class="item">Simon</li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <div pid="p2" class="popup pi no-transitions">
-          <I>am Popup 2!</I>
+      </div>
+      <div pid="popup_section" class="section white pi">
+        <h1 class="title">Popup</h1>
+        <div class="content">
+          <button data-on-click="@popup.open(@host.p1)" class="pi pi-button-red">popup!</button>
+        </div>
+        <div class="popups is-hidden">
+          <div pid="p1" class="popup pi">
+            <I>am Popup!</I>
+            <button data-on-click="@popup.open(@host.host.p2)" class="pi pi-button-red">popup 2!</button>
+          </div>
+          <div pid="p2" class="popup pi no-transitions">
+            <I>am Popup 2!</I>
+          </div>
         </div>
       </div>
-    </div>
-    <div pid="file_input_section" class="section white pi scroller-example">
-      <h1 class="title">Scroller</h1>
-      <div class="content">
-        <div pid="content" data-plugins="scrollable" class="long-content pi has-scroller">
-          <div class="pi-scroll-content">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam finibus elementum rhoncus. Nam sagittis ornare aliquet. Cras in consequat ipsum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Cras at nisi sollicitudin, ornare purus sit amet, auctor tortor. Integer ligula lacus, convallis eu accumsan in, euismod vel justo. Integer sit amet mauris faucibus, mollis elit eu, sodales diam. Nam euismod velit condimentum vehicula efficitur. Etiam molestie, leo non facilisis egestas, lacus ante ornare eros, a luctus mi nisl sed tortor. In ac dignissim massa, condimentum scelerisque quam. Nunc vel lectus ultrices, imperdiet arcu sit amet, vehicula sem. Proin eros lacus, facilisis sit amet tempus eget, varius a massa. In hendrerit vitae dui quis semper. Aenean et viverra ligula. Maecenas in semper ipsum, et ullamcorper tellus.
-            
-            Donec placerat blandit mollis. Sed enim velit, commodo vitae ante ut, gravida semper eros. Nulla imperdiet quis augue id lobortis. Aliquam sagittis, sem in vehicula interdum, sapien ligula ornare nulla, a convallis sem purus vel leo. Mauris commodo dolor arcu. Aenean erat massa, vestibulum in nisl et, fermentum pretium ipsum. Proin ac laoreet lorem, eget ullamcorper nisl. Cras eu felis egestas, consequat mauris ac, pretium neque. Mauris et dolor eu sem consectetur porttitor in accumsan risus. Nullam vitae nisi nec lacus condimentum tempus a in metus. Vivamus commodo, enim at lacinia aliquet, enim nulla viverra lacus, id ultrices odio nisi eu nulla. Integer augue neque, pharetra ut odio ac, pretium maximus ante.
-            
-            In sit amet metus nec odio egestas eleifend sit amet at diam. Vivamus vitae fringilla purus, et interdum leo. In hac habitasse platea dictumst. Fusce laoreet dictum ligula eu venenatis. Integer tincidunt egestas nisl, sed mattis est rhoncus eget. Pellentesque at ultrices nisl. Phasellus porttitor rhoncus magna ac viverra. Quisque viverra fermentum urna, sit amet vestibulum eros imperdiet quis. Nam et gravida turpis. Quisque imperdiet, odio eu placerat vulputate, velit arcu dictum neque, quis mattis dolor nulla at tortor. Nam sed arcu a ex mattis vulputate. Phasellus scelerisque enim a erat condimentum consequat.
-            
-            Suspendisse malesuada ex non molestie hendrerit. Curabitur orci leo, mattis non mollis sed, tincidunt eu enim. Mauris quis lacus commodo, lobortis elit nec, varius mi. Donec ac semper magna. Maecenas maximus nunc et mauris varius rhoncus. Etiam venenatis ultricies nisi nec suscipit. Donec vehicula lectus sed ante accumsan, sit amet dignissim velit placerat. Integer eget mi nibh. Nam vitae est rhoncus, elementum dolor nec, consectetur nunc. Aliquam mattis felis id nisl aliquam, sed posuere sem varius. Suspendisse condimentum viverra erat, sit amet bibendum odio venenatis at. Pellentesque vehicula, nisi ac rhoncus dictum, diam ipsum lacinia libero, ut malesuada sapien felis at mauris.
-            
-            Pellentesque gravida, mauris non commodo ornare, lectus diam luctus justo, in faucibus diam erat vitae orci. Aenean at elit ut ante blandit convallis. Praesent laoreet nunc non porttitor iaculis. Vestibulum viverra luctus nibh, non porttitor felis mattis ut. Donec vehicula urna a eros ultricies sodales in sit amet lorem. Quisque quis libero vel mauris commodo viverra eget eu metus. Aliquam semper erat non euismod blandit. Sed commodo, tortor quis malesuada viverra, risus nisl efficitur leo, sed tempus nibh risus ut lacus.
-            
-            Suspendisse euismod consectetur urna ut egestas. Mauris luctus ullamcorper pulvinar. Nullam ac tortor convallis turpis dapibus aliquet. Cras mattis, nisl quis lacinia volutpat, ex nisl malesuada felis, ut viverra eros magna sollicitudin mauris. Suspendisse ornare ante in nulla interdum, eget feugiat lorem sodales. Sed commodo tempor iaculis. Donec dictum felis vel mollis hendrerit. Aliquam sagittis, eros non tristique elementum, arcu mi vulputate est, ac tincidunt tortor sem a diam.
-            
-            Mauris lacinia auctor fringilla. Suspendisse eros mauris, fermentum sit amet lorem at, bibendum bibendum magna. Integer auctor et sapien et molestie. Sed porta varius libero, at malesuada libero eleifend quis. Sed at varius orci. Donec mollis eget neque eu tincidunt. Aliquam tincidunt cursus maximus. Proin in nisi tincidunt nisi bibendum facilisis nec quis est. Maecenas sit amet urna vitae libero fermentum iaculis sed a est. Morbi elementum congue imperdiet. Maecenas cursus orci eros, a volutpat lorem pellentesque nec. Vivamus bibendum eu leo quis finibus. Vestibulum interdum, sapien molestie molestie volutpat, libero purus ultricies felis, vitae cursus velit lacus eu ligula.
-            
-            Proin pellentesque laoreet scelerisque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus pharetra auctor tempus. Aenean eget felis dictum, mattis nunc sit amet, lacinia urna. Mauris consequat, lacus sed sollicitudin finibus, nibh enim pulvinar metus, eu maximus tellus enim malesuada ipsum. Praesent nec tempus tortor, sed blandit mi. Nunc augue orci, tempor convallis ex non, fermentum blandit tellus. Integer scelerisque ac nisi et venenatis. Maecenas turpis ante, aliquet vel bibendum eu, tincidunt eget sapien.
-            
-            Donec mollis consectetur nisi, ut placerat quam finibus ac. Praesent vel imperdiet mauris. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aliquam sit amet bibendum orci. Suspendisse in enim at orci pretium imperdiet. Integer blandit dictum sapien, sed feugiat lectus laoreet sed. Ut rutrum malesuada leo, quis mollis ex scelerisque eget. Donec semper sem dui, non malesuada orci dapibus porttitor. Nunc fermentum tortor nec tellus posuere euismod. Vivamus imperdiet nec est vel tempor. Nulla bibendum vel nibh quis pulvinar. Quisque semper ultrices dignissim. Maecenas tellus dui, elementum id nisi vel, vehicula cursus erat. Fusce in bibendum sem, ac finibus tortor.
-            
-            Maecenas blandit lorem massa, id sagittis nulla laoreet vitae. Morbi volutpat ex sit amet neque pellentesque feugiat. Donec non mi id dolor pretium malesuada quis sed erat. Suspendisse sit amet laoreet augue. Mauris tincidunt felis felis, eget consequat turpis eleifend rhoncus. Curabitur sapien nulla, vestibulum ut tempus ac, euismod eget leo. Cras suscipit tempor est sit amet semper. Sed quis cursus turpis. Nulla facilisi. Nullam bibendum odio id mattis aliquet. Cras lacinia, sapien ac fringilla aliquam, purus libero tincidunt lectus, sit amet laoreet augue justo ut felis. Donec fringilla vel sapien in sodales.
-            
-            Curabitur sit amet diam eget urna tristique tristique. Aenean iaculis, felis sed hendrerit dignissim, nisl nulla fermentum nulla, non vestibulum quam mauris non risus. Quisque dapibus augue sit amet sem tempor, sed commodo nunc condimentum. Phasellus rutrum mauris nec rutrum rutrum. Aenean eget rutrum metus. Phasellus ut suscipit quam. In posuere sapien at orci porttitor sollicitudin. Vestibulum justo est, lacinia in finibus nec, interdum vitae felis. Quisque lobortis orci ut neque consectetur vulputate. Quisque eros diam, suscipit vel justo dictum, scelerisque facilisis magna. Maecenas id nisl quis justo iaculis ultricies ac ut nisi. Vivamus tortor lorem, placerat ut ultricies id, fringilla at nunc.
-            
-            Proin orci lacus, luctus vitae imperdiet sit amet, rhoncus vitae massa. Ut mollis nunc in imperdiet bibendum. Mauris maximus convallis est nec porttitor. Etiam eu lacinia turpis. Pellentesque et mauris hendrerit libero aliquam dictum. Sed erat tellus, viverra eget elementum non, suscipit sodales orci. Mauris pulvinar ex vel ligula scelerisque, vel interdum metus vestibulum. Ut a lacus mollis, mattis lorem in, finibus leo. In imperdiet arcu in lacus facilisis, eget pharetra orci ullamcorper.
-            
-            Phasellus nec porttitor nulla, a ornare eros. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Maecenas laoreet sodales elit, at laoreet enim porttitor vitae. Pellentesque mattis fringilla tortor, id rutrum purus condimentum a. Nunc dapibus dictum congue. Ut pellentesque velit et semper maximus. Vestibulum ullamcorper nisi in metus tristique gravida. Curabitur bibendum bibendum erat, vitae posuere massa tristique in. Duis id elementum eros. In sit amet tempus ex. Vivamus volutpat leo velit, sed bibendum odio tincidunt sed. Nunc viverra lectus nisi, eu tempus ante efficitur ac. Fusce quis lectus vel turpis scelerisque finibus pulvinar quis magna. Pellentesque in convallis augue, a blandit massa. Donec et tortor ex.
-            
-            Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla facilisi. In dapibus sollicitudin pretium. Nulla facilisi. Donec laoreet mauris sed tempor ultrices. Vivamus suscipit dolor lacus. Curabitur sollicitudin lobortis neque, ut placerat velit.
-            
-            Aenean interdum est vel vehicula sagittis. Duis feugiat, orci eu porttitor lacinia, eros tellus feugiat arcu, eget dapibus mauris metus fermentum libero. Aliquam eu maximus est. Vestibulum quam augue, pulvinar ut nulla sed, sodales varius enim. Nullam eget tellus feugiat, efficitur nibh ac, fringilla mi. Integer scelerisque eget dolor in dapibus. Aenean lacinia placerat nisi, commodo ornare ante pharetra vitae. Nullam risus lorem, scelerisque eget neque eu, facilisis vehicula arcu. Fusce ante quam, dictum ut ligula ac, porttitor iaculis odio. Aliquam egestas felis mauris, ut lobortis nunc suscipit euismod. Integer ac gravida sem, in dignissim mi.
+      <div pid="scroller_section" class="section white pi scroller-example">
+        <h1 class="title">Scroller</h1>
+        <div class="content">
+          <div pid="content" data-plugins="scrollable" class="long-content pi has-scroller">
+            <div class="pi-scroll-content">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam finibus elementum rhoncus. Nam sagittis ornare aliquet. Cras in consequat ipsum. Interdum et malesuada fames ac ante ipsum primis in faucibus. Cras at nisi sollicitudin, ornare purus sit amet, auctor tortor. Integer ligula lacus, convallis eu accumsan in, euismod vel justo. Integer sit amet mauris faucibus, mollis elit eu, sodales diam. Nam euismod velit condimentum vehicula efficitur. Etiam molestie, leo non facilisis egestas, lacus ante ornare eros, a luctus mi nisl sed tortor. In ac dignissim massa, condimentum scelerisque quam. Nunc vel lectus ultrices, imperdiet arcu sit amet, vehicula sem. Proin eros lacus, facilisis sit amet tempus eget, varius a massa. In hendrerit vitae dui quis semper. Aenean et viverra ligula. Maecenas in semper ipsum, et ullamcorper tellus.
+              
+              Donec placerat blandit mollis. Sed enim velit, commodo vitae ante ut, gravida semper eros. Nulla imperdiet quis augue id lobortis. Aliquam sagittis, sem in vehicula interdum, sapien ligula ornare nulla, a convallis sem purus vel leo. Mauris commodo dolor arcu. Aenean erat massa, vestibulum in nisl et, fermentum pretium ipsum. Proin ac laoreet lorem, eget ullamcorper nisl. Cras eu felis egestas, consequat mauris ac, pretium neque. Mauris et dolor eu sem consectetur porttitor in accumsan risus. Nullam vitae nisi nec lacus condimentum tempus a in metus. Vivamus commodo, enim at lacinia aliquet, enim nulla viverra lacus, id ultrices odio nisi eu nulla. Integer augue neque, pharetra ut odio ac, pretium maximus ante.
+              
+              In sit amet metus nec odio egestas eleifend sit amet at diam. Vivamus vitae fringilla purus, et interdum leo. In hac habitasse platea dictumst. Fusce laoreet dictum ligula eu venenatis. Integer tincidunt egestas nisl, sed mattis est rhoncus eget. Pellentesque at ultrices nisl. Phasellus porttitor rhoncus magna ac viverra. Quisque viverra fermentum urna, sit amet vestibulum eros imperdiet quis. Nam et gravida turpis. Quisque imperdiet, odio eu placerat vulputate, velit arcu dictum neque, quis mattis dolor nulla at tortor. Nam sed arcu a ex mattis vulputate. Phasellus scelerisque enim a erat condimentum consequat.
+              
+              Suspendisse malesuada ex non molestie hendrerit. Curabitur orci leo, mattis non mollis sed, tincidunt eu enim. Mauris quis lacus commodo, lobortis elit nec, varius mi. Donec ac semper magna. Maecenas maximus nunc et mauris varius rhoncus. Etiam venenatis ultricies nisi nec suscipit. Donec vehicula lectus sed ante accumsan, sit amet dignissim velit placerat. Integer eget mi nibh. Nam vitae est rhoncus, elementum dolor nec, consectetur nunc. Aliquam mattis felis id nisl aliquam, sed posuere sem varius. Suspendisse condimentum viverra erat, sit amet bibendum odio venenatis at. Pellentesque vehicula, nisi ac rhoncus dictum, diam ipsum lacinia libero, ut malesuada sapien felis at mauris.
+              
+              Pellentesque gravida, mauris non commodo ornare, lectus diam luctus justo, in faucibus diam erat vitae orci. Aenean at elit ut ante blandit convallis. Praesent laoreet nunc non porttitor iaculis. Vestibulum viverra luctus nibh, non porttitor felis mattis ut. Donec vehicula urna a eros ultricies sodales in sit amet lorem. Quisque quis libero vel mauris commodo viverra eget eu metus. Aliquam semper erat non euismod blandit. Sed commodo, tortor quis malesuada viverra, risus nisl efficitur leo, sed tempus nibh risus ut lacus.
+              
+              Suspendisse euismod consectetur urna ut egestas. Mauris luctus ullamcorper pulvinar. Nullam ac tortor convallis turpis dapibus aliquet. Cras mattis, nisl quis lacinia volutpat, ex nisl malesuada felis, ut viverra eros magna sollicitudin mauris. Suspendisse ornare ante in nulla interdum, eget feugiat lorem sodales. Sed commodo tempor iaculis. Donec dictum felis vel mollis hendrerit. Aliquam sagittis, eros non tristique elementum, arcu mi vulputate est, ac tincidunt tortor sem a diam.
+              
+              Mauris lacinia auctor fringilla. Suspendisse eros mauris, fermentum sit amet lorem at, bibendum bibendum magna. Integer auctor et sapien et molestie. Sed porta varius libero, at malesuada libero eleifend quis. Sed at varius orci. Donec mollis eget neque eu tincidunt. Aliquam tincidunt cursus maximus. Proin in nisi tincidunt nisi bibendum facilisis nec quis est. Maecenas sit amet urna vitae libero fermentum iaculis sed a est. Morbi elementum congue imperdiet. Maecenas cursus orci eros, a volutpat lorem pellentesque nec. Vivamus bibendum eu leo quis finibus. Vestibulum interdum, sapien molestie molestie volutpat, libero purus ultricies felis, vitae cursus velit lacus eu ligula.
+              
+              Proin pellentesque laoreet scelerisque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus pharetra auctor tempus. Aenean eget felis dictum, mattis nunc sit amet, lacinia urna. Mauris consequat, lacus sed sollicitudin finibus, nibh enim pulvinar metus, eu maximus tellus enim malesuada ipsum. Praesent nec tempus tortor, sed blandit mi. Nunc augue orci, tempor convallis ex non, fermentum blandit tellus. Integer scelerisque ac nisi et venenatis. Maecenas turpis ante, aliquet vel bibendum eu, tincidunt eget sapien.
+              
+              Donec mollis consectetur nisi, ut placerat quam finibus ac. Praesent vel imperdiet mauris. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aliquam sit amet bibendum orci. Suspendisse in enim at orci pretium imperdiet. Integer blandit dictum sapien, sed feugiat lectus laoreet sed. Ut rutrum malesuada leo, quis mollis ex scelerisque eget. Donec semper sem dui, non malesuada orci dapibus porttitor. Nunc fermentum tortor nec tellus posuere euismod. Vivamus imperdiet nec est vel tempor. Nulla bibendum vel nibh quis pulvinar. Quisque semper ultrices dignissim. Maecenas tellus dui, elementum id nisi vel, vehicula cursus erat. Fusce in bibendum sem, ac finibus tortor.
+              
+              Maecenas blandit lorem massa, id sagittis nulla laoreet vitae. Morbi volutpat ex sit amet neque pellentesque feugiat. Donec non mi id dolor pretium malesuada quis sed erat. Suspendisse sit amet laoreet augue. Mauris tincidunt felis felis, eget consequat turpis eleifend rhoncus. Curabitur sapien nulla, vestibulum ut tempus ac, euismod eget leo. Cras suscipit tempor est sit amet semper. Sed quis cursus turpis. Nulla facilisi. Nullam bibendum odio id mattis aliquet. Cras lacinia, sapien ac fringilla aliquam, purus libero tincidunt lectus, sit amet laoreet augue justo ut felis. Donec fringilla vel sapien in sodales.
+              
+              Curabitur sit amet diam eget urna tristique tristique. Aenean iaculis, felis sed hendrerit dignissim, nisl nulla fermentum nulla, non vestibulum quam mauris non risus. Quisque dapibus augue sit amet sem tempor, sed commodo nunc condimentum. Phasellus rutrum mauris nec rutrum rutrum. Aenean eget rutrum metus. Phasellus ut suscipit quam. In posuere sapien at orci porttitor sollicitudin. Vestibulum justo est, lacinia in finibus nec, interdum vitae felis. Quisque lobortis orci ut neque consectetur vulputate. Quisque eros diam, suscipit vel justo dictum, scelerisque facilisis magna. Maecenas id nisl quis justo iaculis ultricies ac ut nisi. Vivamus tortor lorem, placerat ut ultricies id, fringilla at nunc.
+              
+              Proin orci lacus, luctus vitae imperdiet sit amet, rhoncus vitae massa. Ut mollis nunc in imperdiet bibendum. Mauris maximus convallis est nec porttitor. Etiam eu lacinia turpis. Pellentesque et mauris hendrerit libero aliquam dictum. Sed erat tellus, viverra eget elementum non, suscipit sodales orci. Mauris pulvinar ex vel ligula scelerisque, vel interdum metus vestibulum. Ut a lacus mollis, mattis lorem in, finibus leo. In imperdiet arcu in lacus facilisis, eget pharetra orci ullamcorper.
+              
+              Phasellus nec porttitor nulla, a ornare eros. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Maecenas laoreet sodales elit, at laoreet enim porttitor vitae. Pellentesque mattis fringilla tortor, id rutrum purus condimentum a. Nunc dapibus dictum congue. Ut pellentesque velit et semper maximus. Vestibulum ullamcorper nisi in metus tristique gravida. Curabitur bibendum bibendum erat, vitae posuere massa tristique in. Duis id elementum eros. In sit amet tempus ex. Vivamus volutpat leo velit, sed bibendum odio tincidunt sed. Nunc viverra lectus nisi, eu tempus ante efficitur ac. Fusce quis lectus vel turpis scelerisque finibus pulvinar quis magna. Pellentesque in convallis augue, a blandit massa. Donec et tortor ex.
+              
+              Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nulla facilisi. In dapibus sollicitudin pretium. Nulla facilisi. Donec laoreet mauris sed tempor ultrices. Vivamus suscipit dolor lacus. Curabitur sollicitudin lobortis neque, ut placerat velit.
+              
+              Aenean interdum est vel vehicula sagittis. Duis feugiat, orci eu porttitor lacinia, eros tellus feugiat arcu, eget dapibus mauris metus fermentum libero. Aliquam eu maximus est. Vestibulum quam augue, pulvinar ut nulla sed, sodales varius enim. Nullam eget tellus feugiat, efficitur nibh ac, fringilla mi. Integer scelerisque eget dolor in dapibus. Aenean lacinia placerat nisi, commodo ornare ante pharetra vitae. Nullam risus lorem, scelerisque eget neque eu, facilisis vehicula arcu. Fusce ante quam, dictum ut ligula ac, porttitor iaculis odio. Aliquam egestas felis mauris, ut lobortis nunc suscipit euismod. Integer ac gravida sem, in dignissim mi.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div pid="radio_group_section" class="section white pi">
+        <h1 class="title">Radio Group</h1>
+        <div class="content">
+          <div data-pid="txt" data-on-changed="@host.rg.value(e.data)" class="pi pi-text-input-wrap inline">
+            <input type="text" class="text-input">
+          </div>
+          <div data-on-changed="e.data ? @host.rg.addClass('inline') : @host.rg.removeClass('inline')" class="pi pi-checkbox-wrap inline">Inline?
+            <input type="hidden">
+          </div>
+          <div pid="rg" data-on-changed="@host.txt.value(e.data)" class="pi pi-radio-group">
+            <input type="hidden" value="Sam">
+            <ul class="list">
+              <li data-value="John" class="pi-radio-button item">John</li>
+              <li data-value="Vagon" class="pi-radio-button item">Vagon</li>
+              <li data-value="Jack" class="pi-radio-button item">Jack</li>
+              <li data-value="Sam" class="pi-radio-button item">Sam</li>
+              <li data-value="Elliot" class="pi-radio-button item">Elliot</li>
+              <li data-value="Julia" class="pi-radio-button item">Julia</li>
+              <li data-value="Edward" class="pi-radio-button item">Edward</li>
+              <li data-value="Simon" class="pi-radio-button item">Simon</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div pid="stepper_section" class="section white pi">
+        <h1 class="title">Stepper</h1>
+        <div class="content">
+          <div data-step="10" data-min="-10" data-max="100" data-prefix="$" data-suffix="'.00'" class="pi pi-stepper">
+            <input type="text" value="20" class="text-input"><span class="step step-up"></span><span class="step step-down"></span>
           </div>
         </div>
       </div>
     </div>
+    <footer>
+      <div class="content">
+        <div class="name"><span class="copy">&copy; 2014 palkan</span></div>
+      </div>
+    </footer>
   </div>
   <div pid="popup" data-show-delay="0" class="pi pi-popup is-hidden"></div>
   <script src="js/vendor.js"></script>
   <script src="js/pieces.js"></script>
   <script>require('pi');</script>
   <script src="js/demo.js"></script>
-  <script>pi.log_level = 'info';pi.app.initialize();</script>
-  <footer>
-    <div class="content">
-      <div class="name"><span class="copy">&copy; 2014 palkan</span></div>
-    </div>
-  </footer>
+  <script>pi.log_level = 'debug';pi.app.initialize();</script>
 </body>

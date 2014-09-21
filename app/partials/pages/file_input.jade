@@ -9,10 +9,10 @@ script(id="file_item_mst", type="x-tmpl-mustache")
     .inline
       form.pi(pid="form")
         .pi.pi-button-blue.pi-file-input-wrap(pid="btn",data-on-changed="@host.host.list.data_provider(e.data)") 
-          span choose file
+          | choose file
           input.file-input(type="file", name="attachment[file]") 
         .pi.pi-checkbox-wrap(data-on-selected="@host.btn.multiple(e.data)")
-          label.checkbox-label Multiple?
+          | Multiple?
           input(type="hidden", name="attachment[multiple]")
       button.pi.pi-button-red.is-disabled(pid="upload_btn") upload
     .pi.inline.list-container(pid="list", data-renderer="mustache(file_item_mst)", data-on-empty="e.data ? @host.upload_btn.disable : @host.upload_btn.enable")

@@ -1,9 +1,11 @@
 include dochead
 body
-  include header
+  .main-wrap.pi(pid="main")
+    include header
   
-  .main
-    block content
-
+    .main
+      block content
+    include footer
   include popup
-  include footer
+  include scripts
+  

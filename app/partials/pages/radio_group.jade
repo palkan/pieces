@@ -1,0 +1,27 @@
+.section.white.pi(pid="radio_group_section")
+  h1.title Radio Group
+  .content
+    .pi.pi-text-input-wrap.inline(data-pid="txt", data-on-changed="@host.rg.value(e.data)")
+      input.text-input(type="text")
+    .pi.pi-checkbox-wrap.inline(data-on-changed="e.data ? @host.rg.addClass('inline') : @host.rg.removeClass('inline')")
+      | Inline?
+      input(type="hidden")
+    .pi.pi-radio-group(pid="rg", data-on-changed="@host.txt.value(e.data)")
+      input(type="hidden", value="Sam")
+      ul.list
+        li.pi-radio-button.item(data-value="John")
+          |John
+        li.pi-radio-button.item(data-value="Vagon")
+          |Vagon
+        li.pi-radio-button.item(data-value="Jack")
+          |Jack
+        li.pi-radio-button.item(data-value="Sam")
+          |Sam
+        li.pi-radio-button.item(data-value="Elliot")
+          |Elliot
+        li.pi-radio-button.item(data-value="Julia")
+          |Julia
+        li.pi-radio-button.item(data-value="Edward")
+          |Edward
+        li.pi-radio-button.item(data-value="Simon")
+          |Simon
