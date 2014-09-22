@@ -154,6 +154,16 @@ describe "form component", ->
                 <li class="item" data-value="3">Tre</li>
               </ul>
             </div>
+          <ul>
+            <li>
+              <input type="hidden" name="options[][id]" value="1"/>
+              <input type="hidden" name="options[][key]" value="a"/>
+            </li>
+            <li> 
+              <input type="hidden" name="options[][id]" value="2"/>
+              <input type="hidden" name="options[][key]" value="b"/>
+            </li>
+          </ul>
           <button type="submit">Submit</button>
         </form>
       """
@@ -166,6 +176,9 @@ describe "form component", ->
       expect(@example.value().user.post.type).to.eq '2'
       expect(@example.value().user.post.title).to.eq 'Title'
       expect(@example.value().user.post.desc).to.eq '1'
+      expect(@example.value().options).to.have.length 2
+      expect(@example.value().options[0].key).to.eq 'a'
+      expect(@example.value().options[1].key).to.eq 'b'
 
     it "should set inputs values", ->
       @example.value user: {fullname: 'Ivan', post: {desc: 'Song', title: 'EA', is_active: true, type: 3}}

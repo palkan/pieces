@@ -31,7 +31,7 @@ describe "nested list plugin", ->
             </li>
             <li class="pi item"> 
               <span>Nested sublist</span>
-              <div class="pi pi-list click10" pid="list" data-group-id="3" data-id="12" data-plugins="selectable"> 
+              <div class="pi pi-list click10" pid="list" data-group-id="3" data-id="12" data-plugins="selectable sortable searchable"> 
                 <span>Click3</span>
                 <ul class="list">
                   <li class="item" data-id="7">1</li>
@@ -111,6 +111,15 @@ describe "nested list plugin", ->
           done()
 
         TestHelpers.clickElement $('.click3').node
+
+    describe "update", ->
+      it "should send update events from nested lists", (done)->
+        @list.on 'update', (e) =>
+          expect(e.data.type).to.eq 'item_added'
+          expect(e.data.item.record.id).to.eq 10
+          done()
+
+        @list.items[2].list.add_item pi.Nod.create('''<li class="item" data-id="10">10</li>''')
 
   describe "where", ->
     it "should find items within nested lists and host list", ->

@@ -18,6 +18,7 @@ class pi.Base.Selectable extends pi.Plugin
     @_click_handler ||= (e) =>
       return unless @target.enabled
       @toggle_select()
+      false
 
   toggle_select: ->
     if @__selected__ then @deselect() else @select()

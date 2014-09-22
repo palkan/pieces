@@ -27,7 +27,7 @@ class pi.utils
   @input_rxp: /^(input|select|textarea)$/i
   @trim_rxp: /^\s*(.*[^\s])\s*$/m
   @notsnake_rxp: /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g
-  @str_rxp: /(^'|'$)/
+  @str_rxp: /(^'|'$)/g
 
 
   # Generate uniq string (but int) id

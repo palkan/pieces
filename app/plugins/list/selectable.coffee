@@ -16,7 +16,7 @@ class pi.List.Selectable extends pi.Plugin
       
     @type(@list.options.select_type || 'radio') 
     
-    @list.on 'item_click', @item_click_handler() # TODO: overwrite _item_clicked
+    @enable() unless @list.options.no_select?
 
     for item in @list.items 
       if item.hasClass 'is-selected'
@@ -27,8 +27,19 @@ class pi.List.Selectable extends pi.Plugin
       (e) => 
         @_selected = null
         @_check_selected()
+        false
     ), @, (e) -> (e.data.type isnt 'item_added') 
     return
+
+  enable: ->
+    unless @enabled
+      @enabled = true
+      @list.on 'item_click', @item_click_handler()
+
+  disable: ->
+    if @enabled
+      @enabled = false
+      @list.off 'item_click', @item_click_handler()
 
   type: (value) ->
     @is_radio = !!value.match('radio')

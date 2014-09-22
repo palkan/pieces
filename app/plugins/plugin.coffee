@@ -8,7 +8,7 @@ class pi.Plugin extends pi.Core
   # invoked when plugin included to class (pi.Base)
   @included: (klass) ->
     self = @
-    klass.before_create -> @attach_plugin self 
+    klass.after_initialize -> @attach_plugin self 
   
   # invoked when plugin attached to instance
   @attached: (instance) ->

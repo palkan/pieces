@@ -32,7 +32,7 @@ class pi.List.Searchable extends pi.Plugin
     return
 
   item_updated: (item) ->
-    return unless @matcher
+    return false unless @matcher
 
     if @_all_items.indexOf(item)<0
       @_all_items.unshift item
@@ -42,6 +42,8 @@ class pi.List.Searchable extends pi.Plugin
       return
     else if @searching
       @list.remove_item item, true
+
+    false
 
   update_scope: (scope) -> 
     @matcher_factory = @_matcher_from_scope(scope)

@@ -26,8 +26,9 @@ class pi.List.Sortable extends pi.Plugin
     @list.on 'update', ((e) => @item_updated(e.data.item)), @, (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list) 
 
   item_updated: (item) ->
-    return unless @_compare_fun
+    return false unless @_compare_fun
     @_bisect_sort item, 0, @list.size()-1
+    false
 
 
   _bisect_sort: (item, left, right) ->

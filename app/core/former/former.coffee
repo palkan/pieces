@@ -67,7 +67,7 @@ class pi.Former
                 if _current[_arr_name].length>0
                   _array_item = _current[_arr_name][_current[_arr_name].length-1] 
 
-                if (not _arr_len or ((_next_field in _arrays[_arr_fullname]) and not (_next_field.indexOf('[]')>-1 or !(_array_item[_next_field] && (i+1 == len-1)))))
+                if (not _arr_len or ((_next_field in _arrays[_arr_fullname]) and not (_next_field.indexOf('[]')>-1 or !(_array_item[_next_field]? && (i+1 == len-1)))))
                   _array_item = {}  
                   _current[_arr_name].push _array_item
                   _arrays[_arr_fullname] = []

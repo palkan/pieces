@@ -12,7 +12,7 @@ describe "select_input component", ->
     root.append @test_div 
     @test_div.append """
         <div class="pi pi-select-field" data-pid="test" style="position:relative">
-          <input type="hidden" value=""/>
+          <input type="hidden" value="2"/>
           <div class="pi placeholder" pid="placeholder" data-placeholder="Не выбрано"></div>
           <div class="pi pi-list is-hidden" data-pid="dropdown" style="position:relative">
             <ul class="list">
@@ -34,6 +34,10 @@ describe "select_input component", ->
   describe "init", ->
     it "should be select_input", ->
       expect(@example).to.be.instanceof pi.SelectInput
+
+    it "should be init value", ->
+      expect($('.placeholder').text()).to.eq 'Two'
+      expect(@example.dropdown.selected_size()).to.eq 1
 
   describe "appearance", ->
     it "should show dropdown on focus",  ->

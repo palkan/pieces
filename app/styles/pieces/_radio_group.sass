@@ -4,17 +4,21 @@
   position: relative
   padding-left: 24px
   line-height: 28px
+  &.is-multiline
+    line-height: 16px
   &:before, &:after
     font-family: FontAwesome
     font-size: 20px
     position: absolute
     width: 18px
+    line-height: 28px
   &:before
     color: $cb-color
     top: 0
     left: 0
     content: "\f1db"
   &:after
+    top: 0
     left: 10px
     font-size: 0px
     transition: font-size 100ms $easeInSine, left 100ms $easeInSine

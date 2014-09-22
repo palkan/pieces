@@ -135,6 +135,7 @@ _selector = (s, parent) ->
       parent ||= document
       node = e.target.node
       return true if node.matches(s) 
+      return false if node is parent
       while((node = node.parentNode) != parent)
         return (e.target = pi.Nod.create(node)) if node.matches(s)
 
@@ -146,7 +147,7 @@ class pi.NodEventDispatcher extends pi.EventDispatcher
       @trigger _prepare_event(event)  
 
   listen: (selector, event, callback, context) ->
-    @on event, callback, context, _selector(selector)
+    @on event, callback, context, _selector(selector, @node)
 
   add_native_listener: (type) ->
     if NodEvent.has_delegate type

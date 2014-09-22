@@ -16,11 +16,15 @@ class pi.List.NestedSelect extends pi.List.Selectable
   initialize: (@list) ->
     pi.Plugin::initialize.apply @, arguments
 
-    @selectable = @list.selectable || {select_all: _null, clear_selection: _null, type: _null, _selected_item: null} 
+    @selectable = @list.selectable || {select_all: _null, clear_selection: _null, type: _null, _selected_item: null, enable: _null, disable: _null} 
     @list.delegate_to @, 'clear_selection', 'select_all', 'selected', 'where', 'select_item', 'deselect_item'
 
     unless @list.has_selectable is true
       @list.delegate_to @, 'selected_records', 'selected_record', 'selected_item', 'selected_size'
+
+    @enabled = true
+
+    @disable() if @list.options.no_select?
 
     @type @list.options.nested_select_type||""
 
@@ -34,7 +38,24 @@ class pi.List.NestedSelect extends pi.List.Selectable
       if e.target != @list
         e.cancel()
         @_check_selected()
+      else
+        false
     return
+
+  enable: ->
+    unless @enabled
+      @enabled = true
+      @selectable.enable()
+      for item in @list.find_cut('.pi-list')
+        item._nod.selectable?.enable()        
+
+  disable: ->
+    if @enabled
+      @enabled = false
+      @selectable.disable()
+      for item in @list.find_cut('.pi-list')
+        item._nod.selectable?.disable()        
+
 
   select_item: (item, force = false) ->
     if not item.__selected__

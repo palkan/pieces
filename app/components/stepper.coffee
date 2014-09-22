@@ -1,10 +1,10 @@
 'use strict'
 pi = require '../core'
-require './base/base_input'
+require './base/textinput'
 require './events/input_events'
 utils = pi.utils
 
-class pi.Stepper extends pi.BaseInput
+class pi.Stepper extends pi.TextInput
   postinitialize: ->
     super
     @_prefix = if @options.prefix? then @options.prefix else ""
@@ -21,6 +21,7 @@ class pi.Stepper extends pi.BaseInput
         @incr()
       else
         @decr()
+      @trigger pi.InputEvent.Change, @value()
       e.cancel()
 
   value: (val) ->

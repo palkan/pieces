@@ -39,6 +39,7 @@ class pi.List.Restful extends pi.Plugin
     @list.delegate_to @, 'find_by_id'
     @list.on 'destroyed', =>
       @bind null
+      false
     return
 
   bind: (resources, load = false, params) ->

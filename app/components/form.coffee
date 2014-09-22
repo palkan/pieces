@@ -6,6 +6,9 @@ utils = pi.utils
 
 Validator = pi.BaseInput.Validator
 
+_array_name = (name) ->
+  name.indexOf('[]')>-1
+
 class pi.Form extends pi.Base
   postinitialize: ->
     super
@@ -58,14 +61,16 @@ class pi.Form extends pi.Base
     @trigger pi.InputEvent.Clear unless silent
 
   read_values: ->
+    _name_values = []
     @former.traverse_nodes @node, 
       (node) =>
         if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
-          @_cache[nod.name()] = nod
-          @update_value nod.name(), nod.value(), true
+          @_cache[nod.name()] = nod unless _array_name(name)
+          _name_values.push name: nod.name(), value: nod.value()
         else if utils.is_input(node) && node.name
-          @_cache[node.name] = pi.Nod.create node
-          @update_value node.name, @former._parse_nod_value(node)
+          @_cache[node.name] = pi.Nod.create(node) unless _array_name(node.name)
+          _name_values.push name: node.name, value: @former._parse_nod_value(node)
+    @_value = @former.process_name_values(_name_values)
 
   find_by_name: (name) ->
     if @_cache[name]?
@@ -128,6 +133,10 @@ class pi.Form extends pi.Base
     return unless name
     name = @former.transform_name name
     val = @former.transform_value val
+
+    # cannot proccess array value without context
+    return if _array_name(name) is true
+    
     utils.set_path @_value, name, val
     @trigger pi.FormEvent.Update, @_value unless silent
 

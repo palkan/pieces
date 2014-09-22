@@ -1,7 +1,9 @@
 .section.white.pi(pid="stepper_section")
   h1.title Stepper
   .content
-    .pi.pi-stepper(data-step="10",data-min="-10",data-max="100",data-prefix="$",data-suffix="'.00'")
+    .pi.pi-text-input-wrap(data-pid="txt", data-on-changed="@host.stepper.value(e.data)")
+      input.text-input(type="text")
+    .pi.pi-stepper(pid="stepper", data-step="10",data-min="-10",data-max="100",data-prefix="$",data-suffix="'.00'", data-on-changed="@host.txt.value(e.data)")
       input.text-input(type="text", value="20")
       span.step.step-up
       span.step.step-down

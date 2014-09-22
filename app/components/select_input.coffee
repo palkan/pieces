@@ -31,7 +31,9 @@ class pi.SelectInput extends pi.BaseInput
     @on 'blur', =>
       @dropdown.hide()
 
-    if @options.default_value?
+    if @input.value()
+      @value utils.serialize(@input.value())
+    else if @options.default_value?
       @value @options.default_value
     else if @placeholder.text() is ''
       @placeholder.text(@placeholder.options.placeholder)

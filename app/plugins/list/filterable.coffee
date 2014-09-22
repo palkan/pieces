@@ -25,7 +25,7 @@ class pi.List.Filterable extends pi.Plugin
       (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list) 
 
   item_updated: (item) ->
-    return unless @matcher
+    return false unless @matcher
 
     if @_all_items.indexOf(item)<0
       @_all_items.unshift item
@@ -34,6 +34,8 @@ class pi.List.Filterable extends pi.Plugin
       return
     else if @filtered
       @list.remove_item item, true
+
+    false
 
   all_items: ->
     @_all_items.filter((item) -> !item._disposed)

@@ -14,6 +14,7 @@ class pi.Event extends pi.Core
 
     @bubbles = bubbles
     @canceled = false
+    @captured = false
 
   cancel: ->
     @canceled = true
@@ -42,7 +43,8 @@ class pi.EventListener extends pi.Core
     if @disposed or !@conditions(event)
       return
 
-    @handler.call(@context,event)
+    unless @handler.call(@context,event) is false
+      event.captured = true
     @dispose() if @disposable
 
   dispose: () ->
@@ -112,7 +114,8 @@ class pi.EventDispatcher extends pi.Core
         listener.dispatch event
         break if event.canceled is true
       @remove_disposed_listeners()
-    else
+  
+    unless event.captured is true
       @bubble_event(event) if event.bubbles
     return
 
