@@ -124,7 +124,6 @@ class pi.resources.REST extends pi.resources.Base
   @on_show: (data) ->
     if data[@resource_name]?
       el = @build data[@resource_name], true
-      el._persisted = true
       el.commit()
       el
 
@@ -166,7 +165,6 @@ class pi.resources.REST extends pi.resources.Base
   on_create: (data) ->
     params = data[@constructor.resource_name]
     if params?
-      @_persisted = true
       @set params, true
       @commit()
       @constructor.add @

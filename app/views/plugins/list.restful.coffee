@@ -89,6 +89,11 @@ class pi.List.Restful extends pi.Plugin
   on_create: (data) ->
     unless @find_by_id(data.id)
       @items_by_id[data.id] = @list.add_item data
+    # handle temp item created
+    else if data.__tid__ and (item = @find_by_id(data.__tid__))
+      delete @items_by_id[data.__tid__]
+      @items_by_id[data.id] = item
+      @list.update_item item, data
 
   on_destroy: (data) ->
     if (item = @find_by_id(data.id))

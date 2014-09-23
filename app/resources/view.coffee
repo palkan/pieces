@@ -13,6 +13,9 @@ class pi.resources.ViewItem extends pi.EventDispatcher
 
   utils.extend @::, pi.resources.Base::, false
 
+  created: (tid) ->
+    @view.created(@,tid)
+
   trigger: (e,data,bubbles = true) ->
     super
     @view.trigger e, @view._wrap(@)
@@ -33,6 +36,7 @@ class pi.resources.View extends pi.EventDispatcher
   constructor: (@resources, scope, @options={}) ->
     super
     @__all_by_id__ = {}
+    @__all_by_tid__ = {}
     @__all__ = []
     @resources_name = @resources.resources_name
     @resource_name = @resources.resource_name
@@ -61,10 +65,12 @@ class pi.resources.View extends pi.EventDispatcher
     unless (@options.copy is false) and (force is false)
       if force and !@options.copy
         @__all_by_id__ = {}
+        @__all_by_tid__ = {}
         el.remove() for el in @__all__
       else
         el.dispose() for el in @__all__
     @__all_by_id__ = {}
+    @__all_by_tid__ = {}
     @__all__.length = 0
   
   # create new resource

@@ -3,7 +3,9 @@
 * add Stepper component
 * refactor 'select_item' and 'deselect_item'
 * upd Checkbox styles 
-* add Event.captured property and fix event capturing in List's plugins
+* add Event.captured property and fix event capturing in List's plugin
+* remove List item 'list-index' data prop, add List item record.\__list\_index\__
+* add 'temp_id' functionality to Resource
 
 ## 0.3.3
 * add Form.validate method (now run before submit always)

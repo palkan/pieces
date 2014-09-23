@@ -186,10 +186,6 @@ describe "Pieces REST base", ->
         chef.set id: 3
 
         expect(chef.eaters().all()).to.have.length 2
-        expect(chef.testos().all()).to.have.length 0
-
-        Testo.get(4).set(chef_id: 3)
-
         expect(chef.testos().all()).to.have.length 1
   
     describe "several resources with REST associations", ->

@@ -136,7 +136,7 @@ _selector = (s, parent) ->
       node = e.target.node
       return true if node.matches(s) 
       return false if node is parent
-      while((node = node.parentNode) != parent)
+      while((node = node.parentNode) and node != parent)
         return (e.target = pi.Nod.create(node)) if node.matches(s)
 
 class pi.NodEventDispatcher extends pi.EventDispatcher

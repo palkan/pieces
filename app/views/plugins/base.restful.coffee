@@ -47,9 +47,10 @@ class pi.Base.Restful extends pi.Plugin
 
   bind: (resource, render = false) ->
     if @resource
-      @resource.off @resource_update()
+      @resource.off 'update', @resource_update()
+      @resource.off 'create', @resource_update()
     @resource = resource
-    @resource.on 'update', @resource_update()
+    @resource.on 'update,create', @resource_update()
     @target.render(resource) if render
 
   resource_update: () ->

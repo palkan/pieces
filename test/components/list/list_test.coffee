@@ -32,13 +32,16 @@ describe "list component", ->
 
     it "should add item", ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
-      @list.add_item item
+      el = @list.add_item item
+      expect(el.record.__list_index__).to.eq 3
       expect(@list.size()).to.eq 4
       expect($('@test').last('.item').text()).to.eq 'New'
 
     it "should add item at index", ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
-      @list.add_item_at item, 0
+      el = @list.add_item_at item, 0
+      expect(el.record.__list_index__).to.eq 0
+      expect(@list.items[1].record.__list_index__).to.eq 1
       expect(@list.size()).to.eq 4
       expect($('@test').first('.item').text()).to.eq 'New'
 
@@ -54,6 +57,7 @@ describe "list component", ->
     it "should remove element at", ->
       @list.remove_item_at 0
       expect(@list.size()).to.eq 2
+      expect(@list.items[1].record.__list_index__).to.eq 1
       expect($('@test').first('.item').data('id')).to.eq 2
 
     it "should remove many items", ->

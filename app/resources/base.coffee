@@ -16,7 +16,10 @@ _singular = (str) ->
 class pi.resources.Base extends pi.EventDispatcher
   # initialize resource with name
   @set_resource: (plural, singular) ->
+    # element by id
     @__all_by_id__ = {}
+    # temp elements by temp id
+    @__all_by_tid__ = {}
     @__all__ = []
     @resources_name = plural
     @resource_name = singular || _singular(plural)
@@ -32,26 +35,46 @@ class pi.resources.Base extends pi.EventDispatcher
   @clear_all: ->
     el.dispose() for el in @__all__
     @__all_by_id__ = {}
+    @__all_by_tid__ = {}
     @__all__.length = 0
 
   # return resource by id
   @get: (id) ->
-    @__all_by_id__[id]
+    @__all_by_id__[id] || @__all_by_tid__[id]
 
   @add: (el) ->
-    @__all_by_id__[el.id] = el
+    if el.__temp__ is true
+      @__all_by_tid__[el.id] = el
+    else
+      @__all_by_id__[el.id] = el
     @__all__.push el
 
   # create new resource
   @build: (data={}, silent = false, add = true) ->
     unless (data.id && (el = @get(data.id)))
+      # create element with temp id
+      unless data.id
+        data.id = "tid_#{utils.uid()}"
+        data.__temp__ = true
+      
       el = new @(data)
-      if el.id and add
+      if add
         @add el  
-        @trigger('create', @_wrap(el)) unless silent
+        # resource should not trigger 'create' event if element is temporary
+        @trigger('create', @_wrap(el)) unless (silent or el.__temp__) 
       el
     else
       el.set(data)
+
+  @created: (el, temp_id) ->
+    if @__all_by_tid__[temp_id]
+      delete @__all_by_tid__[temp_id]
+      @__all_by_id__[el.id] = el
+
+  @clear_temp: (silent = false) ->
+    for own _, el of @__all_by_tid__
+      @remove el, silent
+    @__all_by_tid__ = {}
 
   @remove_by_id: (id, silent) ->
     el = @get(id)
@@ -61,8 +84,11 @@ class pi.resources.Base extends pi.EventDispatcher
 
   @remove: (el, silent) ->
     if @__all_by_id__[el.id]?
-      @__all__.splice @__all__.indexOf(el), 1
       delete @__all_by_id__[el.id]
+    else
+      delete @__all_by_tid__[el.id]
+    
+    @__all__.splice @__all__.indexOf(el), 1
     @trigger('destroy', @_wrap(el)) unless silent
     el.dispose()
     return true
@@ -96,7 +122,7 @@ class pi.resources.Base extends pi.EventDispatcher
   constructor: (data={}) ->
     super
     @_changes = {}
-    @_persisted = true if data.id?
+    @_persisted = true if (data.id? and not data.__temp__)
     @initialize data
 
   initialize: (data) ->
@@ -105,6 +131,9 @@ class pi.resources.Base extends pi.EventDispatcher
     @_initialized = true
 
   @register_callback 'initialize'
+
+  created: (temp_id) ->
+    @constructor.created(@,temp_id)
 
   dispose: ->
     for own key,_ of @
@@ -125,13 +154,22 @@ class pi.resources.Base extends pi.EventDispatcher
 
   set: (params, silent) ->
     _changed = false
-    _was_id = @id
+    _was_id = !!@id and !(@__temp__ is true)
+    _old_id = @id
     for own key,val of params
       if @[key]!=val and not (typeof @[key] is 'function')
         _changed = true
         @_changes[key] = old_val: @[key], val: val
         @[key] = val
-    type = if params.id? and not _was_id then 'create' else 'update'
+    
+    if (@id|0) and not _was_id
+      delete @__temp__
+      @_persisted = true
+      @__tid__ = _old_id 
+      type = 'create'
+      @created(_old_id)
+    else
+      type = 'update' 
     @trigger(type, (if type is 'create' then @ else @_changes)) if (_changed && !silent)
     @
 

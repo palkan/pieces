@@ -20,6 +20,11 @@ class pi.resources.Association extends pi.resources.View
             @_only_update = false
             @owner = @options.owner
             @owner_name_id = @options.key
+
+            # update temp associated resources
+            for el in @__all__
+              el.set(utils.wrap(@owner_name_id, @owner.id), true)
+
             unless @options._scope is false
               if @options._scope?[@options.key]?
                 @options.scope = utils.merge(@options._scope, utils.wrap(@options.key,@owner.id))
@@ -67,13 +72,12 @@ class pi.resources.Association extends pi.resources.View
       super
 
   on_create: (el) ->
-    return if @_only_update
-    if (view_item = @get(el.id))
+    if (view_item = (@get(el.id) || @get(el.__tid__)))
       if @options.copy is false
         @trigger 'create', @_wrap(el)
       else
         view_item.set(el.attributes())
-    else
+    else if !@_only_update
       @build el
 
   on_load: ->

@@ -40,26 +40,23 @@ class pi.List extends pi.Base
   # Set list elements
   # @params [Array, Null] data if null then clear list
 
-  data_provider: (data = null) ->
-    @clear() if @items.length  
+  data_provider: (data = null, silent = false) ->
+    @clear(silent) if @items.length  
 
     if data?
       @add_item(item,true) for item in data
     
-    @update('load')
+    @update('load',silent)
     @
 
   add_item: (data, silent = false) ->
-    item = @_create_item data
+    item = @_create_item data, @items.length
     return unless item?
     
     @items.push item
 
     @_check_empty()
 
-    # save item index in DOM element
-    item.data('list-index',@items.length-1)
-    
     unless silent then @items_cont.append(item) else @buffer.appendChild(item.node)
 
     @trigger('update', {type:'item_added',item:item}) unless silent
@@ -70,13 +67,13 @@ class pi.List extends pi.Base
       return @add_item(data,silent)
       
           
-    item = @_create_item data
+    item = @_create_item data, index
     @items.splice(index,0,item)
     
     _after = @items[index+1]
     
     # save item index in DOM element
-    item.data('list-index',index)
+    item.record.__list_index__ = index
     _after.insertBefore item
 
     @_need_update_indeces = true
@@ -147,7 +144,7 @@ class pi.List extends pi.Base
     item  
 
   move_item: (item, index) ->
-    return if (item.data('list-index') is index) || (index>@items.length-1)
+    return if (item.record.__list_index__ is index) || (index>@items.length-1)
 
     @items.splice @items.indexOf(item), 1
 
@@ -182,41 +179,49 @@ class pi.List extends pi.Base
   size: () ->
     @items.length
 
-  update: (type) ->
+  update: (type, silent = false) ->
     @_flush_buffer()
     @_update_indeces() if @_need_update_indeces
-    @_check_empty()
-    @trigger 'update', {type: type}
+    @_check_empty(silent)
+    @trigger('update', {type: type}) unless silent
 
-  clear: () ->
+  clear: (silent = false) ->
     @items_cont.detach_children()
     @items.length = 0
-    @trigger 'update', {type:'clear'}
-    @_check_empty()
+    @trigger('update', {type:'clear'}) unless silent
+    @_check_empty(silent)
 
   _update_indeces: ->
-    item.data('list-index',i) for item,i in @items
+    for item,i in @items
+      item.data('list-index',i)
+      item.record.__list_index__ = i
     @_need_update_indeces = false
 
-  _check_empty: ->
+  _check_empty: (silent = false) ->
     if !@empty and @items.length is 0
       @addClass 'is-empty'
       @empty = true
-      @trigger 'empty', true
+      @trigger('empty', true) unless silent
     else if @empty and @items.length > 0
       @removeClass 'is-empty'
       @empty = false
-      @trigger 'empty', false
+      @trigger('empty', false) unless silent
     
 
-  _create_item: (data) ->
+  _create_item: (data={},index) ->
     if data instanceof pi.Nod and data.is_list_item
       if data.host is @
+        data.__list_index__ = index
         return data
       else
         return null
+    if data instanceof pi.Nod 
+      data.data('__list_index__', index)
+    else
+      data.__list_index__ = index
     item = @_renderer.render data
     return unless item?
+    item.record ||={}
     item.is_list_item = true
     item.host = @
     item
