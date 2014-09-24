@@ -116,4 +116,12 @@ describe "Pieces REST base", ->
 
         Testo.remove t
 
-     
+
+    describe "working with temp_id", ->
+      it "should send create event on set with id and remove __temp__ prop",(done) ->
+        Testo.listen (e) ->
+          expect(e.data.type).to.eq 'create'
+          expect(e.data.testo.__temp__).to.be.undefined
+          done()
+        t = Testo.build {type: 'puff'}
+        t.set {id: 12}

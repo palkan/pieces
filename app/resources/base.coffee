@@ -43,6 +43,7 @@ class pi.resources.Base extends pi.EventDispatcher
     @__all_by_id__[id] || @__all_by_tid__[id]
 
   @add: (el) ->
+    return if @get(el.id)
     if el.__temp__ is true
       @__all_by_tid__[el.id] = el
     else
@@ -133,6 +134,7 @@ class pi.resources.Base extends pi.EventDispatcher
   @register_callback 'initialize'
 
   created: (temp_id) ->
+    @
     @constructor.created(@,temp_id)
 
   dispose: ->
