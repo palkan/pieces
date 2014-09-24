@@ -29,7 +29,7 @@ class pi.List.Selectable extends pi.Plugin
         @_check_selected()
         false
     ), @, (e) -> (e.data.type isnt 'item_added') 
-    return
+    @
 
   enable: ->
     unless @enabled

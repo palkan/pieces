@@ -12,7 +12,7 @@ class pi.Base.Selectable extends pi.Plugin
     super
     @__selected__ = @target.hasClass 'is-selected'
     @target.on 'click', @click_handler()
-    return
+    @
 
   click_handler: ->
     @_click_handler ||= (e) =>

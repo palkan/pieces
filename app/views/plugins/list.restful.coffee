@@ -40,7 +40,7 @@ class pi.List.Restful extends pi.Plugin
     @list.on 'destroyed', =>
       @bind null
       false
-    return
+    @
 
   bind: (resources, load = false, params) ->
     if @resources
@@ -104,3 +104,7 @@ class pi.List.Restful extends pi.Plugin
   on_update: (data) ->
     if (item = @find_by_id(data.id))
       @list.update_item item, data
+
+  dispose: ->
+    @items_by_id = {}
+    @resources.off(@resource_update()) if @resources?

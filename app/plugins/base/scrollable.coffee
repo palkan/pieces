@@ -35,6 +35,7 @@ class pi.Base.Scrollable extends pi.Plugin
 
     @setup_events()
     @update_thumb()
+    @
 
   create_scroller: ->
     @track = Nod.create('div').addClass('pi-scroll-track')
@@ -155,9 +156,3 @@ class pi.Base.Scrollable extends pi.Plugin
     
     @thumb.moveY y
     @thumb.height h
-
-
-
-
-
-

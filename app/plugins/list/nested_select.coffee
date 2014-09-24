@@ -40,7 +40,7 @@ class pi.List.NestedSelect extends pi.List.Selectable
         @_check_selected()
       else
         false
-    return
+    @
 
   enable: ->
     unless @enabled

@@ -6,6 +6,7 @@
 * add Event.captured property and fix event capturing in List's plugin
 * remove List item 'list-index' data prop, add List item record.\__list\_index\__
 * add 'temp_id' functionality to Resource
+* add Plugin.dispose functionality
 
 ## 0.3.3
 * add Form.validate method (now run before submit always)

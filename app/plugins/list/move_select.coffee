@@ -17,6 +17,7 @@ class pi.List.MoveSelect extends pi.Plugin
     @_direction = @list.options.direction || 'y'
     
     @list.on 'mousedown', @mouse_down_listener()
+    @
 
   _item_under_point: (point) ->
     @_item_bisearch 0, point[@_direction], point
@@ -122,3 +123,6 @@ class pi.List.MoveSelect extends pi.Plugin
     @_mouse_move_listener ||= debounce 300, (e) =>
       point = x: e.pageX-@_offset.x, y: e.pageY-@_offset.y
       @_update_range @_item_under_point(point)
+
+  dispose: ->
+    pi.Nod.root.off 'mouseup', @mouse_up_listener()

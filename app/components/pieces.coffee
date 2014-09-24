@@ -120,6 +120,7 @@ class pi.Base extends pi.Nod
   preinitialize: ->
     @node._nod = @
     @__components__ = []
+    @__plugins__ = []
     @pid = @data('pid') || @attr('pid') || @node.id
     @visible = @enabled = true
     @active = false
@@ -143,7 +144,7 @@ class pi.Base extends pi.Nod
   attach_plugin: (plugin) ->
     if plugin?
       utils.debug "plugin attached #{plugin::id}"
-      plugin.attached @
+      @__plugins__.push plugin.attached(@)
 
   find_plugin: (name) ->
     name = utils.camelCase name
@@ -181,9 +182,13 @@ class pi.Base extends pi.Nod
   @register_callback 'postinitialize', as: 'create' 
 
   dispose: ->
-    super
+    return if @_disposed
     if @host?
       @host.remove_component @
+    plugin.dispose() for plugin in @__plugins__
+    @__plugins__.length = 0
+    super
+
     @trigger 'destroyed', true, false
     return
 

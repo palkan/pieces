@@ -19,7 +19,7 @@ class pi.Base.Renderable extends pi.Plugin
     super
     @target._renderer = @find_renderer()
     @target.delegate_to @, 'render'
-    return
+    @
 
   render: (data) ->
     @target.remove_children()

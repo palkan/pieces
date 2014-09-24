@@ -228,7 +228,6 @@ class pi.List extends pi.Base
 
   _destroy_item: (item) ->
     item.remove()
-    item.dispose()
 
   _flush_buffer: (append = true) ->
     @items_cont.append @buffer if append

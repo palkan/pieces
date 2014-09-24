@@ -17,3 +17,7 @@ class pi.Plugin extends pi.Core
   initialize: (instance) ->
     instance[@id] = @
     instance["has_#{@id}"] = true
+    @
+
+  dispose: ->
+    true

@@ -43,13 +43,14 @@ class pi.Base.Restful extends pi.Plugin
         () =>
           utils.error "resource not found: #{rest}"
       )
-    return
+    @
 
   bind: (resource, render = false) ->
     if @resource
       @resource.off 'update', @resource_update()
       @resource.off 'create', @resource_update()
     @resource = resource
+    return unless @resource
     @resource.on 'update,create', @resource_update()
     @target.render(resource) if render
 
@@ -60,3 +61,6 @@ class pi.Base.Restful extends pi.Plugin
 
   on_update: (data) ->
     @target.render data
+
+  dispose: ->
+    @bind null
