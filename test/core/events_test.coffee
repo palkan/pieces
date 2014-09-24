@@ -13,6 +13,7 @@ describe "event dispatcher", ->
       @test_div.append('<div style="position:relative"></div>')
 
     afterEach ->
+      @test_div.remove()
       root.html ''
 
 
@@ -236,3 +237,49 @@ describe "event dispatcher", ->
 
         TestHelpers.clickElement el.node
         expect(spy_fun.callCount).to.eq(1)
+
+
+    describe "resize delegate", ->
+      beforeEach ->
+        @test_div.append """
+            <div id='flex' style="height: 50%; width: 200px;">
+              <button class='pi'>Button</button>
+            </div>
+          """
+        @example = $("#flex")
+
+      afterEach ->
+        pi.Nod.body.styles({height: null, width: null})
+
+      it "should trigger resize event if size changed", (done) ->
+        @example.on "resize", (spy_fun = sinon.spy())
+
+        pi.Nod.body.style('height','200px')
+        TestHelpers.resizeEvent()
+
+        pi.Nod.body.style('height','200px')
+        TestHelpers.resizeEvent()
+        after 350, ->
+          expect(spy_fun.callCount).to.eq 1
+          done()
+
+      it "should not trigger resize event if size haven't changed", (done) ->
+        @example.on "resize", (spy_fun = sinon.spy())
+        pi.Nod.body.style('width','200px')
+        TestHelpers.resizeEvent()
+        after 350, ->
+          expect(spy_fun.callCount).to.eq 0
+          done()
+
+      it "should work with 'one'", (done) ->
+        @example.one "resize", (spy_fun = sinon.spy())
+
+        pi.Nod.body.style('height','200px')
+        TestHelpers.resizeEvent()
+
+        pi.Nod.body.style('height','100px')
+        TestHelpers.resizeEvent()
+
+        after 350, ->
+          expect(spy_fun.callCount).to.eq 1
+          done()

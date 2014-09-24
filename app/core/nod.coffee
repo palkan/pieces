@@ -19,7 +19,9 @@ _geometry_styles = (sty) ->
       pi.Nod::[name] = (val) ->
         if val is undefined 
           return @node["offset#{utils.capitalize(name)}"]
-        @_with_raf name, => @node.style[name] = Math.round(val)+"px"
+        @_with_raf name, => 
+          @node.style[name] = val+"px"
+          @trigger('resize') if name is 'width' or name is 'height'
         @
       return
   return
@@ -384,19 +386,16 @@ class pi.Nod extends pi.NodEventDispatcher
     unless width? and height?
       return width: @width(), height: @height()
     
-    if width? and height?
-      @width width
-      @height height
-    else
-      old_h = @height()
-      old_w = @width()
-      if width?
-        @width width
-        @height (old_h * width/old_w)
-      else
-        @height height
-        @width (old_w * height/old_h)
-    @trigger 'resize'
+    unless width?
+      width = @width()
+
+    unless height?
+      height = @height()
+
+    @_with_raf 'size', =>
+      @node.style.width = width+"px"
+      @node.style.height = height+"px"
+      @trigger 'resize'
     return
 
   show: ->

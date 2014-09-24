@@ -7,6 +7,7 @@
 * remove List item 'list-index' data prop, add List item record.\__list\_index\__
 * add 'temp_id' functionality to Resource
 * add Plugin.dispose functionality
+* add 'resize' event (works with window resize and with 'width','height','size' methods)
 
 ## 0.3.3
 * add Form.validate method (now run before submit always)

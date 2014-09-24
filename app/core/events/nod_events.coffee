@@ -151,13 +151,13 @@ class pi.NodEventDispatcher extends pi.EventDispatcher
 
   add_native_listener: (type) ->
     if NodEvent.has_delegate type
-      NodEvent.delegates[type].add @node, @native_event_listener
+      NodEvent.delegates[type].add @, @native_event_listener
     else 
       NodEvent.add @node, type, @native_event_listener 
 
   remove_native_listener: (type) ->
     if NodEvent.has_delegate type
-      NodEvent.delegates[type].remove @node
+      NodEvent.delegates[type].remove @
     else
       NodEvent.remove @node, type, @native_event_listener
 

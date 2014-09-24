@@ -59,12 +59,16 @@ class pi.Base.Scrollable extends pi.Plugin
 
   setup_events: ->
     @content.on 'mousewheel', @scroll_listener()
+    @pane.on 'resize', @resize_handler()
     @thumb.on 'mousedown', @thumb_mouse_down()
     @track.on 'click', @track_click()
 
   scroll_listener: ->
     @_sl ||= (e) =>
       @update_thumb(e)
+
+  resize_handler: ->
+    @_resize_handler ||= => @update_thumb()
 
   thumb_mouse_down: ->
     @__tmd ||= (e) =>

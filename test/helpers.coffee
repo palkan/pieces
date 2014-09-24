@@ -76,6 +76,10 @@ class TestHelpers
       true #cancelable
     )
     el.dispatchEvent ev 
+  
+  @resizeEvent: ->
+    window.dispatchEvent(new Event('resize'))
+
   @mock_net: ->
     @_orig_net = pi.net
     pi.net = (pi._mock_net ||= ( ->
