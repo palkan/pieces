@@ -50,6 +50,7 @@ class pi.resources.HasMany
 
     # add callbacks
     @after_update (data) ->
+      return if data instanceof pi.resources.Base
       if data[name]
         @["#{name}_loaded"] = true
         @[name]().load data[name]
