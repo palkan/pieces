@@ -123,7 +123,7 @@ class pi.resources.REST extends pi.resources.Base
   # requests callbacks
   @on_show: (data) ->
     if data[@resource_name]?
-      el = @build data[@resource_name], true
+      el = @build data[@resource_name]
       el.commit()
       el
 
@@ -142,6 +142,17 @@ class pi.resources.REST extends pi.resources.Base
       )
     else
       @show(id: id)
+
+  # find element by params
+  @find_by: (params) -> 
+    el = @get_by params
+    if el?
+      new Promise(
+        (resolve) =>
+          resolve el
+      )
+    else
+      @show params
 
   @create: (data) ->
     el = @build data

@@ -42,6 +42,15 @@ class pi.resources.Base extends pi.EventDispatcher
   @get: (id) ->
     @__all_by_id__[id] || @__all_by_tid__[id]
 
+  # return first matched element by params
+  @get_by: (params) ->
+    return unless params?
+    ref = @where params
+    if ref.length
+      ref[0]
+    else
+      null
+
   @add: (el) ->
     return if @get(el.id)
     if el.__temp__ is true
