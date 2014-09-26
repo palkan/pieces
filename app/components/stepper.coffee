@@ -29,7 +29,7 @@ class pi.Stepper extends pi.TextInput
       
       if @_max? and (val|0) > @_max
         val = @_max
-      else if @_min and (val|0) < @_min
+      else if @_min? and (val|0) < @_min
         val = @_min
 
       super @_prepare_value(val)
