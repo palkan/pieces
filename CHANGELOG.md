@@ -1,3 +1,6 @@
+## 0.3.5
+* add HasOne module to resources
+
 ## 0.3.4
 * add RadioGroup component
 * add Stepper component

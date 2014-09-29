@@ -64,6 +64,17 @@ class pi.resources.Meeting extends pi.resources.REST
   @has_many 'users', source: pi.resources.TestUsers, params: ['role_id'], attribute: true, scope: false, route: true, path: '/users/?filter[age]=:age'
   @params 'name', 'age'
   
+
+class pi.resources.Profile extends pi.resources.REST
+  @set_resource 'profiles'
+  @params 'age', 'weight', 'height'
+
+class pi.resources.User extends pi.resources.REST
+  @set_resource 'users'
+  @extend pi.resources.HasOne
+  @params 'name','email'
+  @has_one 'profile', source: pi.resources.Profile, attribute: true, destroy: true
+
 class pi.controllers.Test extends pi.controllers.ListController
   @list_resource pi.resources.TestUsers
   id: 'test'

@@ -168,7 +168,7 @@ class pi.resources.Base extends pi.EventDispatcher
     _was_id = !!@id and !(@__temp__ is true)
     _old_id = @id
     for own key,val of params
-      if @[key]!=val and not (typeof @[key] is 'function')
+      if @[key]!=val and not (typeof @[key] is 'function') and not (@__associations__? and (key in @__associations__))
         _changed = true
         @_changes[key] = old_val: @[key], val: val
         @[key] = val

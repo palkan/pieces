@@ -20,6 +20,8 @@ class pi.resources.HasMany
 
     utils.extend params, path: ":resources/:id/#{name}", method: 'get'
 
+    (@::__associations__||=[]).push name
+
     # add assoc method
     @::[name] = ->
       unless @["__#{name}__"]?
