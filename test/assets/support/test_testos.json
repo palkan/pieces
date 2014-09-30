@@ -5,6 +5,9 @@
         {"id":1, "type":"yeast"},
         {"id":2, "type":"puff"},
         {"id":3, "type":"salt"}
+      ],
+      "salts": [
+        {"id":3, "salinity":"low"}
       ]
     },
   "post":

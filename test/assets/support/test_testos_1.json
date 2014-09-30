@@ -2,6 +2,10 @@
   "testo":{
     "id": 1,
     "type": "yeast"
+  },
+  "salt":{
+    "id": 2,
+    "salinity": "high"
   }
 },
   "patch":{

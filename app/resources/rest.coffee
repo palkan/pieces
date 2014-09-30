@@ -19,6 +19,11 @@ class pi.resources.REST extends pi.resources.Base
   # otherwise send attributes object 
   wrap_attributes: false
 
+  # accept an arbitrary number of other resources which can be created
+  # by this resource's actions (i.e. server response can contain other resources as well)
+  @can_create = (args...) ->
+    @__deps__ = (@__deps__||=[]).concat(args)
+
   # params filter array
   __filter_params__: false
 
@@ -55,6 +60,8 @@ class pi.resources.REST extends pi.resources.Base
           @[spec.action] = (params={}) ->
             @_request(spec.path, spec.method, params).then( 
               (response) =>
+                if @__deps__?
+                  dep.from_data(response) for dep in @__deps__
                 if @["on_#{spec.action}"]? 
                   @["on_#{spec.action}"](response)
                 else
@@ -67,6 +74,8 @@ class pi.resources.REST extends pi.resources.Base
           @::[spec.action] = (params={}) ->
             @constructor._request(spec.path, spec.method, utils.merge(params, id: @id), @).then(
               (response) =>
+                if @constructor.__deps__?
+                  dep.from_data(response) for dep in @constructor.__deps__
                 if @["on_#{spec.action}"]? 
                   @["on_#{spec.action}"](response)
                 else

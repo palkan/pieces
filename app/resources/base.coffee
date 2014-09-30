@@ -32,6 +32,20 @@ class pi.resources.Base extends pi.EventDispatcher
       @trigger('load',{}) unless silent
       elements
 
+  # can create collection or item from data if resources_name key or resource_name exists 
+  # (replace plain objects with resources list or resource respectively)
+  # Example: 
+  # class User extends Base
+  #   @set_resource 'users'
+  #   
+  # # load 'users' from array and 'user' too 
+  # User.from_data({users: [...], user: ...})
+  @from_data: (data) ->
+    if data[@resource_name]?
+      data[@resource_name] = @build data[@resource_name]
+    if data[@resources_name]?
+      data[@resources_name] = @load(data[@resources_name])
+
   @clear_all: ->
     el.dispose() for el in @__all__
     @__all_by_id__ = {}

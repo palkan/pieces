@@ -5,6 +5,7 @@ describe "Pieces REST", ->
   
   describe "rest resources test", ->
     Testo = pi.TestoRest
+    Salt = pi.Salt
     Testo2 = pi.TestoRest2
     Wrap = pi.TestoWrap
     R = $r.REST
@@ -15,6 +16,7 @@ describe "Pieces REST", ->
     afterEach ->
       Testo.clear_all()
       Testo.off()
+      Salt.clear_all()
       TestHelpers.unmock_net()
 
     describe "path interpolation", ->
@@ -83,6 +85,25 @@ describe "Pieces REST", ->
         attrs = t.save(sugar: true)
         expect(attrs.type).to.eq 'normal'
         expect(attrs.sugar).to.be.true
+
+    describe "dependant resources", ->
+      it "should fetch data and create deps", (done) ->
+        Testo.fetch().then(
+          (data) -> 
+            expect(data.testos).to.have.length 3
+            expect(Testo.all()).to.have.length 3
+            expect(Salt.all()).to.have.length 1
+            done()
+        )
+
+      it "should fetch item (show) and deps", (done) ->
+        Testo.find(1).then(
+          (item) -> 
+            expect(item.type).to.eq 'yeast'
+            expect(Testo.all()).to.have.length 1
+            expect(Salt.all()).to.have.length 1
+            done()
+        )
 
     describe "instance functions", ->
 
