@@ -20,7 +20,7 @@ class pi.List.ScrollEnd extends pi.Plugin
     @_prev_top = @scroll_object.scrollTop()
 
     @enable() unless @list.options.scroll_end is false
-    @list.on 'update', @scroll_listener(), @, (e) => (e.data.type is 'item_removed' or e.data.type is 'load') 
+    @list.on 'update', @scroll_listener(), @, (e) => (@enabled and (e.data.type is 'item_removed' or e.data.type is 'load'))
     @
 
   enable: () ->
