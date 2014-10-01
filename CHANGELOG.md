@@ -1,6 +1,8 @@
 ## 0.3.5
 * add HasOne module to resources
 * add 'from_data' and 'can_create' to resources
+* add Promise helpers to utils
+* add ListController query 'pipeline' 
 
 ## 0.3.4
 * add RadioGroup component

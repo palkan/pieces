@@ -145,10 +145,7 @@ class pi.resources.REST extends pi.resources.Base
   @find: (id) ->
     el = @get(id)
     if el?
-      new Promise(
-        (resolve) =>
-          resolve el
-      )
+      utils.resolved_promise(el)
     else
       @show(id: id)
 
@@ -156,10 +153,7 @@ class pi.resources.REST extends pi.resources.Base
   @find_by: (params) -> 
     el = @get_by params
     if el?
-      new Promise(
-        (resolve) =>
-          resolve el
-      )
+      utils.resolved_promise(el)
     else
       @show params
 

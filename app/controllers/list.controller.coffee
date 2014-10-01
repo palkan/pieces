@@ -29,10 +29,17 @@ class pi.controllers.ListController extends pi.controllers.Base
 
   query: (params={}) ->
     params = utils.merge(@scope().params,params) 
-    @view.loading true
+    unless @_promise?
+      @_promise = utils.resolved_promise()
 
-    @resources.query(params).then( 
-      (
+    @_promise = @_promise.then( =>
+      @_resource_query(params)
+    )
+
+  _resource_query: (params) ->
+    @view.loading true
+    @resources.query(params).then(
+      ( 
         (response) => 
           @view.loading false 
           @view.success(response.message) if response?.message?

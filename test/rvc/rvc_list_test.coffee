@@ -118,6 +118,17 @@ describe "Pieces RVC", ->
             )          
         )
 
+      it "should work with queued series", (done) ->
+        @t.search('k')
+        @t.filter(age:21)
+        @t.sort([{name: 'asc'}]).then(
+          => 
+            expect(@t.view.list.size()).to.eq 3
+            expect(@t.view.list.searchable.searching).to.be.true
+            expect(@t.view.list.items[0].record.name).to.eq 'klara'
+            done()
+        )
+
 
       it "should work with series (and clear scope)", (done) ->
         @t.filter(age: 33).then(

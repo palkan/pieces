@@ -36,7 +36,7 @@ class pi.Base.Restful extends pi.Plugin
                   if resources?
                     resources.find(matches[2]|0)
                   else
-                    new Promise((resolve,reject) -> reject())
+                    utils.rejected_promise()
       promise.then(
         (resource) =>
           @bind resource, !@target.firstChild

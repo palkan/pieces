@@ -68,6 +68,21 @@ describe "Pieces RVC", ->
           )
         )
 
+      it "should not load if all loaded but request was queued", (done) ->
+        @t.index().then( =>
+          expect(@t.view.list.size()).to.eq 5
+          spy_fun = sinon.spy(@t.resources, 'query')
+          @t.next_page()
+          @t.next_page()
+          @t.next_page().then( (data) =>
+            expect(data.users).to.have.length 5
+            expect(spy_fun.callCount).to.eq 2
+            expect(@t.view.list.size()).to.eq 15
+            expect(@t.next_page()).to.be.undefined
+            done()
+          )
+        ).catch( (e) => done(e))
+
     describe "query paginated", ->
       it "should search by pages", (done) ->
         @t.search('u').then( =>
