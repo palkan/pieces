@@ -5,7 +5,7 @@ require '../../components/base/list'
 utils = pi.utils
 
 _where_rxp = /^(\w+)\.(where|find)\(([\w\s\,\:]+)\)(?:\.([\w]+))?$/i
-
+_app_rxp = /^app\.([\.\w]+)\.(\w+)$/
 # [Plugin]
 #
 # Bind resources to List (handle create, update and destroy events)  
@@ -16,7 +16,10 @@ class pi.List.Restful extends pi.Plugin
     @items_by_id = {}
     @listen_load = @list.options.listen_load is true
     if (rest = @list.options.rest)? 
-      if (matches = rest.match(_where_rxp))
+      if (matches = rest.match(_app_rxp))
+        ref = utils.get_path(pi.app, matches[1])
+        resources = ref[matches[2]]?() if ref? 
+      else if (matches = rest.match(_where_rxp))
         rest = matches[1]
         ref = $r[utils.camelCase(rest)]
         if ref?
