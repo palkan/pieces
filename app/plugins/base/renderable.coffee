@@ -24,11 +24,10 @@ class pi.Base.Renderable extends pi.Plugin
   render: (data) ->
     @target.remove_children()
     if data?
-      nod = @target._renderer.render data
-      nod.host = @target
+      nod = @target._renderer.render data, false
       if nod?
         @target.append nod
-        @target.piecify()
+        @target.piecify(@target)
       else
         utils.error "failed to render data for: #{@target.pid}}"
     @target
