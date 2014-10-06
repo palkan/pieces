@@ -166,11 +166,11 @@ describe "list component", ->
 
     it "should peicify items nods", ->
       @list._renderer = 
-        render: (data) ->
+        render: (data, _, host) ->
           nod = Nod.create("<div>#{ data.title }</div>")
           nod.addClass 'item'
           nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
-          nod = nod.piecify()
+          nod = nod.piecify(host)
           pi.utils.extend nod, data
           nod
 

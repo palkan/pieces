@@ -219,11 +219,10 @@ class pi.List extends pi.Base
       data.data('__list_index__', index)
     else
       data.__list_index__ = index
-    item = @_renderer.render data
+    item = @_renderer.render data, true, @
     return unless item?
     item.record ||={}
     item.is_list_item = true
-    item.host = @
     item
 
   _destroy_item: (item) ->
