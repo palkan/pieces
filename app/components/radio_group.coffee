@@ -29,7 +29,7 @@ class pi.RadioGroup extends pi.BaseInput
       val = utils.serialize val
       ref = @where(record: {value: val})
       if ref.length
-        @select_item ref[0], true
+        @select_item ref[0]
     else
       @input.value()
 
