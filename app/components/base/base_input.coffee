@@ -4,21 +4,30 @@ require '../pieces'
 require '../events/input_events'
 utils = pi.utils
 
-class pi.BaseInput extends pi.Base
+_pass = (val) -> val
+_serialize = (val) -> utils.serialize(val)
 
+class pi.BaseInput extends pi.Base
   postinitialize: ->
     @input ||= if @node.nodeName is 'INPUT' then @ else @find('input')
-  
-  value: (val) ->
-    if @ is @input
-      super
+    if @options.serialize is true
+      @_serializer = _serialize
     else
-      if val? 
-        @input.node.value=val
-        @
-      else
-        @input.node.value
+      @_serializer = _pass
+
+    if @options.default_value? and !utils.serialize(@value())
+      @value @options.default_value
+
+  value: (val) ->
+    if val? 
+      @input.node.value=val
+      @
+    else
+      @_serializer @input.node.value
 
   clear: (silent = false) ->
-    @input.value ''
+    if @options.default_value?
+      @value @options.default_value
+    else
+      @value ''
     @trigger(pi.InputEvent.Clear) unless silent

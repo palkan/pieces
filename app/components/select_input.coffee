@@ -33,8 +33,6 @@ class pi.SelectInput extends pi.BaseInput
 
     if @input.value()
       @value utils.serialize(@input.value())
-    else if @options.default_value?
-      @value @options.default_value
     else if @placeholder.text() is ''
       @placeholder.text(@placeholder.options.placeholder)
 
@@ -52,11 +50,8 @@ class pi.SelectInput extends pi.BaseInput
       super
 
   clear: ->
-    @dropdown.clear_selection(true)
-    if @options.default_value?
-      @value @options.default_value
-    else
-      @placeholder.text(@placeholder.options.placeholder)
-      super
+    @placeholder.text('')
+    super
+    @placeholder.text(@placeholder.options.placeholder) if @placeholder.text() is ''
 
 pi.Guesser.rules_for 'select_input', ['pi-select-field'], null

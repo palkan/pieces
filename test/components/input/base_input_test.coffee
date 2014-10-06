@@ -36,3 +36,21 @@ describe "base input component", ->
       expect(@test1.input.node.value).to.eq '123'
       @test2.value '234'
       expect(@test2.node.value).to.eq '234'
+
+  describe "base input with serialize and default value", ->
+
+    beforeEach ->
+      @test_div.append """
+        <input class="pi" data-component="base_input"  data-pid="test3" data-serialize="true" data-default-value="100" type="text" value=""/>
+      """
+      pi.app.view.piecify()
+      @test3 = $('@test3')
+
+    it "should init with default value", ->
+      expect(@test3.input.node.value).to.eq "100"
+      expect(@test3.value()).to.eq 100
+
+    it "should update value", ->
+      @test3.value '123'
+      expect(@test3.input.node.value).to.eq '123'
+      expect(@test3.value()).to.eq 123

@@ -10,10 +10,16 @@ utils = pi.utils
 
 class pi.Checkbox extends pi.BaseInput
   postinitialize: ->
+    # default values
+    @_true_val = if @options.true_value? then @options.true_value else 1
+    @_false_val = if @options.false_value? then @options.false_value else 0
     super
+
     @attr('tabindex',0)
-    @__selected__ = false
-    @select() if (@options.selected || @hasClass('is-selected') || (@value()|0))
+    
+    @__selected__ = false unless @__selected__?
+
+    @select() if (@options.selected || @hasClass('is-selected') || (`this.value() == this._true_val`))
     @on 'click', (e) =>
       e.cancel()
       @toggle_select()
@@ -22,14 +28,14 @@ class pi.Checkbox extends pi.BaseInput
     unless @__selected__
       @addClass 'is-selected'
       @__selected__ = true
-      @input.value 1
+      @input.value(@_true_val)
       @trigger(pi.InputEvent.Change, true) unless silent
 
   deselect: (silent = false) ->
     if @__selected__
       @removeClass 'is-selected'
       @__selected__ = false
-      @input.value 0
+      @input.value(@_false_val)
       @trigger(pi.InputEvent.Change, false) unless silent
 
 
@@ -42,7 +48,7 @@ class pi.Checkbox extends pi.BaseInput
   value: (val) ->
     if val?
       super
-      @__selected__ = !val
+      @__selected__ = `val != this._true_val` 
       @toggle_select(true)
     else
       super

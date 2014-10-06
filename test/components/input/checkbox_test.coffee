@@ -72,3 +72,33 @@ describe "checkbox component", ->
       expect(@test2.hasClass('is-selected')).to.be.false
       expect(@test2.value()).to.eq '0'
       expect(@test2.__selected__).to.be.false
+
+  describe "true and false values", ->
+    beforeEach ->
+      root.append @test_div 
+      @test_div.append """
+          <div class="pi pi-checkbox-wrap" data-default-value="a" data-true-value="a" data-false-value="b" data-pid="test4" style="position:relative">
+            <label>CheckBox</label>
+            <input type="hidden" value=""/>
+          </div>
+          <div class="pi pi-checkbox-wrap" data-default-value="c" data-true-value="b" data-false-value="c" data-pid="test5" style="position:relative">
+            <label>CheckBox</label>
+            <input type="hidden" value=""/>
+          </div>
+        """
+      pi.app.view.piecify()
+      @test4 = $('@test4')
+      @test5 = $('@test5')
+
+    it "should init default value as true", ->
+      expect(@test4.__selected__).to.be.true
+      expect(@test4.value()).to.eq 'a'
+      expect(@test5.value()).to.eq 'c'
+      expect(@test5.__selected__).to.be.false
+
+    it "should set true and false values", ->
+      expect(@test4.__selected__).to.be.true
+      TestHelpers.clickElement @test4.find('label').node
+      expect(@test4.value()).to.eq 'b'
+      TestHelpers.clickElement @test4.find('label').node
+      expect(@test4.value()).to.eq 'a'     
