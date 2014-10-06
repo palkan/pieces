@@ -21,11 +21,11 @@ class pi.utils
   ## regular experssion
   @email_rxp: /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i
   @digital_rxp: /^[\d\s-\(\)]+$/
-  @html_rxp: /^\s*<.+>\s*$/m
+  @html_rxp: /^\s*<[\s\S]+>\s*$/m
   @esc_rxp: /[-[\]{}()*+?.,\\^$|#]/g
   @clickable_rxp: /^(a|button|input|textarea)$/i
   @input_rxp: /^(input|select|textarea)$/i
-  @trim_rxp: /^\s*(.*[^\s])\s*$/m
+  @trim_rxp: /^\s*([\s\S]*[^\s])\s*$/m
   @notsnake_rxp: /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g
   @str_rxp: /(^'|'$)/g
 
