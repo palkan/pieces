@@ -74,7 +74,7 @@ class pi.resources.User extends pi.resources.REST
   @set_resource 'users'
   @extend pi.resources.HasOne
   @params 'name','email'
-  @has_one 'profile', source: pi.resources.Profile, attribute: true, destroy: true
+  @has_one 'profile', source: pi.resources.Profile, attribute: true, destroy: true, update_if: (event, el) -> (event and event.type is 'destroy') or el.age < 100
 
 class pi.controllers.Test extends pi.controllers.ListController
   @list_resource pi.resources.TestUsers

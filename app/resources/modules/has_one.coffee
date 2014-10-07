@@ -3,6 +3,8 @@ pi = require '../../core'
 require '../rest'
 utils = pi.utils
 
+_true = -> true
+
 # add has_one to resource
 # @example
 # 
@@ -23,6 +25,12 @@ class pi.resources.HasOne
 
     (@::__associations__||=[]).push name
 
+
+    if typeof params.update_if is 'function'
+      _update_filter = params.update_if
+    else
+      _update_filter = _true
+
     params.source.listen (e) => 
       e = e.data
       if e.type is 'load'
@@ -36,7 +44,7 @@ class pi.resources.HasOne
             delete @[name]
           else if e.type is 'create'
             target[bind_fun] el, true
-          target.trigger 'update'
+          target.trigger('update',utils.wrap(name, @[name])) if _update_filter(e,el) 
 
     # bind function
     @::[bind_fun] = (el, silent = false) ->
@@ -44,7 +52,7 @@ class pi.resources.HasOne
       @[name] = el
       if @_persisted and not @[name][params.foreign_key]
         @[name][params.foreign_key] = @id
-      @trigger('update') unless silent
+      @trigger('update', utils.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
 
     # add callbacks
 

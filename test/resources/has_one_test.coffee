@@ -94,4 +94,11 @@ describe "Pieces REST base", ->
 
         expect(spy_fun.callCount).to.eq 1
 
+      it "should not send update when update_if returns false", ->
+        usr = User.build(id: 13, name: 'Juan', email: 'juan@dogeater.com')
+        usr.on 'update', (spy_fun = sinon.spy())
+
+        Profile.build id: 1, age: 1000, weight: 122, height: 164, user_id: 13
+
+        expect(spy_fun.callCount).to.eq 0
 
