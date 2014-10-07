@@ -5,6 +5,8 @@
 * add ListController query 'pipeline' 
 * enhance BaseInput with 'serialize' and 'deafault-value' options
 * enhance Checkbox with 'true-value' and 'false-value' options
+* add 'accept' to FileInput and 'rxp' option to filter file names
+* upd Compiler
 
 ## 0.3.4
 * add RadioGroup component
