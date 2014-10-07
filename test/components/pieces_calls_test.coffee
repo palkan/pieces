@@ -70,6 +70,12 @@ describe "pieces calls", ->
       expect(res.method_chain).to.eq 'update_section'
       expect(res.args).to.have.length 2
 
+    it "should parse string with special symbols", ->
+      res = Compiler.parse_str("@app.accept('image/pnf; charset=utf-8')")
+      expect(res.target).to.eq '@app'
+      expect(res.method_chain).to.eq 'accept'
+      expect(res.args).to.have.length 1
+
 
   describe "pi complex call queries", ->
     beforeEach  ->
@@ -136,6 +142,8 @@ describe "pieces calls", ->
       pi.app.view.piecify()
       TestHelpers.clickElement $('@test2').span2.node
       expect($('@test2').span2.active).to.be.false
+
+
 
   describe "pi conditional calls", ->
     beforeEach  ->

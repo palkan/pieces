@@ -48,8 +48,11 @@
                 choose file
                 <input type="file" name="attachment[file]" class="file-input">
               </div>
-              <div data-on-selected="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">Multiple?
+              <div data-on-changed="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">Multiple?
                 <input type="hidden" name="attachment[multiple]">
+              </div>
+              <div data-on-changed="e.data ? @host.btn.accept('image/jpg') : @host.btn.accept" class="pi pi-checkbox-wrap">Accept image/jpg?
+                <input type="hidden" name="attachment[accept]">
               </div>
             </form>
             <button pid="upload_btn" class="pi pi-button-red is-disabled">upload</button>
