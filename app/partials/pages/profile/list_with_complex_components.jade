@@ -1,0 +1,20 @@
+script(id="perf2_item_mst", type="x-tmpl-mustache")
+  li.item
+    .field.name {{name}}
+    .pi.pi-select-field(pid="select_field", data-on-changed="@this.placeholder.text(e.data.value)")
+      input(type="hidden")
+      .pi.placeholder(pid="placeholder") Не выбрано
+      .pi.is-hidden.list-container.pi-select-list.pi-scroll-pane(pid="dropdown",data-plugins="scrollable",style="height: 200px")
+        ul.list
+          {{#options}}
+          li.item(data-value="{{.}}")
+            |{{.}}
+          {{/options}}}}
+
+.section.white.pi(pid="perf2",data-component="perf_2_view")
+  h1.title List with complex components (List of scrollable select inputs)
+  a.inline.pi-button-blue(href="@app.page._contexts.perf2.start") Create
+  a.inline.pi-button-red(href="@app.page._contexts.perf2.stop") Dispose
+  .content
+    .pi.pi-action-list(pid="list", data-renderer="mustache(perf2_item_mst)")
+      ul.list

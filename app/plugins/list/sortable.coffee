@@ -58,7 +58,7 @@ class pi.List.Sortable extends pi.Plugin
 
     @list.items.sort @_compare_fun
 
-    @list.data_provider @list.items.slice()
+    @list.data_provider(@list.items.slice(),false,false)
     @list.trigger 'sort_update', sort_params
 
   sorted: (sort_params) ->

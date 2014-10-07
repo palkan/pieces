@@ -25,6 +25,8 @@ class pi.BaseView extends pi.Base
     if controller_klass?
       @controller = new controller_klass(@)
       pi.app.page.add_context @controller, @options.main
+    else
+      utils.warning "controller not found", controller_klass
 
   loaded: (data) ->
     return

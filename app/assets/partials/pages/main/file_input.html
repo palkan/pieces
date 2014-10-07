@@ -1,0 +1,32 @@
+
+<script id="file_item_mst" type="x-tmpl-mustache">
+  <li class="item">
+    <div class="field name">{{name}}</div>
+    <div class="field size">{{size}}</div>
+  </li>
+</script>
+<div pid="file_input_section" data-component="uploader" data-url="/upload" class="section white pi file-input-ex">
+  <h1 class="title">File input</h1>
+  <div class="content">
+    <div class="inline">
+      <form pid="form" class="pi">
+        <div pid="btn" data-on-changed="@host.host.list.data_provider(e.data)" class="pi pi-button-blue pi-file-input-wrap">
+           
+          choose file
+          <input type="file" name="attachment[file]" class="file-input"/>
+        </div>
+        <div data-on-changed="@host.btn.multiple(e.data)" class="pi pi-checkbox-wrap">Multiple?
+          <input type="hidden" name="attachment[multiple]"/>
+        </div>
+        <div data-on-changed="e.data ? @host.btn.accept('image/jpg') : @host.btn.accept" class="pi pi-checkbox-wrap">Accept image/jpg?
+          <input type="hidden" name="attachment[accept]"/>
+        </div>
+      </form>
+      <button pid="upload_btn" class="pi pi-button-red is-disabled">upload</button>
+    </div>
+    <div pid="list" data-renderer="mustache(file_item_mst)" data-on-empty="e.data ? @host.upload_btn.disable : @host.upload_btn.enable" class="pi inline list-container">
+      <h2 class="title">Selected files</h2>
+      <ul class="list"></ul>
+    </div>
+  </div>
+</div>

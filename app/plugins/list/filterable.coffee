@@ -53,7 +53,7 @@ class pi.List.Filterable extends pi.Plugin
     return unless @filtered
     @filtered = false
     @list.removeClass 'is-filtered'
-    @list.data_provider(@all_items()) if rollback
+    @list.data_provider(@all_items(), false, false) if rollback
     @_all_items = null
     @matcher = null
     @list.trigger 'filter_stop'
@@ -75,6 +75,6 @@ class pi.List.Filterable extends pi.Plugin
     @matcher = utils.matchers.object_ext record: params
 
     _buffer = (item for item in scope when @matcher(item))
-    @list.data_provider _buffer
+    @list.data_provider(_buffer, false, false)
 
     @list.trigger 'filter_update'

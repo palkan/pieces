@@ -1,0 +1,22 @@
+
+<div pid="select_input_section" class="section white pi">
+  <h1 class="title">Select input</h1>
+  <div class="content">
+    <div pid="select_field" data-on-change="@this.placeholder.text(e.data.value)" class="pi pi-select-field">
+      <input type="hidden"/>
+      <div pid="placeholder" class="pi placeholder">Не выбрано</div>
+      <div pid="dropdown" data-plugins="scrollable" style="height: 200px" class="pi is-hidden list-container pi-select-list pi-scroll-pane">
+        <ul class="list">
+          <li data-value="John" class="item">John</li>
+          <li data-value="Vagon" class="item">Vagon</li>
+          <li data-value="Jack" class="item">Jack</li>
+          <li data-value="Sam" class="item">Sam</li>
+          <li data-value="Elliot" class="item">Elliot</li>
+          <li data-value="Julia" class="item">Julia</li>
+          <li data-value="Edward" class="item">Edward</li>
+          <li data-value="Simon" class="item">Simon</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

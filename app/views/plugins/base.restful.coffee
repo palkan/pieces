@@ -50,7 +50,9 @@ class pi.Base.Restful extends pi.Plugin
       @resource.off 'update', @resource_update()
       @resource.off 'create', @resource_update()
     @resource = resource
-    return unless @resource
+    unless @resource
+      @target.render(null)
+      return
     @resource.on 'update,create', @resource_update()
     @target.render(resource) if render
 

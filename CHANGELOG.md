@@ -7,6 +7,7 @@
 * enhance Checkbox with 'true-value' and 'false-value' options
 * add 'accept' to FileInput and 'rxp' option to filter file names
 * upd Compiler
+* [important] Fix List memory leak
 
 ## 0.3.4
 * add RadioGroup component

@@ -40,8 +40,8 @@ class pi.List extends pi.Base
   # Set list elements
   # @params [Array, Null] data if null then clear list
 
-  data_provider: (data = null, silent = false) ->
-    @clear(silent) if @items.length  
+  data_provider: (data = null, silent = false, remove = true) ->
+    @clear(silent,remove) if @items.length  
 
     if data?
       @add_item(item,true) for item in data
@@ -185,8 +185,9 @@ class pi.List extends pi.Base
     @_check_empty(silent)
     @trigger('update', {type: type}) unless silent
 
-  clear: (silent = false) ->
-    @items_cont.detach_children()
+  clear: (silent = false, remove = true) ->
+    @items_cont.detach_children() unless remove
+    @items_cont.remove_children() if remove
     @items.length = 0
     @trigger('update', {type:'clear'}) unless silent
     @_check_empty(silent)

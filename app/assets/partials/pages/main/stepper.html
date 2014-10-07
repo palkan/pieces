@@ -1,0 +1,12 @@
+
+<div pid="stepper_section" class="section white pi">
+  <h1 class="title">Stepper</h1>
+  <div class="content">
+    <div data-pid="txt" data-on-changed="@host.stepper.value(e.data)" class="pi pi-text-input-wrap">
+      <input type="text" class="text-input"/>
+    </div>
+    <div pid="stepper" data-step="10" data-min="-10" data-max="100" data-prefix="$" data-suffix="'.00'" data-on-changed="@host.txt.value(e.data)" class="pi pi-stepper">
+      <input type="text" value="20" class="text-input"/><span class="step step-up"></span><span class="step step-down"></span>
+    </div>
+  </div>
+</div>

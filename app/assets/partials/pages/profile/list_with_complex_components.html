@@ -1,0 +1,23 @@
+
+<script id="perf2_item_mst" type="x-tmpl-mustache">
+  <li class="item">
+    <div class="field name">{{name}}</div>
+    <div pid="select_field" data-on-changed="@this.placeholder.text(e.data.value)" class="pi pi-select-field">
+      <input type="hidden"/>
+      <div pid="placeholder" class="pi placeholder">Не выбрано</div>
+      <div pid="dropdown" data-plugins="scrollable" style="height: 200px" class="pi is-hidden list-container pi-select-list pi-scroll-pane">
+        <ul class="list">{{#options}}
+          <li data-value="{{.}}" class="item">{{.}}</li>{{/options}}}}
+        </ul>
+      </div>
+    </div>
+  </li>
+</script>
+<div pid="perf2" data-component="perf_2_view" class="section white pi">
+  <h1 class="title">List with complex components (List of scrollable select inputs)</h1><a href="@app.page._contexts.perf2.start" class="inline pi-button-blue">Create</a><a href="@app.page._contexts.perf2.stop" class="inline pi-button-red">Dispose</a>
+  <div class="content">
+    <div pid="list" data-renderer="mustache(perf2_item_mst)" class="pi pi-action-list">
+      <ul class="list"></ul>
+    </div>
+  </div>
+</div>
