@@ -41,7 +41,7 @@ class pi.List.Searchable extends pi.Plugin
       @highlight_item @_prevq, item
       return
     else if @searching
-      @list.remove_item item, true
+      @list.remove_item item, true, false
 
     false
 
