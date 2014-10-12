@@ -1,3 +1,6 @@
+## 0.3.6
+* many bugz-z-z-z fixed 
+
 ## 0.3.5
 * add HasOne module to resources
 * add 'from_data' and 'can_create' to resources
