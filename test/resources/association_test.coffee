@@ -152,6 +152,12 @@ describe "Pieces REST base", ->
         Eater.remove_by_id(1)
         expect(@chef.eaters().all()).to.have.length 0
 
+      it "should handle remove of belongs_to", ->
+        expect(@chef.testos().all()).to.have.length 1
+        tid = @chef.testos().all()[0].id
+        Testo.remove_by_id(tid)
+        expect(@chef.testos().all()).to.have.length 0
+
     describe "destroy elements", ->
       beforeEach ->
         @chef = Chef.get(1)

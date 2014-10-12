@@ -157,6 +157,15 @@ describe "Pieces REST", ->
           
         t.destroy()
 
+      it "should remove unpersisted element when 'destroy'", (done) ->
+        t = Testo.build({type: 'puff'})
+        Testo.listen (e) ->
+          expect(e.data.type).to.eq 'destroy'
+          expect(e.data.testo.type).to.eq 'puff'
+          done()
+          
+        t.destroy()
+
 
       it "should save new element", (done) ->
         t = new Testo()

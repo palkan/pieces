@@ -161,6 +161,7 @@ class pi.resources.Base extends pi.EventDispatcher
     @constructor.created(@,temp_id)
 
   dispose: ->
+    return if @disposed
     for own key,_ of @
       delete @[key]
     @disposed = true

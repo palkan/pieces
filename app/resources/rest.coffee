@@ -49,9 +49,11 @@ class pi.resources.REST extends pi.resources.Base
       member: 
         [
           {action: 'update', path: ":resources/:id", method: "patch"},
-          {action: 'destroy', path: ":resources/:id", method: "delete"},
+          # we have 'destroy' method to handle unpersisted elements
+          {action: '__destroy', path: ":resources/:id", method: "delete"},
           {action: 'create', path: ":resources", method: "post"}
         ]
+    @::["destroy_path"] = ":resources/:id"
 
   @routes: (data) ->
     if data.collection?
@@ -165,9 +167,18 @@ class pi.resources.REST extends pi.resources.Base
     super
     @_snapshot = data
 
+  destroy: ->
+    if @_persisted
+      @__destroy()
+    else
+      utils.as_promise( => @remove())
+
+
   on_destroy: (data) ->
     @constructor.remove @
     data
+
+  @alias 'on___destroy', 'on_destroy'
 
   on_all: (data) ->
     params = data[@constructor.resource_name]
