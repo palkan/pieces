@@ -94,5 +94,17 @@ describe "filterable list plugin", ->
         done()
       @list.add_item {id:5, age: 12, gender: 0, author: 'Jack'}
 
+    it "should refilter after item updated", (done) ->
+      @list.filter gender: 0
+      expect(@list.size()).to.equal 2
+      @list.on 'update', (e) =>
+        return unless e.data.type is 'item_updated'
+        expect(@list.size()).to.equal 1
+        expect(@list.all('.item').length).to.equal 1
+        @list.filter() 
+        expect(@list.size()).to.equal 4
+        done()
+      @list.update_item @list.items[0],  {id:1, age: 20, gender: 1, author: 'Bob'}
+
       
 

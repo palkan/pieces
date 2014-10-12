@@ -83,11 +83,14 @@ class pi.List extends pi.Base
       @trigger('update', {type:'item_added', item:item})
     item
 
-  remove_item: (item,silent = false) ->
+  remove_item: (item,silent = false, destroy = true) ->
     index = @items.indexOf(item)
     if index > -1
       @items.splice(index,1)
-      @_destroy_item(item)
+      if destroy
+        @_destroy_item(item)
+      else
+        item.detach()
 
       @_check_empty()
 

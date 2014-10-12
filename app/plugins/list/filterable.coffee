@@ -34,7 +34,7 @@ class pi.List.Filterable extends pi.Plugin
     if @matcher(item)
       return
     else if @filtered
-      @list.remove_item item, true
+      @list.remove_item item, true, false
 
     false
 
