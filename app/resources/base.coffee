@@ -24,6 +24,13 @@ class pi.resources.Base extends pi.EventDispatcher
     @resources_name = plural
     @resource_name = singular || _singular(plural)
 
+  @register_association: (name) ->
+    if @::__associations__?
+      @::__associations__ = @::__associations__.slice()
+    else
+      @::__associations__ = []
+    @::__associations__.push name
+
   # fill resources with data
 
   @load: (data,silent=false) ->
@@ -177,6 +184,9 @@ class pi.resources.Base extends pi.EventDispatcher
     for key, change of @_changes
       res[key] = change.val
     res
+
+  association: (name) ->
+    @__associations__?.indexOf(name) > -1
 
   set: (params, silent) ->
     _changed = false

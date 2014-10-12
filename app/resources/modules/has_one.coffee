@@ -23,8 +23,7 @@ class pi.resources.HasOne
     resource_name = params.source.resource_name
     bind_fun = "bind_#{name}"
 
-    (@::__associations__||=[]).push name
-
+    @register_association name
 
     if typeof params.update_if is 'function'
       _update_filter = params.update_if
@@ -32,14 +31,15 @@ class pi.resources.HasOne
       _update_filter = _true
 
     params.source.listen (e) => 
+      return unless @all().length
       e = e.data
       if e.type is 'load'
         for el in params.source.all()
-          if el[params.foreign_key] and (target = @get(el[params.foreign_key]))
+          if el[params.foreign_key] and (target = @get(el[params.foreign_key])) and target.association(name)
             target[bind_fun] el
       else
         el = e[resource_name]
-        if el[params.foreign_key] and (target = @get(el[params.foreign_key]))
+        if el[params.foreign_key] and (target = @get(el[params.foreign_key])) and target.association(name)
           if e.type is 'destroy'
             delete @[name]
           else if e.type is 'create'
