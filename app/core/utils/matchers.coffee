@@ -48,6 +48,7 @@ class pi.utils.matchers
             val == value
 
     (item) ->
+      return false unless item?
       _any = false
       for key,matcher of obj
         if matcher(item[key])
