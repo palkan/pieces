@@ -68,7 +68,7 @@ class pi.resources.Association extends pi.resources.View
   on_destroy: (el) ->
     if @options.copy is false
       @trigger 'destroy', @_wrap(el)
-      @remove el, true
+      @remove el, true, false
     else
       super
 

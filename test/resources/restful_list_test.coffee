@@ -185,6 +185,58 @@ describe "Restful List", ->
         Testo2.remove_by_id(1)
         expect(@list.size()).to.eq 3
 
+  describe "restful list with scoped resource which belongs to association", ->
+
+    beforeEach ->
+      Chef.load [{id:1}]
+      Testo2.load [
+        {id:1, type: 'puff', chef_id: 2},
+        {id:2, type: 'gut', chef_id: 1},
+        {id:3, type: 'bett', chef_id: 2},
+        {id:4, type: 'yeast', chef_id: 1},
+        {id:5, type: 'sweet', chef_id: 2},
+        {id:6, type: 'donut', chef_id: 1}  
+      ]
+      @test_div = Nod.create 'div'
+      @test_div.style position:'relative'
+      root.append @test_div 
+      @test_div.append """
+        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-load-rest="true" pid="list">
+          <ul class="list">
+          </ul>
+        </div> 
+      """
+      pi.app.initialize()
+      @chef = Chef.get(1)
+      @list = $("@list")
+      @list.restful.bind Testo2, true, chef_id: 1
+
+    afterEach ->
+      @list.off()
+      Testo2.off()
+      Testo2.clear_all()
+      Chef.clear_all()
+      Chef.off()
+      @test_div.remove()
+
+    describe "initialization", ->
+      it "should load elements on bind", ->
+        expect(@list.size()).to.eq 3
+
+    describe "CRUD", ->
+      it "should add element", ->
+        @chef.testos().build(type:'dirt',id:7)
+        expect(@list.size()).to.eq 4
+        expect(@list.items[@list.size()-1].record.type).to.eq 'dirt'
+
+      it "should remove element", ->
+        Testo2.remove_by_id(2)
+        expect(@list.size()).to.eq 2
+
+      it "should not remove element if it doesn't match", ->
+        Testo2.remove_by_id(1)
+        expect(@list.size()).to.eq 3
+
 
   describe "restful list with temporary association", ->
     beforeEach ->
