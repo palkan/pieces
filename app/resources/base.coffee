@@ -113,7 +113,7 @@ class pi.resources.Base extends pi.EventDispatcher
       @remove el
     return false
 
-  @remove: (el, silent) ->
+  @remove: (el, silent, disposed = true) ->
     if @__all_by_id__[el.id]?
       delete @__all_by_id__[el.id]
     else
@@ -121,7 +121,7 @@ class pi.resources.Base extends pi.EventDispatcher
     
     @__all__.splice @__all__.indexOf(el), 1
     @trigger('destroy', @_wrap(el)) unless silent
-    el.dispose()
+    el.dispose() if disposed
     return true
 
   @listen: (callback, filter) ->

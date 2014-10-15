@@ -140,8 +140,10 @@ class pi.List extends pi.Base
     #merge classes
     item.mergeClasses new_item
     
-    # piecify
+    # piecify ...
     item.piecify()
+    # ... and postinitialize (because DOM was updated)
+    item.postinitialize()
 
     @trigger('update', {type:'item_updated',item:item}) unless silent
     item  
