@@ -41,7 +41,7 @@ class pi.Base.Restful extends pi.Plugin
         (resource) =>
           @bind resource, !@target.firstChild
         () =>
-          utils.error "resource not found: #{rest}"
+          utils.error "resource not found: #{rest}", @target.options.rest
       )
     @
 

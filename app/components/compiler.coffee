@@ -68,7 +68,7 @@ class pi.Compiler
       else
         target[method]
     catch error
-      utils.error error, error.stack
+      utils.error error, {backtrace: error.stack, target: target, method: method_chain, args: fixed_args} 
 
   @is_simple_arg: (arg) ->
     not (_method_rxp.test(arg) or arg[0] is '@')

@@ -74,6 +74,7 @@ class pi.resources.Association extends pi.resources.View
 
   on_create: (el) ->
     if (view_item = (@get(el.id) || @get(el.__tid__)))
+      @created(view_item, el.__tid__)
       if @options.copy is false
         @trigger 'create', @_wrap(el)
       else

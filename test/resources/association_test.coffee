@@ -193,7 +193,19 @@ describe "Pieces REST base", ->
 
         expect(chef.eaters().all()).to.have.length 2
         expect(chef.testos().all()).to.have.length 1
+
+      it "should update cache after item created and updated", ->
+        chef = Chef.build({id: 10, name: 'Juan', testos: [{type: 'puff'}]})
+        expect(chef.testos().all()).to.have.length 1
+
+        t = chef.testos().all()[0]
+
+        t.set id: 14
+        expect(chef.testos().all()).to.have.length 1
   
+        t.set rate: 95
+        expect(chef.testos().all()).to.have.length 1
+
     describe "several resources with REST associations", ->
       M = pi.resources.Meeting
       U = pi.resources.TestUsers

@@ -29,7 +29,7 @@ class pi.Base.Renderable extends pi.Plugin
         @target.append nod
         @target.piecify(@target)
       else
-        utils.error "failed to render data for: #{@target.pid}}"
+        utils.error "failed to render data for: #{@target.pid}}", data
     @target
 
   find_renderer: ->
