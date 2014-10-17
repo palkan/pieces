@@ -40,18 +40,36 @@ describe "select_input component", ->
       expect(@example.dropdown.selected_size()).to.eq 1
 
   describe "appearance", ->
-    it "should show dropdown on focus",  ->
+    it "should show dropdown on focus",  (done) ->
       expect(@list.visible).to.be.false
-      @example.focus()
-      expect(@list.visible).to.be.true
-      
-    it "should hide dropdown on blur",  ->
-      @example.focus()
-      expect(@list.visible).to.be.true
+      after 100, => @example.focus()
+      after 200, =>
+        expect(@list.visible).to.be.true
+        done()
 
-      $('.focus_me').focus()
+    it "should hide dropdown on blur", (done) ->
+      after 100, => @example.focus()
+      after 200, =>
+        expect(@list.visible).to.be.true
+        after 100, => $('.focus_me').focus()
+        after 200, =>
+          expect(@list.visible).to.be.false
+          done()
+
+  describe "show + click + hide", ->
+    it "should show dropdown on focus",  (done) ->
+      @example.on 'changed', (spy = sinon.spy())
 
       expect(@list.visible).to.be.false
+      after 100, => @example.focus()
+      after 200, =>
+        expect(@list.visible).to.be.true
+        TestHelpers.clickElement $('.pi-list .item').node
+        expect($('.placeholder').text()).to.eq 'One'
+        after 100, =>
+          expect(@list.visible).to.be.false
+          done()
+
 
   describe "events", ->
     it "should trigger change if item selected and update value", (done) ->

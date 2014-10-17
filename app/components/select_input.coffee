@@ -29,7 +29,7 @@ class pi.SelectInput extends pi.BaseInput
       @dropdown.show()
 
     @on 'blur', =>
-      @dropdown.hide()
+      after 100, => @dropdown.hide() # ie is not sending click event for hidden element 
 
     if @input.value()
       @value utils.serialize(@input.value())
