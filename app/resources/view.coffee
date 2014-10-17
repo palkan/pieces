@@ -110,3 +110,6 @@ class pi.resources.View extends pi.EventDispatcher
   trigger: (event,data) ->
     data.type = event
     super "update", data 
+
+  off: (callback) ->
+    super "update", callback
