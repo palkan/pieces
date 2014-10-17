@@ -214,3 +214,9 @@ class pi.resources.Base extends pi.EventDispatcher
   trigger: (e, data, bubbles = false) ->
     super
     @constructor.trigger e, @constructor._wrap(@)
+
+  # trigger 'update event' and invoke special handler of type 'on_#{association_name}_update: (type,el) ->' if any
+  trigger_assoc_event: (name, type, data) ->
+    if typeof @["on_#{name}_update"] is 'function'
+      @["on_#{name}_update"].call(@, type, data)
+    @trigger 'update', utils.wrap(name, true)

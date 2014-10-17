@@ -1,3 +1,6 @@
+## 0.3.9
+* add conditional upstreaming of associations events
+
 ## 0.3.6
 * many bugz-z-z-z fixed 
 

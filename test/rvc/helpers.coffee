@@ -21,10 +21,14 @@ class pi.resources.Chef extends pi.resources.REST
   @extend pi.resources.HasMany
   @set_resource 'chefs'
 
-  @has_many 'testos', source: pi.Testo2, belongs_to: true, route: true, attribute: true, destroy: true
-  @has_many 'eaters', source: pi.Eater, params: ['kg_eaten'], attribute: true, id_alias: 'eater_id', scope: false
+  @has_many 'testos', source: pi.Testo2, belongs_to: true, route: true, attribute: true, destroy: true, update_if: (type) -> type == 'destroy'
+  @has_many 'eaters', source: pi.Eater, params: ['kg_eaten'], attribute: true, id_alias: 'eater_id', scope: false, update_if: true
 
   @params 'name', 'age', 'coolness'
+
+  on_testos_update: ->
+    @testos_updated=0 unless @testos_updated?
+    @testos_updated++
 
 
 class pi.resources.Testo extends pi.resources.Base
@@ -75,6 +79,10 @@ class pi.resources.User extends pi.resources.REST
   @extend pi.resources.HasOne
   @params 'name','email'
   @has_one 'profile', source: pi.resources.Profile, attribute: true, destroy: true, update_if: (event, el) -> (event and event.type is 'destroy') or el.age < 100
+
+  on_profile_update: ->
+    @profile_updated=0 unless @profile_updated?
+    @profile_updated++
 
 class pi.controllers.Test extends pi.controllers.ListController
   @list_resource pi.resources.TestUsers

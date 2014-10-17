@@ -3,6 +3,9 @@ pi = require '../../core'
 require '../rest'
 utils = pi.utils
 
+_true = -> true
+_false = -> false
+
 # add has_many to resource
 # @example
 # 
@@ -22,6 +25,12 @@ class pi.resources.HasMany
 
     @register_association name
 
+    # setup update trigger
+    if typeof params.update_if is 'function'
+      _update_filter = params.update_if
+    else if params.update_if is true
+      _update_filter = _true
+
     # add assoc method
     @::[name] = ->
       unless @["__#{name}__"]?
@@ -40,6 +49,11 @@ class pi.resources.HasMany
         utils.extend options, params
         @["__#{name}__"] = new pi.resources.Association(params.source, options.scope, options)
         @["__#{name}__"].load params.source.where(options.scope) unless options.scope is false
+        @["__#{name}__"].listen(
+          (e) =>
+            data = e.data[params.source.resources_name] || e.data[params.source.resource_name]
+            @trigger_assoc_event(name, e.data.type, data) if _update_filter(e.data.type,data)
+        ) if params.update_if
       @["__#{name}__"]
 
     # add route and handler

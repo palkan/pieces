@@ -110,15 +110,19 @@ describe "Pieces REST base", ->
         @chef = Chef.get(1)
 
       it "should add elements and handle updates", ->
-        spy = sinon.spy()
-        @chef.eaters().listen spy
+        
+        @chef.on 'update', (spy1 = sinon.spy())
+
+        @chef.eaters().listen(spy = sinon.spy())
         @chef.eaters().build Eater.get(1)
         
         expect(spy.callCount).to.eq 1
+        expect(spy1.callCount).to.eq 1
         expect(@chef.eaters().all()).to.have.length 1
 
         Eater.get(1).set({age: 101})
         expect(@chef.eaters().get(1).age).to.eq 101
+        expect(spy1.callCount).to.eq 2
 
       it "should add elements, set owner_id and not copy", ->
         spy = sinon.spy()
@@ -133,6 +137,7 @@ describe "Pieces REST base", ->
 
 
       it "should add elements created outside with belongs_to", ->
+        @chef.on 'update', (spy1 = sinon.spy())
         spy = sinon.spy()
         @chef.testos().listen spy
         Testo.build {id:13, type:'none', chef_id: @chef.id}
@@ -140,23 +145,31 @@ describe "Pieces REST base", ->
         expect(spy.callCount).to.eq 1
         expect(@chef.testos().all()).to.have.length 2
         expect(@chef.testos().get(13).type).to.eq 'none'
+        expect(spy1.callCount).to.eq 0
+        expect(@chef.testos_updated).to.be.undefined
 
       it "should add elements and handle remove", ->
+        @chef.on 'update', (spy1 = sinon.spy())
         spy = sinon.spy()
         @chef.eaters().listen spy
         @chef.eaters().build Eater.get(1)
         
         expect(spy.callCount).to.eq 1
+        expect(spy1.callCount).to.eq 1
         expect(@chef.eaters().all()).to.have.length 1
 
         Eater.remove_by_id(1)
         expect(@chef.eaters().all()).to.have.length 0
+        expect(spy1.callCount).to.eq 2
 
       it "should handle remove of belongs_to", ->
+        @chef.on 'update', (spy1 = sinon.spy())
         expect(@chef.testos().all()).to.have.length 1
         tid = @chef.testos().all()[0].id
         Testo.remove_by_id(tid)
         expect(@chef.testos().all()).to.have.length 0
+        expect(spy1.callCount).to.eq 1
+        expect(@chef.testos_updated).to.eq 1
 
     describe "destroy elements", ->
       beforeEach ->

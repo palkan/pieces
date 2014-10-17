@@ -77,6 +77,7 @@ describe "Pieces REST base", ->
         Profile.build id: 1, age: 10, weight: 122, height: 164, user_id: 13
 
         expect(spy_fun.callCount).to.eq 1
+        expect(usr.profile_updated).to.eq 1
 
       it "should send update on has_one updated", ->
         usr = User.build(id: 14, name: 'Juan', email: 'juan@dogeater.com', profile: {id: 2, age: 10, weight: 122, height: 164, user_id: 14})

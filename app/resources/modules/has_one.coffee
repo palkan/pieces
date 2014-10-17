@@ -4,6 +4,7 @@ require '../rest'
 utils = pi.utils
 
 _true = -> true
+_false = -> false
 
 # add has_one to resource
 # @example
@@ -25,10 +26,13 @@ class pi.resources.HasOne
 
     @register_association name
 
+    # add update trigger
     if typeof params.update_if is 'function'
       _update_filter = params.update_if
-    else
+    else if params.update_if is true
       _update_filter = _true
+    else
+      _update_filter = _false
 
     params.source.listen (e) => 
       return unless @all().length
@@ -44,7 +48,7 @@ class pi.resources.HasOne
             delete @[name]
           else if e.type is 'create'
             target[bind_fun] el, true
-          target.trigger('update',utils.wrap(name, @[name])) if _update_filter(e,el) 
+          target.trigger_assoc_event(name, e.type, utils.wrap(name, @[name])) if _update_filter(e,el) 
 
     # bind function
     @::[bind_fun] = (el, silent = false) ->
@@ -52,7 +56,7 @@ class pi.resources.HasOne
       @[name] = el
       if @_persisted and not @[name][params.foreign_key]
         @[name][params.foreign_key] = @id
-      @trigger('update', utils.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
+      @trigger_assoc_event(name, 'create', utils.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
 
     # add callbacks
 
