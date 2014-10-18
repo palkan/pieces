@@ -6,19 +6,17 @@ describe "event dispatcher", ->
     root = Nod.create 'div'
     Nod.body.append root.node
 
-    beforeEach  ->
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div
-      @test_div.append('<div style="position:relative"></div>')
+    test_div = null
+
+    beforeEach ->
+      test_div = pi.Nod.create 'div'
+      root.append test_div
 
     afterEach ->
-      @test_div.remove()
-      root.html ''
-
+      test_div.remove()
 
     it "should add native events and call handlers", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -34,7 +32,7 @@ describe "event dispatcher", ->
       expect(spy_fun.callCount).to.eq 2
 
     it "should remove all events on off", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -50,7 +48,7 @@ describe "event dispatcher", ->
       expect(el.listeners).to.eql({})
 
     it "should not call removed events", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -68,7 +66,7 @@ describe "event dispatcher", ->
       expect(spy_fun.callCount).to.eq 1
 
     it "should remove native listener on off()", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -96,7 +94,7 @@ describe "event dispatcher", ->
 
 
     it "should remove native listener on off(event)", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -124,7 +122,7 @@ describe "event dispatcher", ->
 
 
     it "should remove native listener on off(event,callback,context)", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -149,7 +147,7 @@ describe "event dispatcher", ->
       expect(dummy.spy.callCount).to.eq(1)
 
     it "should call once if one(event)", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -168,7 +166,7 @@ describe "event dispatcher", ->
       expect(dummy.spy.callCount).to.eq(1)
 
     it "should remove native listener after event if one(event)", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -192,7 +190,7 @@ describe "event dispatcher", ->
 
 
     it "should work with several native events", ->
-      @test_div.append """
+      test_div.append """
         <div id='cont'>
           <button class='pi'>Button</button>
         </div>
@@ -224,7 +222,7 @@ describe "event dispatcher", ->
 
       it "should work with alias", ->
         pi.NodEvent.register_alias 'clicko', 'click' 
-        @test_div.append """
+        test_div.append """
           <div id='cont'>
             <button class='pi'>Button</button>
           </div>
@@ -240,19 +238,21 @@ describe "event dispatcher", ->
 
 
     describe "resize delegate", ->
+      example = null
       beforeEach ->
-        @test_div.append """
+        test_div.append """
             <div id='flex' style="height: 50%; width: 200px;">
               <button class='pi'>Button</button>
             </div>
           """
-        @example = $("#flex")
+        example = $("#flex")
 
       afterEach ->
+        example.remove()
         pi.Nod.body.styles({height: null, width: null})
 
       it "should trigger resize event if size changed", (done) ->
-        @example.on "resize", (spy_fun = sinon.spy())
+        example.on "resize", (spy_fun = sinon.spy())
 
         pi.Nod.body.style('height','200px')
         TestHelpers.resizeEvent()
@@ -264,7 +264,7 @@ describe "event dispatcher", ->
           done()
 
       it "should not trigger resize event if size haven't changed", (done) ->
-        @example.on "resize", (spy_fun = sinon.spy())
+        example.on "resize", (spy_fun = sinon.spy())
         pi.Nod.body.style('width','200px')
         TestHelpers.resizeEvent()
         after 350, ->
@@ -272,7 +272,7 @@ describe "event dispatcher", ->
           done()
 
       it "should work with 'one'", (done) ->
-        @example.one "resize", (spy_fun = sinon.spy())
+        example.one "resize", (spy_fun = sinon.spy())
 
         pi.Nod.body.style('height','200px')
         TestHelpers.resizeEvent()

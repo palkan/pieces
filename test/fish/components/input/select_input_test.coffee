@@ -7,10 +7,10 @@ describe "select_input component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi pi-select-field" data-pid="test" style="position:relative">
           <input type="hidden" value="2"/>
           <div class="pi placeholder" pid="placeholder" data-placeholder="Не выбрано"></div>
@@ -29,7 +29,7 @@ describe "select_input component", ->
     @list = @example.dropdown
 
   afterEach ->
-    @test_div.remove()
+    @example.remove()
 
   describe "init", ->
     it "should be select_input", ->
@@ -40,19 +40,18 @@ describe "select_input component", ->
       expect(@example.dropdown.selected_size()).to.eq 1
 
   describe "appearance", ->
-    it "should show dropdown on focus",  (done) ->
+    it "should show dropdown on focus",  ->
       expect(@list.visible).to.be.false
-      after 100, => @example.focus()
-      after 200, =>
-        expect(@list.visible).to.be.true
-        done()
+      @example.trigger 'focus'
+      expect(@list.visible).to.be.true
 
     it "should hide dropdown on blur", (done) ->
-      after 100, => @example.focus()
-      after 200, =>
-        expect(@list.visible).to.be.true
-        after 100, => $('.focus_me').focus()
-        after 200, =>
+      @example.trigger 'focus'
+      expect(@list.visible).to.be.true
+      
+      @example.trigger 'blur'
+      after 200, 
+        =>
           expect(@list.visible).to.be.false
           done()
 

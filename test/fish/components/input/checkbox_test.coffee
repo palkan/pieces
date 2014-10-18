@@ -7,10 +7,10 @@ describe "checkbox component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi pi-checkbox-wrap" data-pid="test" style="position:relative">
           <label>CheckBox</label>
           <input type="hidden" value="0"/>
@@ -30,7 +30,9 @@ describe "checkbox component", ->
     @test3 = $('@test3') 
 
   afterEach ->
-    @test_div.remove()
+    @test1.remove()
+    @test2.remove()
+    @test3.remove() 
 
   describe "init", ->
 
@@ -75,8 +77,8 @@ describe "checkbox component", ->
 
   describe "true and false values", ->
     beforeEach ->
-      root.append @test_div 
-      @test_div.append """
+      test_div = Nod.create('div')
+      test_div.append """
           <div class="pi pi-checkbox-wrap" data-default-value="a" data-true-value="a" data-false-value="b" data-pid="test4" style="position:relative">
             <label>CheckBox</label>
             <input type="hidden" value=""/>
@@ -89,6 +91,10 @@ describe "checkbox component", ->
       pi.app.view.piecify()
       @test4 = $('@test4')
       @test5 = $('@test5')
+
+    afterEach ->
+      @test5.remove()
+      @test4.remove()
 
     it "should init default value as true", ->
       expect(@test4.__selected__).to.be.true

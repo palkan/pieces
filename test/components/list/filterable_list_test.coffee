@@ -7,7 +7,7 @@ describe "filterable list plugin", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div
     window.JST = {}
@@ -35,7 +35,7 @@ describe "filterable list plugin", ->
       ]
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "list filters", ->
     

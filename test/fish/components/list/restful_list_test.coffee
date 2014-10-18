@@ -12,7 +12,7 @@ describe "Restful List", ->
   root = Nod.create 'div'
   Nod.body.append root.node
 
-  (window.JST||={})['test/testo'] = (data) ->
+  (window.JST={})['test/testo'] = (data) ->
     nod = Nod.create("<div class='type'>#{ data.type }</div>")
     nod.addClass 'item'
     nod.append "<span class='salt'>#{ data.salt_id||'' }</span>"
@@ -29,10 +29,10 @@ describe "Restful List", ->
         {id:5, type: 'sweet', salt_id: 2},
         {id:6, type: 'donut', salt_id: 1}  
       ]
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div 
-      @test_div.append """
+      test_div = Nod.create('div')
+      test_div.style position:'relative'
+      root.append test_div 
+      test_div.append """
         <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-load-rest="true" data-rest="testo.where(salt_id:1)" data-listen-load="true" pid="list">
           <ul class="list">
           </ul>
@@ -42,7 +42,7 @@ describe "Restful List", ->
       @list = $("@list")
 
     afterEach ->
-      @test_div.remove()
+      @list.remove()
       Testo.off()
       Testo.clear_all()
 
@@ -93,10 +93,10 @@ describe "Restful List", ->
         {id:5, type: 'sweet', salt_id: 2},
         {id:6, type: 'donut', salt_id: 1}  
       ]
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div 
-      @test_div.append """
+      test_div = Nod.create('div')
+      test_div.style position:'relative'
+      root.append test_div 
+      test_div.append """
         <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful"  pid="list">
           <ul class="list">
           </ul>
@@ -109,7 +109,7 @@ describe "Restful List", ->
       @list.restful.bind @view, true
 
     afterEach ->
-      @test_div.remove()
+      @list.remove()
       Testo.off()
       Testo.clear_all()
       @view.clear_all()
@@ -146,10 +146,10 @@ describe "Restful List", ->
         {id:5, type: 'sweet', chef_id: 2},
         {id:6, type: 'donut', chef_id: 1}  
       ]
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div 
-      @test_div.append """
+      test_div = Nod.create('div')
+      test_div.style position:'relative'
+      root.append test_div 
+      test_div.append """
         <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-rest="Chef.find(1).testos" data-plugins="restful" data-load-rest="true" pid="list">
           <ul class="list">
           </ul>
@@ -160,12 +160,11 @@ describe "Restful List", ->
       @list = $("@list")
 
     afterEach ->
-      @list.off()
+      @list.remove()
       Testo2.off()
       Testo2.clear_all()
       Chef.clear_all()
       Chef.off()
-      @test_div.remove()
 
     describe "initialization", ->
       it "should load elements on bind", ->
@@ -197,10 +196,10 @@ describe "Restful List", ->
         {id:5, type: 'sweet', chef_id: 2},
         {id:6, type: 'donut', chef_id: 1}  
       ]
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div 
-      @test_div.append """
+      test_div = Nod.create('div')
+      test_div.style position:'relative'
+      root.append test_div 
+      test_div.append """
         <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-load-rest="true" pid="list">
           <ul class="list">
           </ul>
@@ -212,12 +211,11 @@ describe "Restful List", ->
       @list.restful.bind Testo2, true, chef_id: 1
 
     afterEach ->
-      @list.off()
+      @list.remove()
       Testo2.off()
       Testo2.clear_all()
       Chef.clear_all()
       Chef.off()
-      @test_div.remove()
 
     describe "initialization", ->
       it "should load elements on bind", ->
@@ -248,10 +246,10 @@ describe "Restful List", ->
         {id:5, type: 'sweet', chef_id: 2},
         {id:6, type: 'donut', chef_id: 1}  
       ]
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div 
-      @test_div.append """
+      test_div = Nod.create('div')
+      test_div.style position:'relative'
+      root.append test_div 
+      test_div.append """
         <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" pid="list">
           <ul class="list">
           </ul>
@@ -263,12 +261,11 @@ describe "Restful List", ->
       @list = $("@list")
 
     afterEach ->
-      @list.off()
+      @list.remove()
       Testo2.off()
       Testo2.clear_all()
       Chef.clear_all()
       Chef.off()
-      @test_div.remove()
 
     describe "initialization", ->
       it "should load elements on bind", ->

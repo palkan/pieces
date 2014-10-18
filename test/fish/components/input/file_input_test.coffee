@@ -8,10 +8,10 @@ describe "file input component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi button pi-file-input-wrap" pid="test" style="position:relative">
           <input type="file" multiple/>
         </div>
@@ -20,7 +20,7 @@ describe "file input component", ->
     @test1 = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @test1.remove()
 
   describe "guess type", ->
     it "should guess as file_input", ->

@@ -8,7 +8,7 @@ describe "list component", ->
   utils = pi.utils
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
@@ -24,7 +24,7 @@ describe "list component", ->
     @list = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "list basics", ->
     it "should parse list items", ->

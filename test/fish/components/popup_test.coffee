@@ -8,10 +8,10 @@ describe "popup component", ->
   utils = pi.utils
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append '''
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append '''
         <div class="pi pi-popup" data-pid="popup" data-z="100" data-hide-delay="200" data-show-delay="0">
         </div>
         '''
@@ -19,7 +19,7 @@ describe "popup component", ->
     @popup = $('@popup')
 
   afterEach ->
-    root.empty()
+    @popup.remove()
   
   describe "initialization", ->
     it "should init as Popup", ->
@@ -34,12 +34,12 @@ describe "popup component", ->
     it "should create overlay and container with popup", ->
       p = pi.Nod.create('div')
       p.node.id = _id = "id#{utils.uid()}" 
-      @test_div.append p
+      root.append p
       @popup.open p
       expect(@popup.children()).to.have.length 2
       expect(@popup.children('.pi-overlay')).to.have.length 1
       expect(@popup.children('.pi-popup-container')).to.have.length 1
-      expect(@test_div.all("##{_id}")).to.have.length 1
+      expect(root.all("##{_id}")).to.have.length 1
 
 
     it "should remove popup on close", (done) ->

@@ -7,7 +7,7 @@ describe "jst renderer list plugin", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div
     window.JST = {}
@@ -31,7 +31,7 @@ describe "jst renderer list plugin", ->
     @list = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "render template", ->
     

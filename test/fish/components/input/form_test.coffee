@@ -6,17 +6,9 @@ describe "form component", ->
   root = Nod.create 'div'
   Nod.body.append root.node
 
-  beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-
-  afterEach ->
-    @test_div.remove()
-
   describe "initialize", ->
     beforeEach ->
-      @test_div.append """
+      root.append """
         <form class="pi pi-form" data-pid="test">
           <div class="pi pi-text-input-wrap" data-name="desc" data-pid="test" style="position:relative">
             <input type="text" value="1"/>
@@ -42,6 +34,9 @@ describe "form component", ->
       pi.app.view.piecify()
       @example = $('@test')
 
+    afterEach ->
+      @example.remove()
+
     it "should be Form", ->
       expect(@example).to.be.an.instanceof pi.Form
 
@@ -61,7 +56,7 @@ describe "form component", ->
 
   describe "inputs update", ->
     beforeEach ->
-      @test_div.append """
+      root.append """
         <form class="pi" data-pid="test">
           <div id="desc" class="pi pi-text-input-wrap" data-name="desc" data-pid="test" style="position:relative">
             <input type="text" value="1"/>
@@ -86,6 +81,9 @@ describe "form component", ->
       """
       pi.app.view.piecify()
       @example = $('@test')
+
+    afterEach ->
+      @example.remove()
     
     it "should handle native inputs updates", (done) ->
       @example.on pi.FormEvent.Update, (e) =>
@@ -131,7 +129,7 @@ describe "form component", ->
 
   describe "rails names", ->
     beforeEach ->
-      @test_div.append """
+      root.append """
         <form class="pi" data-pid="test" data-rails="true">
           <div id="fullname" class="pi pi-text-input-wrap" data-name="user[fullname]" data-pid="test" style="position:relative">
             <input type="text" value="John Green"/>
@@ -169,6 +167,9 @@ describe "form component", ->
       """
       pi.app.view.piecify()
       @example = $('@test')
+
+    afterEach ->
+      @example.remove()
     
     it "should init values", ->
       expect(@example.value().user.fullname).to.eq 'John Green'
@@ -203,7 +204,7 @@ describe "form component", ->
 
   describe "submit", ->
     beforeEach ->
-      @test_div.append """
+      root.append """
         <form class="pi" data-pid="test" data-rails="true">
           <div id="fullname" class="pi pi-text-input-wrap" data-name="user[fullname]" data-pid="test" style="position:relative">
             <input type="text" value="John Green"/>
@@ -231,6 +232,9 @@ describe "form component", ->
       """
       pi.app.view.piecify()
       @example = $('@test')
+
+    afterEach ->
+      @example.remove()
     
     it "should send submit event on native submit", (done) ->
       @example.on pi.FormEvent.Submit, (e) =>
@@ -250,7 +254,7 @@ describe "form component", ->
 
   describe "validations", ->
     beforeEach ->
-      @test_div.append """
+      root.append """
         <form class="pi" data-pid="test" data-rails="true">
           <div id="fullname" class="pi pi-text-input-wrap" data-validates="presence" data-name="user[fullname]" style="position:relative">
             <input type="text" value=""/>
@@ -286,6 +290,9 @@ describe "form component", ->
 
       pi.app.view.piecify()
       @example = $('@test')
+
+    afterEach ->
+      @example.remove()
     
     it "should validate initial state on submit", ->
       @example.validate()

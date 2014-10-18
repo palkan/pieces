@@ -19,21 +19,15 @@ describe "Pieces RVC", ->
   page = pi.app.page
 
   describe "rvc base restful component", ->
-
-    beforeEach ->
-      @test_div = Nod.create 'div'
-      @test_div.style position:'relative'
-      root.append @test_div 
-
     afterEach ->
-      @test_div.remove()
+      @example?.remove()
       page.dispose()
       TestUsers.clear_all()
       TestUsers.off()
 
     it "should bind app resource on init", (done) ->
       pi.app.user = TestUsers.build({name: 'Lee', age: 44})
-      @test_div.append """
+      root.append """
         <div class="pi" pid="test" data-plugins="restful" data-renderer="jst(test/user)" data-rest="app.user">
         </div>
       """
@@ -44,7 +38,7 @@ describe "Pieces RVC", ->
         done()
 
     it "should bind resource after init", ->
-      @test_div.append """
+      root.append """
         <div class="pi" pid="test" data-plugins="restful" data-renderer="jst(test/user)">
         </div>
       """
@@ -59,7 +53,7 @@ describe "Pieces RVC", ->
       expect(@example.find('.age').text()).to.eq '45'
 
     it "should bind remote resource", (done) ->
-      @test_div.append """
+      root.append """
         <div class="pi" pid="test" data-plugins="restful" data-renderer="jst(test/user)" data-rest="TestUsers.find(2)">
         </div>
       """

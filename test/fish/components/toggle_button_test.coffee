@@ -7,12 +7,12 @@ describe "toggle_button component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
 
   afterEach ->
-    root.empty()
+    @test_div.remove_children()
 
 
   describe "selected event", ->

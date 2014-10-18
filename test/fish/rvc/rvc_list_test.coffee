@@ -21,7 +21,7 @@ describe "Pieces RVC", ->
   describe "rvc app test", ->
 
     beforeEach ->
-      @test_div = Nod.create 'div'
+      @test_div ||= Nod.create('div')
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
@@ -50,7 +50,7 @@ describe "Pieces RVC", ->
       @t2 = page._contexts.test2
 
     afterEach ->
-      @test_div.remove()
+      @test_div.remove_children()
       page.dispose()
       TestUsers.clear_all()
       TestUsers.off()

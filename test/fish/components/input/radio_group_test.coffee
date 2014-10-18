@@ -7,10 +7,10 @@ describe "radio group component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi" data-component="radio_group" data-pid="test" style="position:relative">
           <input type="hidden" value="1"/>
           <ul class="list">
@@ -23,7 +23,7 @@ describe "radio group component", ->
     @test1 = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @test1.remove()
 
   describe "initialize", ->
     it "should init value", ->

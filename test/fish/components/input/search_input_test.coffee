@@ -7,10 +7,10 @@ describe "search_input component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi pi-search-field" data-pid="test" data-on-query="@list.search(e.data)" style="position:relative">
           <input type="text" value=""/>
         </div>
@@ -27,7 +27,8 @@ describe "search_input component", ->
     @list = $('@list')
 
   afterEach ->
-    @test_div.remove()
+    @example.remove()
+    @list.remove()
 
   describe "init", ->
     it "should be search_input", ->

@@ -7,7 +7,7 @@ describe "pi calls with view", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
 
@@ -22,7 +22,7 @@ describe "pi calls with view", ->
 
   
   afterEach ->
-    root.html ''
+    @test_div.remove_children()
 
   it "should work with view call", ->
     TestHelpers.clickElement @example.btn.node

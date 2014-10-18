@@ -21,7 +21,7 @@ describe "Pieces RVC", ->
   describe "rvc paginated list test", ->
 
     beforeEach ->
-      @test_div = Nod.create 'div'
+      @test_div ||= Nod.create('div')
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
@@ -39,7 +39,7 @@ describe "Pieces RVC", ->
       @t = page._contexts.test
 
     afterEach ->
-      @test_div.remove()
+      @test_div.remove_children()
       page.dispose()
       TestUsers.clear_all()
       TestUsers.off()

@@ -6,14 +6,6 @@ describe "guesser test", ->
   root = Nod.create 'div'
   Nod.body.append root.node
   G = pi.Guesser
-
-  beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-
-  afterEach ->
-    root.empty()
   
   describe "guess components", ->
     it "should guess simple div as base", ->

@@ -7,10 +7,10 @@ describe "move-select list plugin", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi" data-component="list" data-plugins="selectable move_select" data-pid="test" data-select="check" style="position:relative">
           <ul class="list">
             <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
@@ -23,7 +23,7 @@ describe "move-select list plugin", ->
     @list = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @list.remove()
 
   describe "selectable list with dragging select support", ->
 

@@ -7,13 +7,13 @@ describe "pieces core", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div
     TestHelpers.mock_raf() 
 
   afterEach ->
-    root.html ''
+    @test_div.remove_children()
     TestHelpers.unmock_raf()
 
   describe "Nod extensions", ->

@@ -7,7 +7,7 @@ describe "nested list plugin", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
@@ -47,7 +47,7 @@ describe "nested list plugin", ->
     @list = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "selected and selected_item", ->
 
@@ -234,7 +234,7 @@ describe "nested non-selectable list plugin", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
@@ -271,7 +271,7 @@ describe "nested non-selectable list plugin", ->
     @list = $('@test')
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "selected and selected_item", ->
 

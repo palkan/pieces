@@ -7,12 +7,12 @@ describe "form component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "initialize", ->
     beforeEach ->

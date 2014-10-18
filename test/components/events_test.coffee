@@ -7,14 +7,14 @@ describe "event dispatcher", ->
     Nod.body.append root.node
 
     beforeEach  ->
-      @test_div = Nod.create 'div'
+      @test_div ||= Nod.create('div')
       @test_div.style position:'relative'
       root.append @test_div
       @test_div.append('<div class="pi" data-component="test_component" data-pid="test" style="position:relative"></div>')
       pi.app.initialize()
 
     afterEach ->
-      root.html ''
+      @test_div.remove_children()
 
 
     it "should parse dom and add event handlers", ->

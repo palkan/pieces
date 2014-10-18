@@ -7,7 +7,7 @@ describe "text input component", ->
   Nod.body.append root.node
 
   beforeEach ->
-    @test_div = Nod.create 'div'
+    @test_div ||= Nod.create('div')
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
@@ -21,7 +21,7 @@ describe "text input component", ->
     @test2 = $('@test2')
 
   afterEach ->
-    @test_div.remove()
+    @test_div.remove_children()
 
   describe "editable", ->
 
