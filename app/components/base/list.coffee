@@ -1,6 +1,7 @@
 'use strict'
 pi = require '../../core'
-require '../pieces'
+require './base'
+require '../events/list_events'
 require '../../plugins/base/renderable'
 utils = pi.utils
 
@@ -9,12 +10,12 @@ utils = pi.utils
 class pi.List extends pi.Base
   @include_plugins pi.Base.Renderable
 
-  merge_classes: ['is-disabled', 'is-active', 'is-hidden']
+  merge_classes: [pi.klass.DISABLED, pi.klass.ACTIVE, pi.klass.HIDDEN]
 
   preinitialize: () ->
     super
-    @list_klass = @options.list_klass || 'list'
-    @item_klass = @options.item_klass || 'item'
+    @list_klass = @options.list_klass || pi.klass.LIST
+    @item_klass = @options.item_klass || pi.klass.LIST_ITEM
 
     @items = []
     @buffer = document.createDocumentFragment()
@@ -27,7 +28,7 @@ class pi.List extends pi.Base
   postinitialize: () ->
     @_check_empty()
     unless @options.noclick?
-      @listen ".#{ @item_klass }", "click", (e) =>  
+      @listen ".#{ @item_klass }", 'click', (e) =>  
         unless utils.clickable(e.origTarget)
           if  @_item_clicked(e.target) 
             e.cancel()
@@ -59,7 +60,7 @@ class pi.List extends pi.Base
 
     unless silent then @items_cont.append(item) else @buffer.appendChild(item.node)
 
-    @trigger('update', {type:'item_added',item:item}) unless silent
+    @trigger(pi.ListEvent.Update, {type:pi.ListEvent.ItemAdded, item:item}) unless silent
     item
     
   add_item_at: (data, index, silent = false) ->
@@ -80,7 +81,7 @@ class pi.List extends pi.Base
 
     unless silent
       @_update_indeces()
-      @trigger('update', {type:'item_added', item:item})
+      @trigger(pi.ListEvent.Update, {type: pi.ListEvent.ItemAdded, item:item})
     item
 
   remove_item: (item,silent = false, destroy = true) ->
@@ -98,7 +99,7 @@ class pi.List extends pi.Base
 
       unless silent
         @_update_indeces()
-        @trigger('update', {type:'item_removed',item:item})
+        @trigger(pi.ListEvent.Update, {type: pi.ListEvent.ItemRemoved,item:item})
       true
     else
       false
@@ -145,7 +146,7 @@ class pi.List extends pi.Base
     # ... and postinitialize (because DOM was updated)
     item.postinitialize()
 
-    @trigger('update', {type:'item_updated',item:item}) unless silent
+    @trigger(pi.ListEvent.Update, {type: pi.ListEvent.ItemUpdated,item:item}) unless silent
     item  
 
   move_item: (item, index) ->
@@ -188,30 +189,29 @@ class pi.List extends pi.Base
     @_flush_buffer()
     @_update_indeces() if @_need_update_indeces
     @_check_empty(silent)
-    @trigger('update', {type: type}) unless silent
+    @trigger(pi.ListEvent.Update, {type: type}) unless silent
 
   clear: (silent = false, remove = true) ->
     @items_cont.detach_children() unless remove
     @items_cont.remove_children() if remove
     @items.length = 0
-    @trigger('update', {type:'clear'}) unless silent
+    @trigger(pi.ListEvent.Update, {type: pi.ListEvent.Clear}) unless silent
     @_check_empty(silent)
 
   _update_indeces: ->
     for item,i in @items
-      item.data('list-index',i)
       item.record.__list_index__ = i
     @_need_update_indeces = false
 
   _check_empty: (silent = false) ->
     if !@empty and @items.length is 0
-      @addClass 'is-empty'
+      @addClass pi.klass.EMPTY
       @empty = true
-      @trigger('empty', true) unless silent
+      @trigger(pi.ListEvent.Empty, true) unless silent
     else if @empty and @items.length > 0
-      @removeClass 'is-empty'
+      @removeClass pi.klass.EMPTY
       @empty = false
-      @trigger('empty', false) unless silent
+      @trigger(pi.ListEvent.Empty, false) unless silent
     
 
   _create_item: (data={},index) ->
@@ -243,9 +243,5 @@ class pi.List extends pi.Base
     return unless target.is_list_item
     item = target
     if item and item.host is @
-      @trigger 'item_click', {item: item}
+      @trigger pi.ListEvent.ItemClick, {item: item}
       true
-
-pi.Guesser.rules_for 'list', ['pi-list'], ['ul'], 
-  (nod) -> 
-    nod.children('ul').length is 1

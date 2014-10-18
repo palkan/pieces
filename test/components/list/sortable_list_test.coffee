@@ -36,7 +36,7 @@ describe "sortable list plugin", ->
       expect($('@test').first('.item').text()).to.equal 'One'
 
     it "should dispatch sort event", (done)->
-      @list.on 'sort_update', (event) =>
+      @list.on 'sorted', (event) =>
         expect(event.data[0]).to.eql {key:'asc'}
         expect(event.data[1]).to.eql {val:'asc'}
         done()

@@ -169,7 +169,7 @@ describe "list component", ->
         render: (data, _, host) ->
           nod = Nod.create("<div>#{ data.title }</div>")
           nod.addClass 'item'
-          nod.append "<span class='author pi' data-component='button'>#{ data.author }</span>"
+          nod.append "<span class='author pi'>#{ data.author }</span>"
           nod = nod.piecify(host)
           pi.utils.extend nod, data
           nod
@@ -180,4 +180,4 @@ describe "list component", ->
 
       expect(item).to.be.an.instanceof pi.Base
       expect(item.host).to.eq @list      
-      expect(item.find('.author')).to.be.an.instanceof pi.Button
+      expect(item.find('.author')).to.be.an.instanceof pi.Base

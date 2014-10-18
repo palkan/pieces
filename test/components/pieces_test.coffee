@@ -42,16 +42,16 @@ describe "pieces core", ->
   describe "global functions", ->
     it "should correctly parse options", ->
       el = Nod.create('<div data-component="test" data-hidden="true" data-collection-id="13" data-plugins="autoload search filter"></div>')
-      options = pi._gather_options el
+      options = pi.ComponentInitializer.gather_options el
       expect(options).to.include({component:"test",hidden:true,collection_id:13}).and.to.have.property('plugins').with.length(3)
     it "should correctly init base component", ->
       el = Nod.create('<div data-component="test_component" data-hidden="true"></div>')
-      component = pi.init_component el
+      component = pi.ComponentInitializer.init el
       expect(component).to.be.an.instanceof pi.TestComponent
       expect(component.visible).to.be.false
     it "should return undefined if component not found", ->
       el = Nod.create('<div data-component="testtt" data-hidden="true"></div>')
-      expect(pi.init_component(el)).to.be.undefined
+      expect(pi.ComponentInitializer.init(el)).to.be.undefined
 
   describe "find cut", ->
     it "should find cut", ->
@@ -73,7 +73,7 @@ describe "pieces core", ->
       </div>
       '''
       el = Nod.create('div')
-      el = pi.init_component el
+      el = pi.ComponentInitializer.init el
       el.html _html
       expect(el.find_cut('.pi')).to.have.length 3
 
@@ -257,7 +257,7 @@ describe "pieces core", ->
 
       expect(old_btn._disposed).to.be.true
       expect(@example.text()).to.eq 'JackSparrowButton'
-      expect(@example.some_btn).to.be.an.instanceof pi.Button
+      expect(@example.some_btn).to.be.an.instanceof pi.Base
       expect(@example.__components__).to.have.length 1
       expect(@example.some_btn).not.to.eq old_btn
 

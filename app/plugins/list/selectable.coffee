@@ -6,40 +6,40 @@ utils = pi.utils
 # [Plugin]
 # Add ability to 'select' elements within list
 # 
-# Highlights selected elements with 'is-selected' class 
+# Highlights selected elements with pi.klass.Selected class 
 
 class pi.List.Selectable extends pi.Plugin
   id: 'selectable'
   initialize: (@list) ->
     super
-    @list.merge_classes.push 'is-selected'
+    @list.merge_classes.push pi.klass.Selected
       
     @type(@list.options.select_type || 'radio') 
     
     @enable() unless @list.options.no_select?
 
     for item in @list.items 
-      if item.hasClass 'is-selected'
+      if item.hasClass pi.klass.Selected
         item.__selected__ = true
 
     @list.delegate_to @, 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
-    @list.on 'update', (
+    @list.on pi.ListEvent.Update, (
       (e) => 
         @_selected = null
         @_check_selected()
         false
-    ), @, (e) -> (e.data.type isnt 'item_added') 
+    ), @, (e) -> (e.data.type isnt pi.ListEvent.ItemAdded) 
     @
 
   enable: ->
     unless @enabled
       @enabled = true
-      @list.on 'item_click', @item_click_handler()
+      @list.on pi.ListEvent.ItemClick, @item_click_handler()
 
   disable: ->
     if @enabled
       @enabled = false
-      @list.off 'item_click', @item_click_handler()
+      @list.off pi.ListEvent.ItemClick, @item_click_handler()
 
   type: (value) ->
     @is_radio = !!value.match('radio')
@@ -52,7 +52,7 @@ class pi.List.Selectable extends pi.Plugin
       return      
 
   _check_selected: ->
-    if @list.selected().length then @list.trigger('selected', @list.selected()) else @list.trigger('selection_cleared')
+    if @list.selected().length then @list.trigger(pi.Events.Selected, @list.selected()) else @list.trigger(pi.Events.SelectionCleared)
 
   # 'force' defines whether function is triggered by user interaction
   select_item: (item, force = false) ->
@@ -62,25 +62,25 @@ class pi.List.Selectable extends pi.Plugin
       item.__selected__ = true
       @_selected_item = item
       @_selected = null  #TODO: add more intelligent cache
-      item.addClass 'is-selected'
+      item.addClass pi.klass.Selected
 
   deselect_item: (item, force = false) ->
     if item.__selected__ and ((item.enabled and @is_check) or (not force))
       item.__selected__ = false
       @_selected = null
       @_selected_item = null if @_selected_item is item
-      item.removeClass 'is-selected'
+      item.removeClass pi.klass.Selected
   
   toggle_select: (item, force) ->
     if item.__selected__ then @deselect_item(item,force) else @select_item(item,force)
 
   clear_selection: (silent = false) ->
     @deselect_item(item) for item in @list.items
-    @list.trigger('selection_cleared') unless silent
+    @list.trigger(pi.Events.SelectionCleared) unless silent
   
   select_all: (silent = false) ->
     @select_item(item) for item in @list.items
-    @list.trigger('selected', @selected()) if @selected().length and not silent
+    @list.trigger(pi.Events.Selected, @selected()) if @selected().length and not silent
 
 
   # Return selected items

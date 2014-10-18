@@ -42,27 +42,25 @@ describe "searchable list plugin", ->
 
     it "should dispatch start event", (done)->
 
-      @list.on 'search_start', (event) =>
-        expect(@list.size()).to.equal 3
+      @list.on 'searched', (event) =>
+        expect(@list.size()).to.equal 1
         done()  
 
       @list.search 'kill'
 
     it "should dispatch update event", (done)->
 
-      @list.on 'search_update', (event) =>
+      @list.on 'searched', (event) =>
         expect(@list.size()).to.equal 1
         done()  
 
       @list.search 'kill'
 
     it "should dispatch stop event", (done)->
-
-      @list.on 'search_stop', (event) =>
-        expect(@list.size()).to.equal 3
-        done()  
-
       @list.search 'kill'
+      @list.on 'searched', (event) =>
+        expect(@list.size()).to.equal 3
+        done() 
       @list.search null
 
   describe "search within selector scope", ->

@@ -37,6 +37,7 @@ exports.config =
         'js/pieces.core.js': /^(app\/pi.core\.js|app\/core)/
         'js/pieces.components.js': /^(app\/pi.components\.js|app\/(core|components|plugins))/
         'js/pieces.js': /^(app\/pi\.js|app\/(core|components|plugins|controllers|resources|views|net))/
+        'js/pieces.fish.js': /^(app\/pi\.fish.js|app\/(core|components|plugins|controllers|resources|views|net|fish))/
         'js/static.js': /^app\/.*.jade$/
         'js/demo.js': /^app\/demo/      
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/

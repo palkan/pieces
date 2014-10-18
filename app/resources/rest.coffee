@@ -192,7 +192,7 @@ class pi.resources.REST extends pi.resources.Base
     if params?
       @set params, true
       @commit()
-      @trigger 'create'
+      @trigger pi.ResourceEvent.Create
       @
 
   attributes: ->

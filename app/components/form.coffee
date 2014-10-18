@@ -105,12 +105,12 @@ class pi.Form extends pi.Base
       flag = true
       for type in types.split(" ")
         unless Validator.validate(type, nod, @)
-          nod.addClass 'is-invalid'
+          nod.addClass pi.klass.INVALID
           flag = false
           break 
         
       if flag
-        nod.removeClass 'is-invalid'
+        nod.removeClass pi.klass.INVALID
         if nod.__invalid__
           @_invalids.splice @_invalids.indexOf(nod.name()), 1
           delete nod.__invalid__
@@ -139,5 +139,3 @@ class pi.Form extends pi.Base
     
     utils.set_path @_value, name, val
     @trigger pi.FormEvent.Update, @_value unless silent
-
-pi.Guesser.rules_for 'form', ['pi-form'], ['form']

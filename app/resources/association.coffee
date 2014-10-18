@@ -15,7 +15,7 @@ class pi.resources.Association extends pi.resources.View
         @owner_name_id = @options.key
       else
         @_only_update = true # flag to indicate that association cannot handle create/load events, because it isn't persisted
-        @options.owner.one 'create', 
+        @options.owner.one pi.ResourceEvent.Create, 
           (=>
             @_only_update = false
             @owner = @options.owner
@@ -59,7 +59,7 @@ class pi.resources.Association extends pi.resources.View
   on_update: (el) ->
     if @get(el.id)
       if @options.copy is false
-        @trigger 'update', @_wrap(el)
+        @trigger pi.ResourceEvent.Update, @_wrap(el)
       else
         super
     else if @_only_update is false
@@ -67,7 +67,7 @@ class pi.resources.Association extends pi.resources.View
 
   on_destroy: (el) ->
     if @options.copy is false
-      @trigger 'destroy', @_wrap(el)
+      @trigger pi.ResourceEvent.Destroy, @_wrap(el)
       @remove el, true, false
     else
       super
@@ -76,7 +76,7 @@ class pi.resources.Association extends pi.resources.View
     if (view_item = (@get(el.id) || @get(el.__tid__)))
       @created(view_item, el.__tid__)
       if @options.copy is false
-        @trigger 'create', @_wrap(el)
+        @trigger pi.ResourceEvent.Create, @_wrap(el)
       else
         view_item.set(el.attributes())
     else if !@_only_update
@@ -86,4 +86,4 @@ class pi.resources.Association extends pi.resources.View
     return if @_only_update
     if @options.scope
       @load @resources.where(@options.scope)
-      @trigger 'load',{}
+      @trigger pi.ResourceEvent.Load,{}

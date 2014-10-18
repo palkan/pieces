@@ -19,7 +19,7 @@ describe "jst renderer list plugin", ->
       nod  
 
     @test_div.append """
-        <div class="pi" data-renderer="jst(test/item)"  data-pid="test" style="position:relative">
+        <div class="pi" data-component="list" data-renderer="jst(test/item)"  data-pid="test" style="position:relative">
           <ul class="list">
           </ul>
         </div>

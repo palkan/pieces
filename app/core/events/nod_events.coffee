@@ -5,7 +5,7 @@ require './events'
 
 utils = pi.utils
 
-Events = pi.Events || {}
+#Events = pi.Events || {}
 
 class pi.NodEvent extends pi.Event
 

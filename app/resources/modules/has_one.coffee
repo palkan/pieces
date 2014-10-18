@@ -37,16 +37,16 @@ class pi.resources.HasOne
     params.source.listen (e) => 
       return unless @all().length
       e = e.data
-      if e.type is 'load'
+      if e.type is pi.ResourceEvent.Load
         for el in params.source.all()
           if el[params.foreign_key] and (target = @get(el[params.foreign_key])) and target.association(name)
             target[bind_fun] el
       else
         el = e[resource_name]
         if el[params.foreign_key] and (target = @get(el[params.foreign_key])) and target.association(name)
-          if e.type is 'destroy'
+          if e.type is pi.ResourceEvent.Destroy
             delete @[name]
-          else if e.type is 'create'
+          else if e.type is pi.ResourceEvent.Create
             target[bind_fun] el, true
           target.trigger_assoc_event(name, e.type, utils.wrap(name, @[name])) if _update_filter(e,el) 
 
@@ -56,7 +56,7 @@ class pi.resources.HasOne
       @[name] = el
       if @_persisted and not @[name][params.foreign_key]
         @[name][params.foreign_key] = @id
-      @trigger_assoc_event(name, 'create', utils.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
+      @trigger_assoc_event(name, pi.ResourceEvent.Create, utils.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
 
     # add callbacks
 

@@ -1,6 +1,6 @@
 'use strict'
 pi = require '../core'
-require '../components/pieces'
+require '../components/base'
 utils = pi.utils
 
 utils.extend pi.Base::,

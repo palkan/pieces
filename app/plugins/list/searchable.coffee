@@ -26,9 +26,9 @@ class pi.List.Searchable extends pi.Plugin
     @update_scope @list.options.search_scope
     @list.delegate_to @, 'search', 'highlight'
     @searching = false
-    @list.on 'update', ((e) => @item_updated(e.data.item)), 
+    @list.on pi.ListEvent.Update, ((e) => @item_updated(e.data.item)), 
       @, 
-      (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list)
+      (e) => ((e.data.type is pi.ListEvent.ItemAdded or e.data.type is pi.ListEvent.ItemUpdated) and e.data.item.host is @list)
     @
 
   item_updated: (item) ->
@@ -67,21 +67,20 @@ class pi.List.Searchable extends pi.Plugin
   start_search: () ->
     return if @searching
     @searching = true
-    @list.addClass 'is-searching'
+    @list.addClass pi.klass.SEARCHING
     @_all_items = @list.items.slice()
     @_prevq = ''
-    @list.trigger 'search_start'
 
   stop_search: (rollback = true) ->
     return unless @searching
     @searching = false
-    @list.removeClass 'is-searching'
+    @list.removeClass pi.klass.SEARCHING
     items = @all_items()
     @clear_highlight items
     @list.data_provider(items, false, false) if rollback
     @_all_items = null
     @matcher = null
-    @list.trigger 'search_stop'
+    @list.trigger pi.ListEvent.Searched, false
 
   clear_highlight: (nodes) ->
     for nod in nodes
@@ -126,4 +125,4 @@ class pi.List.Searchable extends pi.Plugin
 
     if highlight
       @highlight(q)
-    @list.trigger 'search_update'
+    @list.trigger pi.ListEvent.Searched, true

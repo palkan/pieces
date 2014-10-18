@@ -23,7 +23,7 @@ class pi.List.Sortable extends pi.Plugin
       @_compare_fun = (a,b) -> utils.keys_compare a.record, b.record, @_prevs
 
     @list.delegate_to @, 'sort'
-    @list.on 'update', ((e) => @item_updated(e.data.item)), @, (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list) 
+    @list.on pi.ListEvent.Update, ((e) => @item_updated(e.data.item)), @, (e) => ((e.data.type is pi.ListEvent.ItemAdded or e.data.type is pi.ListEvent.ItemUpdated) and e.data.item.host is @list) 
     @
 
   item_updated: (item) ->
@@ -59,11 +59,11 @@ class pi.List.Sortable extends pi.Plugin
     @list.items.sort @_compare_fun
 
     @list.data_provider(@list.items.slice(),false,false)
-    @list.trigger 'sort_update', sort_params
+    @list.trigger pi.ListEvent.Sorted, sort_params
 
   sorted: (sort_params) ->
     return unless sort_params?
     sort_params = utils.to_a sort_params
     @_prevs = sort_params
     @_compare_fun = (a,b) -> utils.keys_compare a.record, b.record, sort_params
-    @list.trigger 'sort_update', sort_params
+    @list.trigger pi.ListEvent.Sorted, sort_params

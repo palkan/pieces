@@ -1,16 +1,16 @@
 'use strict'
 pi = require '../../core'
-require '../../components/pieces'
+require '../../components/base'
 require '../plugin'
 utils = pi.utils
-# [Plugin]
-# Add ability to 'select' element  - toggle 'is-selected' class and trigger 'selected' event 
 
+# [Plugin]
+# Add ability to 'select' element  - toggle pi.klass.SELECTED class and trigger 'selected' event 
 class pi.Base.Selectable extends pi.Plugin
   id: 'selectable'
   initialize: (@target) ->
     super
-    @__selected__ = @target.hasClass 'is-selected'
+    @__selected__ = @target.hasClass pi.klass.SELECTED
     @target.on 'click', @click_handler()
     @
 
@@ -26,13 +26,13 @@ class pi.Base.Selectable extends pi.Plugin
   select: ->
     unless @__selected__
       @__selected__ = true
-      @target.addClass 'is-selected'
-      @target.trigger 'selected', true
+      @target.addClass pi.klass.SELECTED
+      @target.trigger pi.Events.Selected, true
     @
 
   deselect: ->
     if @__selected__
       @__selected__ = false
-      @target.removeClass 'is-selected'
-      @target.trigger 'selected', false
+      @target.removeClass pi.klass.SELECTED
+      @target.trigger pi.Events.Selected, false
     @

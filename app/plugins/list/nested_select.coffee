@@ -16,6 +16,8 @@ class pi.List.NestedSelect extends pi.List.Selectable
   initialize: (@list) ->
     pi.Plugin::initialize.apply @, arguments
 
+    @nested_klass = @list.options.nested_klass || 'nested-list'
+
     @selectable = @list.selectable || {select_all: _null, clear_selection: _null, type: _null, _selected_item: null, enable: _null, disable: _null} 
     @list.delegate_to @, 'clear_selection', 'select_all', 'selected', 'where', 'select_item', 'deselect_item'
 
@@ -28,8 +30,8 @@ class pi.List.NestedSelect extends pi.List.Selectable
 
     @type @list.options.nested_select_type||""
 
-    @list.on 'selection_cleared,selected', (e) =>
-      if @_watching_radio and e.type is 'selected' 
+    @list.on [pi.Events.Selected,pi.Events.SelectionCleared], (e) =>
+      if @_watching_radio and e.type is pi.Events.Selected 
           if e.target is @list
             item = @selectable._selected_item
           else
@@ -46,14 +48,14 @@ class pi.List.NestedSelect extends pi.List.Selectable
     unless @enabled
       @enabled = true
       @selectable.enable()
-      for item in @list.find_cut('.pi-list')
+      for item in @list.find_cut(".#{@nested_klass}")
         item._nod.selectable?.enable()        
 
   disable: ->
     if @enabled
       @enabled = false
       @selectable.disable()
-      for item in @list.find_cut('.pi-list')
+      for item in @list.find_cut(".#{@nested_klass}")
         item._nod.selectable?.disable()        
 
 
@@ -73,7 +75,7 @@ class pi.List.NestedSelect extends pi.List.Selectable
 
   where: (query) ->
     ref = pi.List::where.call(@list, query)
-    for item in @list.find_cut('.pi-list')
+    for item in @list.find_cut(".#{@nested_klass}")
       ref = ref.concat item._nod.where(query)
     ref   
 
@@ -100,17 +102,17 @@ class pi.List.NestedSelect extends pi.List.Selectable
 
   clear_selection: (silent = false) ->
     @selectable.clear_selection(silent)
-    for item in @list.find_cut('.pi-list')
+    for item in @list.find_cut(".#{@nested_klass}")
       item._nod.clear_selection?(silent)          
-    @list.trigger('selection_cleared') unless silent
+    @list.trigger(pi.Events.SelectionCleared) unless silent
   
   select_all: () ->
     @selectable.select_all(true)
-    for item in @list.find_cut('.pi-list')
+    for item in @list.find_cut(".#{@nested_klass}")
       item._nod.select_all?(true)         
 
     _selected = @selected() 
-    @list.trigger('selected', _selected) if _selected.length
+    @list.trigger(pi.Events.Selected, _selected) if _selected.length
 
   selected: () ->
     _selected = []
@@ -119,6 +121,6 @@ class pi.List.NestedSelect extends pi.List.Selectable
         _selected.push item
       if item instanceof pi.List
         _selected = _selected.concat (item.selected?()||[])
-      else if (sublist = item.find('.pi-list'))
+      else if (sublist = item.find(".#{@nested_klass}"))
         _selected = _selected.concat (sublist.selected?()||[])
     _selected

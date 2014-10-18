@@ -1,6 +1,6 @@
 'use strict'
 pi = require '../../core'
-require '../../components/pieces'
+require '../../components/base'
 require '../plugin'
 utils = pi.utils
 

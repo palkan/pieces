@@ -147,6 +147,7 @@ class pi.Former
 
   _fill_select: (nod, value) ->
     value = if value instanceof Array then value else [value]
+    value = value.map((val) -> ""+val)
     for option in nod.getElementsByTagName("option")
       do (option) ->
         option.selected = (option.value in value)

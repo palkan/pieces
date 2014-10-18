@@ -1,6 +1,6 @@
 'use strict'
 pi = require '../../core'
-require '../pieces'
+require './base'
 require '../events/input_events'
 utils = pi.utils
 

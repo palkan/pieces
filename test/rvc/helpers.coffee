@@ -84,8 +84,7 @@ class pi.resources.User extends pi.resources.REST
     @profile_updated=0 unless @profile_updated?
     @profile_updated++
 
-class pi.controllers.Test extends pi.controllers.ListController
-  @list_resource pi.resources.TestUsers
+class pi.controllers.Test extends pi.controllers.Base
   id: 'test'
 
 class pi.controllers.Test2 extends pi.controllers.Base
@@ -95,35 +94,7 @@ class pi.controllers.Test2 extends pi.controllers.Base
   submit: (data) ->
     @exit title: data
 
-class pi.controllers.Test3 extends pi.controllers.ListController
-  @list_resource pi.resources.TestUsers
-  id: 'test'
-
-  initialize: ->
-    super
-
-  load: (data) ->
-    super
-
-class pi.controllers.Test4 extends pi.controllers.ListController
-  @list_resource pi.resources.TestUsers
-  id: 'test'
-
-  @include pi.controllers.Paginated
-
-  per_page: 5
-
-  page_resolver: (data)->
-    if !data.next_page
-      @scope().all_loaded()
-
-  initialize: ->
-    super
-
-  load: (data) ->
-    super
-
-class pi.TestView extends pi.ListView
+class pi.TestView extends pi.BaseView
   default_controller: pi.controllers.Test 
 
   reloaded: (data) ->

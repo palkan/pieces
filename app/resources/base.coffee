@@ -1,5 +1,6 @@
 'use strict'
 pi = require '../core'
+require './events'
 utils = pi.utils
 
 pi.resources = {}
@@ -36,7 +37,7 @@ class pi.resources.Base extends pi.EventDispatcher
   @load: (data,silent=false) ->
     if data?
       elements = (@build(el,true) for el in data)
-      @trigger('load',{}) unless silent
+      @trigger(pi.ResourceEvent.Load,{}) unless silent
       elements
 
   # can create collection or item from data if resources_name key or resource_name exists 
@@ -91,8 +92,8 @@ class pi.resources.Base extends pi.EventDispatcher
       el = new @(data)
       if add
         @add el  
-        # resource should not trigger 'create' event if element is temporary
-        @trigger('create', @_wrap(el)) unless (silent or el.__temp__) 
+        # resource should not trigger pi.ResourceEvent.Create event if element is temporary
+        @trigger(pi.ResourceEvent.Create, @_wrap(el)) unless (silent or el.__temp__) 
       el
     else
       el.set(data)
@@ -120,7 +121,7 @@ class pi.resources.Base extends pi.EventDispatcher
       delete @__all_by_tid__[el.id]
     
     @__all__.splice @__all__.indexOf(el), 1
-    @trigger('destroy', @_wrap(el)) unless silent
+    @trigger(pi.ResourceEvent.Destroy, @_wrap(el)) unless silent
     el.dispose() if disposed
     return true
 
@@ -202,11 +203,11 @@ class pi.resources.Base extends pi.EventDispatcher
       delete @__temp__
       @_persisted = true
       @__tid__ = _old_id 
-      type = 'create'
+      type = pi.ResourceEvent.Create
       @created(_old_id)
     else
-      type = 'update' 
-    @trigger(type, (if type is 'create' then @ else @_changes)) if (_changed && !silent)
+      type = pi.ResourceEvent.Update 
+    @trigger(type, (if type is pi.ResourceEvent.Create then @ else @_changes)) if (_changed && !silent)
     @
 
   @register_callback 'set', as: 'update'
@@ -219,4 +220,4 @@ class pi.resources.Base extends pi.EventDispatcher
   trigger_assoc_event: (name, type, data) ->
     if typeof @["on_#{name}_update"] is 'function'
       @["on_#{name}_update"].call(@, type, data)
-    @trigger 'update', utils.wrap(name, true)
+    @trigger pi.ResourceEvent.Update, utils.wrap(name, true)

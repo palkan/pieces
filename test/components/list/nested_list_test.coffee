@@ -11,9 +11,9 @@ describe "nested list plugin", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="selectable nested_select" data-pid="test" style="position:relative">
+        <div class="pi" data-component="list" data-nested-klass="pi-list" data-plugins="selectable nested_select" data-pid="test" style="position:relative">
           <ul class="list">          
-            <li class="pi item pi-list click1" data-group-id="1" data-id="10" data-plugins="selectable"> 
+            <li class="pi item pi-list click1" data-component="list" data-group-id="1" data-id="10" data-plugins="selectable"> 
               <span class="click1">Click1</span>
               <ul class="list">
                 <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
@@ -21,7 +21,7 @@ describe "nested list plugin", ->
                 <li class="item click20" data-id="3" data-key="anyone">Tre<span class="tags">bully,zombopuppy</span></li>
               </ul>
             </li>
-            <li class="pi item pi-list" data-group-id="2" data-key="a" data-id="11" data-plugins="selectable"> 
+            <li class="pi item pi-list" data-component="list" data-group-id="2" data-key="a" data-id="11" data-plugins="selectable"> 
               <span>Click2</span>
               <ul class="list">
                 <li class="item click3" data-key="a" data-id="4">A</li>
@@ -31,7 +31,7 @@ describe "nested list plugin", ->
             </li>
             <li class="pi item"> 
               <span>Nested sublist</span>
-              <div class="pi pi-list click10" pid="list" data-group-id="3" data-id="12" data-plugins="selectable sortable searchable"> 
+              <div class="pi pi-list click10" data-component="list" pid="list" data-group-id="3" data-id="12" data-plugins="selectable sortable searchable"> 
                 <span>Click3</span>
                 <ul class="list">
                   <li class="item" data-id="7">1</li>
@@ -238,9 +238,9 @@ describe "nested non-selectable list plugin", ->
     @test_div.style position:'relative'
     root.append @test_div 
     @test_div.append """
-        <div class="pi" data-component="list" data-plugins="nested_select" data-pid="test" style="position:relative">
+        <div class="pi" data-component="list" data-nested-klass="pi-list" data-plugins="nested_select" data-pid="test" style="position:relative">
           <ul class="list">          
-            <li class="pi item pi-list click1" data-group-id="1" data-id="10" data-plugins="selectable"> 
+            <li class="pi item pi-list click1" data-component="list" data-group-id="1" data-id="10" data-plugins="selectable"> 
               <span class="click1">Click1</span>
               <ul class="list">
                 <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
@@ -248,7 +248,7 @@ describe "nested non-selectable list plugin", ->
                 <li class="item click20" data-id="3" data-key="anyone">Tre<span class="tags">bully,zombopuppy</span></li>
               </ul>
             </li>
-            <li class="pi item pi-list" data-group-id="2" data-id="11" data-plugins="selectable" data-select-type="check"> 
+            <li class="pi item pi-list" data-component="list" data-group-id="2" data-id="11" data-plugins="selectable" data-select-type="check"> 
               <span>Click2</span>
               <ul class="list">
                 <li class="item click3" data-id="4">A</li>
@@ -256,7 +256,7 @@ describe "nested non-selectable list plugin", ->
                 <li class="item" data-id="6">C</li>
               </ul>
             </li>
-            <li class="pi item pi-list click10" data-group-id="3" data-id="12" data-plugins="selectable"> 
+            <li class="pi item pi-list click10" data-component="list" data-group-id="3" data-id="12" data-plugins="selectable"> 
               <span>Click3</span>
               <ul class="list">
                 <li class="item" data-id="7">1</li>

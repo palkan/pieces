@@ -20,9 +20,9 @@ class pi.List.Filterable extends pi.Plugin
   initialize: (@list) ->
     super
     @list.delegate_to @, 'filter'
-    @list.on 'update', ((e) => @item_updated(e.data.item)), 
+    @list.on pi.ListEvent.Update, ((e) => @item_updated(e.data.item)), 
       @, 
-      (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list) 
+      (e) => ((e.data.type is pi.ListEvent.ItemAdded or e.data.type is pi.ListEvent.ItemUpdated) and e.data.item.host is @list) 
     @
   
   item_updated: (item) ->
@@ -44,19 +44,18 @@ class pi.List.Filterable extends pi.Plugin
   start_filter: () ->
     return if @filtered
     @filtered = true
-    @list.addClass 'is-filtered'
+    @list.addClass pi.klass.FILTERED
     @_all_items = @list.items.slice()
     @_prevf = {}
-    @list.trigger 'filter_start'
 
   stop_filter: (rollback=true) ->
     return unless @filtered
     @filtered = false
-    @list.removeClass 'is-filtered'
+    @list.removeClass pi.klass.FILTERED
     @list.data_provider(@all_items(), false, false) if rollback
     @_all_items = null
     @matcher = null
-    @list.trigger 'filter_stop'
+    @list.trigger pi.ListEvent.Filtered, false
 
 
   # Filter list items.
@@ -77,4 +76,4 @@ class pi.List.Filterable extends pi.Plugin
     _buffer = (item for item in scope when @matcher(item))
     @list.data_provider(_buffer, false, false)
 
-    @list.trigger 'filter_update'
+    @list.trigger pi.ListEvent.Filtered, true
