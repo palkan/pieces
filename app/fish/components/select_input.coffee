@@ -19,7 +19,7 @@ class pi.SelectInput extends pi.BaseInput
 
     @dropdown.selectable.type('radio')
 
-    @dropdown.on pi.ListEvent.Selected, (e) =>
+    @dropdown.on pi.Events.Selected, (e) =>
       @value e.data[0].record.value
       @placeholder.text e.data[0].text()
       @trigger pi.InputEvent.Change, e.data[0].record.value

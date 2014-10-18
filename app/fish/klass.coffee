@@ -16,5 +16,5 @@ utils.extend(
   POPUP: 'pi-popup'
   POPUP_NO_CLOSE: 'no-close'
   SORTER_DESC: 'is-desc'
-  SORDET_ASC: 'is-asc'
+  SORDER_ASC: 'is-asc'
   )

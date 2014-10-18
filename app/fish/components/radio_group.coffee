@@ -1,7 +1,8 @@
 'use strict'
 pi = require '../../core'
-require '../../components/base'
+require '../../components/base/base_input'
 require '../../components/events/input_events'
+require '../../plugins/list/selectable'
 utils = pi.utils
 
 class pi.RadioGroup extends pi.BaseInput
@@ -18,7 +19,7 @@ class pi.RadioGroup extends pi.BaseInput
     
     @value @input.value()
 
-    @on pi.ListEvent.Selected, (e) =>
+    @on pi.Events.Selected, (e) =>
       e.cancel()
       @input.value e.data[0].record.value
       @trigger pi.InputEvent.Change, @value()

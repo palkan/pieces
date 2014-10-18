@@ -6,20 +6,20 @@ utils = pi.utils
 # [Plugin]
 # Add ability to 'select' elements within list
 # 
-# Highlights selected elements with pi.klass.Selected class 
+# Highlights selected elements with pi.klass.SELECTED class 
 
 class pi.List.Selectable extends pi.Plugin
   id: 'selectable'
   initialize: (@list) ->
     super
-    @list.merge_classes.push pi.klass.Selected
+    @list.merge_classes.push pi.klass.SELECTED
       
     @type(@list.options.select_type || 'radio') 
     
     @enable() unless @list.options.no_select?
 
     for item in @list.items 
-      if item.hasClass pi.klass.Selected
+      if item.hasClass pi.klass.SELECTED
         item.__selected__ = true
 
     @list.delegate_to @, 'clear_selection','selected','selected_item','select_all','select_item', 'selected_records', 'selected_record', 'deselect_item','toggle_select', 'selected_size'
@@ -62,14 +62,14 @@ class pi.List.Selectable extends pi.Plugin
       item.__selected__ = true
       @_selected_item = item
       @_selected = null  #TODO: add more intelligent cache
-      item.addClass pi.klass.Selected
+      item.addClass pi.klass.SELECTED
 
   deselect_item: (item, force = false) ->
     if item.__selected__ and ((item.enabled and @is_check) or (not force))
       item.__selected__ = false
       @_selected = null
       @_selected_item = null if @_selected_item is item
-      item.removeClass pi.klass.Selected
+      item.removeClass pi.klass.SELECTED
   
   toggle_select: (item, force) ->
     if item.__selected__ then @deselect_item(item,force) else @select_item(item,force)
