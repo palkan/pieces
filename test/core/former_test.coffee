@@ -1,6 +1,11 @@
-TestHelpers = require './helpers'
+h = require './helpers'
 
 describe "former test", ->
+  root = h.test_cont(pi.Nod.body)
+
+  after ->
+    root.remove()
+
   describe "parse name values", ->
     it "should correctly parse simple name values (without nested objects)", ->
       f = new pi.Former()
@@ -176,32 +181,30 @@ describe "former test", ->
 
 
   describe "manipulate with form", ->
+    test_form = null
     beforeEach ->
-      @test_form = document.createElement('form')
+      test_form = document.createElement('form')
 
-      @test_form.appendChild TestHelpers.inputElement('text','post.name','Name')
+      test_form.appendChild h.inputElement('text','post.name','Name')
       
-      cb = TestHelpers.inputElement('checkbox','post.is_private','1')
+      cb = h.inputElement('checkbox','post.is_private','1')
       cb.checked = true
-      @test_form.appendChild cb
+      test_form.appendChild cb
 
-      @test_form.appendChild TestHelpers.inputElement('checkbox','post.is_draft','1')
-      @test_form.appendChild TestHelpers.selectElement('post.category',false,{value:'sports',selected:true},{value:'politics'})
+      test_form.appendChild h.inputElement('checkbox','post.is_draft','1')
+      test_form.appendChild h.selectElement('post.category',false,{value:'sports',selected:true},{value:'politics'})
   
-      @test_form.appendChild TestHelpers.inputElement('text','post.tags[]','football')
-      @test_form.appendChild TestHelpers.inputElement('text','post.tags[]','uefa')
+      test_form.appendChild h.inputElement('text','post.tags[]','football')
+      test_form.appendChild h.inputElement('text','post.tags[]','uefa')
 
-      @test_form.appendChild TestHelpers.selectElement('post.lang',true,{value:'ru',selected:true},{value:'en'},{value:'es'},{value:'de',selected:true})
+      test_form.appendChild h.selectElement('post.lang',true,{value:'ru',selected:true},{value:'en'},{value:'es'},{value:'de',selected:true})
 
-      @test_form.appendChild TestHelpers.inputElement('hidden','post.parent_id','123')
+      test_form.appendChild h.inputElement('hidden','post.parent_id','123')
 
-      document.body.appendChild(@test_form)
-
-    afterEach ->
-      document.body.removeChild @test_form
+      root.append(test_form)
 
     it "should correctly collect form data", ->
-      data = pi.Former.parse(@test_form, serialize: true)
+      data = pi.Former.parse(test_form, serialize: true)
       expect(data["post"]["is_private"]).to.eql(1)
       expect(data["post"]["is_draft"]).to.be.undefined
       expect(data["post"]["category"]).to.eql('sports')    
@@ -209,7 +212,7 @@ describe "former test", ->
       expect(data["post"]["lang"]).to.eql(['ru','de'])
 
     it "should correctly fill form data", ->
-      f = new pi.Former(@test_form, serialize: true, fill_prefix: 'post.')
+      f = new pi.Former(test_form, serialize: true, fill_prefix: 'post.')
       f.fill name: 'Zeit', is_draft: true, is_private: false, category: 'politics', lang: 'es'
 
       data = f.parse()
@@ -221,18 +224,18 @@ describe "former test", ->
       expect(data["post"]["lang"]).to.eql(['es'])
 
     it "should clear form", ->
-      pi.Former.clear(@test_form)
+      pi.Former.clear(test_form)
 
-      data = pi.Former.parse(@test_form)
+      data = pi.Former.parse(test_form)
 
       expect(data.post.name).to.be.empty
       expect(data.post.lang).to.be.empty
       expect(data.post.parent_id).to.equal('123')
 
     it "should clear hidden elements when 'clear_hidden' is true", ->
-      pi.Former.clear(@test_form, clear_hidden: true)
+      pi.Former.clear(test_form, clear_hidden: true)
 
-      data = pi.Former.parse(@test_form)
+      data = pi.Former.parse(test_form)
 
       expect(data.post.name).to.be.empty
       expect(data.post.lang).to.be.empty

@@ -1,6 +1,6 @@
 'use strict'
 require './base'
+require './browser'
 require './time'
 require './logger'
 require './matchers'
-require './browser'

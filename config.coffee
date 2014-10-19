@@ -42,7 +42,7 @@ exports.config =
         'js/demo.js': /^app\/demo/      
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
         'test/js/test.js': /^test/
-        'test/js/test-vendor.js': /^vendor[\\/](?=test)/
+        'test/js/test-vendor.js':  /^vendor[\\/](?=test)/
     stylesheets:
       defaultExtension: 'sass'
       joinTo:

@@ -1,5 +1,11 @@
 'use strict'
+pi.noconflict()
 class TestHelpers
+  @test_cont: (cont, html = 'div') ->
+    nod = pi.Nod.create html
+    cont.append nod
+    nod
+
   @inputElement: (type, name, value='') ->
     input = document.createElement 'input'
     input.type = type
@@ -23,16 +29,12 @@ class TestHelpers
     select
   
   @mouseEventElement: (el,type, x=0, y=0) ->
+    pi.utils.info "Trigger: #{type}"
     ev = document.createEvent "MouseEvent"
-    ev.initMouseEvent(
+    ev.initEvent(
       type,
       true, #bubble 
-      true, #cancelable
-      window, null,
-      0, 0, x, y, # coordinates
-      false, false, false, false,  # modifier keys 
-      0 # left
-      null
+      true #cancelable
     )
     el.dispatchEvent ev 
     return
@@ -78,7 +80,9 @@ class TestHelpers
     el.dispatchEvent ev 
   
   @resizeEvent: ->
-    window.dispatchEvent(new Event('resize'))
+    ev = document.createEvent('UIEvents')
+    ev.initUIEvent('resize', true, false,window,0)
+    window.dispatchEvent(ev)
 
   @mock_net: ->
     @_orig_net = pi.net

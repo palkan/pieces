@@ -6,10 +6,10 @@ script(id="perf2_item_mst", type="x-tmpl-mustache")
       .pi.placeholder(pid="placeholder") Не выбрано
       .pi.is-hidden.list-container.pi-select-list.pi-scroll-pane(pid="dropdown",data-plugins="scrollable",style="height: 200px")
         ul.list
-          {{#options}}
+          |{{#options}}
           li.item(data-value="{{.}}")
             |{{.}}
-          {{/options}}}}
+          |{{/options}}}}
 
 .section.white.pi(pid="perf2",data-component="perf_2_view")
   h1.title List with complex components (List of scrollable select inputs)

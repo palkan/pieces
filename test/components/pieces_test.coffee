@@ -1,20 +1,19 @@
 'use strict'
-TestHelpers = require './helpers'
+h = require './helpers'
 
 describe "pieces core", ->
   Nod = pi.Nod
   root = Nod.create 'div'
   Nod.body.append root.node
 
-  beforeEach ->
-    @test_div ||= Nod.create('div')
-    @test_div.style position:'relative'
-    root.append @test_div
-    TestHelpers.mock_raf() 
+  root = h.test_cont(pi.Nod.body)
 
-  afterEach ->
-    @test_div.remove_children()
-    TestHelpers.unmock_raf()
+  before ->
+    h.mock_raf()
+
+  after ->
+    h.unmock_raf()
+    root.remove()
 
   describe "Nod extensions", ->
     it "should find cut", ->
@@ -78,66 +77,71 @@ describe "pieces core", ->
       expect(el.find_cut('.pi')).to.have.length 3
 
   describe "pi piecify and click hanlder", ->
+    test_div = null
     beforeEach  ->
-      @test_div.append('<div class="pi" data-component="test_component" data-pid="test" style="position:relative"></div>')
-      @test_div.append('<a id="hide" href="@test.hide">Hide</div>')
-      @test_div.append('<a id="show" href="@test.show">Show</div>')
-      @test_div.append('<a id="text" href="@test.text(hello_test)">Text</div>')
-      @test_div.append('<a id="move" href="@test.move(20,30)">Move</div>')
-      @test_div.append('<a id="append" href="@test.append(@span)">Append</div>')
-      @test_div.append('<span id="append_click" class="pi" data-on-click="@test.append(@span)">Append</div>')
-      @test_div.append('<a id="append_self" class="pi" href="@test.append(@this)">Append self</div>')
-      @test_div.append('<span class="pi" data-pid="span">Append me</span>')
-      @test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
-      pi.app.view.piecify()
+      test_div = h.test_cont root, '<div style="position: relative;"></div>'
+      test_div.append('<div class="pi test" data-component="test_component" data-pid="test" style="position:relative"></div>')
+      test_div.append('<a id="hide" href="@test.hide">Hide</div>')
+      test_div.append('<a id="show" href="@test.show">Show</div>')
+      test_div.append('<a id="text" href="@test.text(hello_test)">Text</div>')
+      test_div.append('<a id="move" href="@test.move(20,30)">Move</div>')
+      test_div.append('<a id="append" href="@test.append(@span)">Append</div>')
+      test_div.append('<span id="append_click" class="pi" data-on-click="@test.append(@span)">Append</div>')
+      test_div.append('<a id="append_self" class="pi" href="@test.append(@this)">Append self</div>')
+      test_div.append('<span class="pi" data-pid="span">Append me</span>')
+      test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
+      pi.app.initialize()
+
+    afterEach ->
+      test_div.remove()
 
     it "should create piece", ->
       expect(pi.app.view.test).to.be.an.instanceof pi.TestComponent
 
     it "should work with simple function call", ->
-      TestHelpers.clickElement $('a#hide').node
-      expect($('@test').visible).to.be.false
+      h.clickElement test_div.find('a#hide').node
+      expect(test_div.find('.test').visible).to.be.false
 
     it "should work with several function calls", ->
-      TestHelpers.clickElement $('a#hide').node
-      expect($('@test').visible).to.be.false
-      TestHelpers.clickElement $('a#show').node
-      expect($('@test').visible).to.be.true
+      h.clickElement test_div.find('a#hide').node
+      expect(test_div.find('.test').visible).to.be.false
+      h.clickElement test_div.find('a#show').node
+      expect(test_div.find('.test').visible).to.be.true
 
     it "should work with function call with one argument", ->
-      TestHelpers.clickElement $('a#text').node
-      expect($('@test').text()).to.equal('hello_test')
+      h.clickElement test_div.find('a#text').node
+      expect(test_div.find('.test').text()).to.equal('hello_test')
 
     it "should work with function call with several arguments", ->
-      TestHelpers.clickElement $('a#move').node
-      expect($('@test').offset()).to.include({x:20,y:30})
+      h.clickElement test_div.find('a#move').node
+      expect(test_div.find('.test').offset()).to.include({x:20,y:30})
 
     it "should work with self call", ->
-      TestHelpers.clickElement $('a#thiz').node
-      expect($('a#thiz').active).to.be.true
+      h.clickElement test_div.find('a#thiz').node
+      expect(test_div.find('a#thiz').active).to.be.true
 
     it "should work with only component (without method)", ->
-      TestHelpers.clickElement $('a#append').node
-      expect($('@test').find("span").text()).to.equal 'Append me'
+      h.clickElement test_div.find('a#append').node
+      expect(test_div.find('.test').find("span").text()).to.equal 'Append me'
 
     it "should work with only component on event", ->
-      TestHelpers.clickElement $('span#append_click').node
-      expect($('@test').find("span").text()).to.equal 'Append me'
+      h.clickElement test_div.find('span#append_click').node
+      expect(test_div.find('.test').find("span").text()).to.equal 'Append me'
 
     it "should work with only component self (without method)", ->
-      TestHelpers.clickElement $('a#append_self').node
-      expect($('@test').find('#append_self').text()).to.equal 'Append self'
+      h.clickElement test_div.find('a#append_self').node
+      expect(test_div.find('.test').find('#append_self').text()).to.equal 'Append self'
 
     describe "piecify", ->
       it "should init children", ->
-        test = $("@test")
+        test = test_div.find(".test")
         test.append "<div class='pi' data-pid='some'>Some</div>"
         test.piecify()
         expect(test.some.text()).to.eq 'Some'
         expect(test.some.host).to.eq test
 
       it "should init grandchildren", ->
-        test = $("@test")
+        test = test_div.find(".test")
         test.append "<div class='pi' data-pid='some'>Some</div>"
         test.piecify()
         test.some.append "<div class='pi' data-pid='any'>Any</div>"
@@ -148,7 +152,7 @@ describe "pieces core", ->
         expect(test.some.any.host).to.eq test.some
 
       it "should init list of children", ->
-        test = $("@test")
+        test = test_div.find(".test")
         test.append '''
           <span class='pi' pid='many[]'>1</span>
           <span class='pi' pid='many[]'>2</span>
@@ -159,78 +163,89 @@ describe "pieces core", ->
         expect(test.many[1].text()).to.eq '2'
 
   describe "pi base events", ->
-    beforeEach  ->
-      @test_div.append('<div class="pi" data-disabled="true" data-on-value="@this.text(e.data); @this.name(e.data)" data-component="test_component" data-pid="test" style="position:relative"></div>')
+    test_div = null
+    example = null
+    beforeEach ->
+      test_div = h.test_cont(root, '<div><div class="pi test" data-disabled="true" data-on-value="@this.text(e.data); @this.name(e.data)" data-component="test_component" data-pid="test" style="position:relative"></div></div>')
       pi.app.view.piecify()
-      @example = $('@test')
+      example = test_div.find('.test')
+
+    afterEach ->
+      test_div.remove()
 
     it "should send enabled event", (done) ->
-      @example.on 'enabled', (event) => 
-        expect(@example.enabled).to.be.true
+      example.on 'enabled', (event) => 
+        expect(example.enabled).to.be.true
         done()
-      @example.enable()
+      example.enable()
 
     it "should send enabled event", (done) ->
-      @example.on 'enabled', (event) => 
-        expect(@example.enabled).to.be.true
+      example.on 'enabled', (event) => 
+        expect(example.enabled).to.be.true
         done()
-      @example.enable()
+      example.enable()
 
     it "should not send enabled event", (done) ->
-      @example.on 'enabled', (event) => 
-        expect(@example.enabled).to.be.true
+      example.on 'enabled', (event) => 
+        expect(example.enabled).to.be.true
         done()
-      @example.disable()
-      after 500, => 
-        expect(@example.enabled).to.be.false
+      example.disable()
+      pi.utils.after 500, => 
+        expect(example.enabled).to.be.false
         done()
 
     it "should send resize event", (done) ->
-      @example.enable()
-      @example.on 'resize', (event) => 
-        expect(@example.size()).to.include width:100, height: 50
+      example.enable()
+      example.on 'resize', (event) => 
+        expect(example.size()).to.include width:100, height: 50
         done()
-      @example.size(100,50)
+      example.size(100,50)
 
     it "should pass event data as arg to multiple handlers", ->
-      @example.enable()
-      @example.value_trigger "abc"
-      expect(@example.text()).to.equal("abc")
-      expect(@example.name()).to.equal("abc")
+      example.enable()
+      example.value_trigger "abc"
+      expect(example.text()).to.equal("abc")
+      expect(example.name()).to.equal("abc")
 
   describe "events bubbling", ->
+    test_div = example = null
     beforeEach  ->
-      @test_div.append '<div class="pi test" data-pid="test">
+      test_div = h.test_cont root, '<div><div class="pi test" data-pid="test">
                           <a class="pi" data-disabled="true" data-pid="btn" href="#">clicko</a>
-                        </div>'
+                        </div></div>'
       pi.app.view.piecify()
-      @example = $('@test')
+      example = test_div.find('.test')
+
+    afterEach ->
+      test_div.remove()
 
     it "should bubble event", (done) ->
-      @example.listen 'a', 'enabled', (event) => 
-        expect(event.target).to.eq(@example.btn)
-        expect(event.currentTarget).to.eq(@example)
-        expect(@example.btn.enabled).to.be.true
+      example.listen 'a', 'enabled', (event) => 
+        expect(event.target).to.eq(example.btn)
+        expect(event.currentTarget).to.eq(example)
+        expect(example.btn.enabled).to.be.true
         done()
-      @example.btn.enable()
+      example.btn.enable()
 
   describe "callbacks", ->
+    test_div = example = null
     beforeEach  ->
-      @test_div.append '<div class="pi test" data-pid="test" data-id="2">
-                        </div>'
+      test_div = h.test_cont root, '<div><div class="pi test" data-pid="test" data-id="2">
+                        </div></div>'
       pi.app.view.piecify()
-      @example = $('@test')
+      example = test_div.find('.test')
 
     it "should run before_create callback", (done) ->
-      @example.on 'value', (event) => 
+      example.on 'value', (event) => 
         expect(event.data).to.eq 13
         done()
-      TestHelpers.clickElement @example.node
+      h.clickElement example.node
 
     it "should run after_initialize callback", ->
-      expect(@example.id).to.eq 2
+      expect(example.id).to.eq 2
 
   describe "renderable", ->
+    test_div = example = null
     beforeEach  ->
       window.JST ||= {}
       window.JST['test/base'] = (data) ->
@@ -239,32 +254,32 @@ describe "pieces core", ->
         nod.append "<button class='pi' pid='some_btn'>Button</button>"
         nod  
 
-      @test_div.append '''<div class="pi test" data-plugins="renderable" data-renderer="jst(test/base)" data-pid="test" data-id="2">
+      test_div = h.test_cont root, '''<div><div class="pi test" data-plugins="renderable" data-renderer="jst(test/base)" data-pid="test" data-id="2">
                           <div>John
                             <span class="author">Green</span>
                             <button class="pi" pid="some_btn">Button</button>
                           </div>
-                        </div>'''
+                        </div></div>'''
       pi.app.view.piecify()
-      @example = $('@test')
+      example = test_div.find('.test')
 
     it "should have render function", ->
-      expect(@example.render).to.be.an 'function'
+      expect(example.render).to.be.an 'function'
 
     it "should remove old dispose old components and init new", ->
-      old_btn = @example.some_btn
-      @example.render name: 'Jack', author: 'Sparrow'
+      old_btn = example.some_btn
+      example.render name: 'Jack', author: 'Sparrow'
 
       expect(old_btn._disposed).to.be.true
-      expect(@example.text()).to.eq 'JackSparrowButton'
-      expect(@example.some_btn).to.be.an.instanceof pi.Base
-      expect(@example.__components__).to.have.length 1
-      expect(@example.some_btn).not.to.eq old_btn
+      expect(example.text()).to.eq 'JackSparrowButton'
+      expect(example.some_btn).to.be.an.instanceof pi.Base
+      expect(example.__components__).to.have.length 1
+      expect(example.some_btn).not.to.eq old_btn
 
     it "should remove children if render null", ->
-      old_btn = @example.some_btn
-      @example.render null
+      old_btn = example.some_btn
+      example.render null
       expect(old_btn._disposed).to.be.true
-      expect(@example.text()).to.eq ''
-      expect(@example.__components__).to.have.length 0
-      expect(@example.some_btn).to.be.undefined
+      expect(example.text()).to.eq ''
+      expect(example.__components__).to.have.length 0
+      expect(example.some_btn).to.be.undefined

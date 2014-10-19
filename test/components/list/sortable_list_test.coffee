@@ -1,16 +1,21 @@
 'use strict'
-TestHelpers = require '../helpers'
+h = require '../helpers'
+utils = pi.utils
+Nod = pi.Nod
 
 describe "sortable list plugin", ->
-  Nod = pi.Nod
-  root = Nod.create 'div'
-  Nod.body.append root.node
+  root = h.test_cont(pi.Nod.body)
+
+  after ->
+    root.remove()
+
+  test_div = list = null
 
   beforeEach ->
-    @test_div ||= Nod.create('div')
-    @test_div.style position:'relative'
-    root.append @test_div 
-    @test_div.append """
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
         <div class="pi" data-component="list" data-plugins="sortable" data-pid="test" style="position:relative">
           <ul class="list">
             <li class="item" data-val="10" data-key="one">One</li>
@@ -20,69 +25,69 @@ describe "sortable list plugin", ->
         </div>
       """
     pi.app.view.piecify()
-    @list = $('@test')
+    list = test_div.find('.pi')
 
   afterEach ->
-    @test_div.remove_children()
+    test_div.remove()
 
   describe "sortable list", ->
 
     it "should sort by key", ->  
-      @list.sort {val: 'asc'}
-      expect($('@test').first('.item').text()).to.equal 'Two'
+      list.sort {val: 'asc'}
+      expect(test_div.find('.pi').first('.item').text()).to.equal 'Two'
 
     it "should sort by many keys", ->
-      @list.sort [{key:'desc'},{val:'desc'}], [false, false]
-      expect($('@test').first('.item').text()).to.equal 'One'
+      list.sort [{key:'desc'},{val:'desc'}], [false, false]
+      expect(test_div.find('.pi').first('.item').text()).to.equal 'One'
 
     it "should dispatch sort event", (done)->
-      @list.on 'sorted', (event) =>
+      list.on 'sorted', (event) =>
         expect(event.data[0]).to.eql {key:'asc'}
         expect(event.data[1]).to.eql {val:'asc'}
         done()
-      @list.sort [{key:'asc'},{val:'asc'}]
+      list.sort [{key:'asc'},{val:'asc'}]
 
     it "should resort items if item updated", (done)->
-      @list.sort {val: 'asc'}
-      @list.on 'update', (event) =>
+      list.sort {val: 'asc'}
+      list.on 'update', (event) =>
         return unless event.data.type is 'item_updated'
-        expect($('@test').first('.item').text()).to.eq 'Tre'
+        expect(test_div.find('.pi').first('.item').text()).to.eq 'Tre'
         done()
-      item = @list.where(record: key: 'anyone')[0]
+      item = list.where(record: key: 'anyone')[0]
       item.record.val = 2
-      @list.trigger 'update', type: 'item_updated', item: item
+      list.trigger 'update', type: 'item_updated', item: item
 
     it "should resort items if item updated in the middle", (done)->
-      @list.sort {val: 'asc'}
-      @list.on 'update', (event) =>
+      list.sort {val: 'asc'}
+      list.on 'update', (event) =>
         return unless event.data.type is 'item_updated'
-        expect($('@test').first('.item').text()).to.eq 'Two'
+        expect(test_div.find('.pi').first('.item').text()).to.eq 'Two'
         done()
-      item = @list.where(record: key: 'noone')[0]
+      item = list.where(record: key: 'noone')[0]
       item.record.val = 2
-      @list.trigger 'update', type: 'item_updated', item: item
+      list.trigger 'update', type: 'item_updated', item: item
 
     it "should resort items if item added", (done)->
-      @list.sort {val: 'asc'}
-      @list.on 'update', (event) =>
+      list.sort {val: 'asc'}
+      list.on 'update', (event) =>
         return unless event.data.type is 'item_added'
-        expect($('@test').first('.item').text()).to.eq 'Zero'
+        expect(test_div.find('.pi').first('.item').text()).to.eq 'Zero'
         done()
-      @list.add_item pi.Nod.create('''<li class="item" data-val="2" data-key="some">Zero</li>''')
+      list.add_item pi.Nod.create('''<li class="item" data-val="2" data-key="some">Zero</li>''')
 
     it "should resort items if item added to the end", (done)->
-      @list.sort {val: 'asc'}
-      @list.on 'update', (event) =>
+      list.sort {val: 'asc'}
+      list.on 'update', (event) =>
         return unless event.data.type is 'item_added'
-        expect($('@test').nth('.item',4).text()).to.eq 'Zero'
+        expect(test_div.find('.pi').nth('.item',4).text()).to.eq 'Zero'
         done()
 
-      @list.add_item pi.Nod.create('''<li class="item" data-val="20" data-key="some">Zero</li>''')
+      list.add_item pi.Nod.create('''<li class="item" data-val="20" data-key="some">Zero</li>''')
 
     it "should resort items if item added in the middle", (done)->
-      @list.sort {val: 'asc'}
-      @list.on 'update', (event) =>
+      list.sort {val: 'asc'}
+      list.on 'update', (event) =>
         return unless event.data.type is 'item_added'
-        expect($('@test').nth('.item',3).text()).to.eq 'Zero'
+        expect(test_div.find('.pi').nth('.item',3).text()).to.eq 'Zero'
         done()
-      @list.add_item pi.Nod.create('''<li class="item" data-val="11" data-key="some">Zero</li>''')
+      list.add_item pi.Nod.create('''<li class="item" data-val="11" data-key="some">Zero</li>''')
