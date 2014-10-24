@@ -75,11 +75,21 @@ describe "Pieces RVC", ->
           @t.next_page()
           @t.next_page()
           @t.next_page().then( (data) =>
-            expect(data.users).to.have.length 5
+            expect(data).to.be.undefined
             expect(spy_fun.callCount).to.eq 2
             expect(@t.view.list.size()).to.eq 15
             expect(@t.next_page()).to.be.undefined
-            done()
+            @t.search('u').then(
+              =>
+                expect(@t.view.list.size()).to.eq 5
+                @t.next_page()
+                @t.next_page()
+                @t.next_page().then( (data) =>
+                  expect(data).to.be.undefined
+                  expect(@t.view.list.size()).to.eq 6
+                  done()
+                )
+            ) 
           )
         ).catch( (e) => done(e))
 

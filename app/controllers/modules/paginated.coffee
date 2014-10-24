@@ -18,7 +18,7 @@ class pi.controllers.Paginated
 
       @_promise = @_promise.then( (data) =>
         if next_page and @scope().is_full
-          return utils.rejected_promise(data)
+          return utils.resolved_promise()
 
         @_resource_query(params).then(
           (data) =>
@@ -44,10 +44,7 @@ class pi.controllers.Paginated
    
     @query(page: @_page, true).then(
       ((data) => 
-        @view.load @_parse_response(data)
+        @view.load(@_parse_response(data)) if data?
         data
-      ),
-      (
-        (data) => data 
       )
     )
