@@ -95,7 +95,7 @@ class pi.resources.Base extends pi.EventDispatcher
         @trigger('create', @_wrap(el)) unless (silent or el.__temp__) 
       el
     else
-      el.set(data)
+      el.set(data, silent)
 
   @created: (el, temp_id) ->
     if @__all_by_tid__[temp_id]
