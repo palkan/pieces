@@ -73,8 +73,9 @@ class pi.List.Restful extends pi.Plugin
       @items_by_id[id] = items[0]
 
   load: (data) ->
+    @items_by_id = {}
     for item in data
-      @items_by_id[item.id] = @list.add_item(item, true) unless @items_by_id[item.id] and @listen_load
+      @items_by_id[item.id] = @list.add_item(item, true) unless @listen_load
     @list.update()
 
   resource_update: () ->
