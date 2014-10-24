@@ -15,6 +15,7 @@ class pi.List.Restful extends pi.Plugin
     super
     @items_by_id = {}
     @listen_load = @list.options.listen_load is true
+    @listen_create = if @list.options.listen_create? then @list.options.listen_create else @listen_load
     if (rest = @list.options.rest)? 
       if (matches = rest.match(_app_rxp))
         ref = utils.get_path(pi.app, matches[1])
@@ -40,6 +41,7 @@ class pi.List.Restful extends pi.Plugin
       @bind resources, @list.options.load_rest, @scope
 
     @list.delegate_to @, 'find_by_id'
+    
     @list.on 'destroyed', =>
       @bind null
       false
@@ -67,15 +69,15 @@ class pi.List.Restful extends pi.Plugin
         @load(resources.all())
 
   find_by_id: (id) ->
-    return @items_by_id[id] if @items_by_id[id]?
+    if @listen_load
+      return @items_by_id[id] if @items_by_id[id]?
     items = @list.where(record: {id: (id|0)})
     if items.length
       @items_by_id[id] = items[0]
 
   load: (data) ->
-    @items_by_id = {}
     for item in data
-      @items_by_id[item.id] = @list.add_item(item, true) unless @listen_load
+      @items_by_id[item.id] = @list.add_item(item, true) unless @items_by_id[item.id] and @listen_load
     @list.update()
 
   resource_update: () ->
@@ -91,6 +93,7 @@ class pi.List.Restful extends pi.Plugin
       @load @resources.all()
 
   on_create: (data) ->
+    return unless @listen_create
     unless @find_by_id(data.id)
       @items_by_id[data.id] = @list.add_item data
     # handle temp item created

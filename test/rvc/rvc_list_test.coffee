@@ -33,7 +33,7 @@ describe "Pieces RVC", ->
           <div class="progress-wrapper">
             <div class="pi pi-progressbar" pid="loader"></div>
           </div>
-          <div class="pi pi-action-list" data-renderer="jst(test/user)" data-plugins="restful" data-rest="test_users" pid="list">
+          <div class="pi pi-action-list" data-renderer="jst(test/user)" data-listen-create="true" data-plugins="restful" data-rest="test_users" pid="list">
             <ul class="list">
             </ul>
           </div> 

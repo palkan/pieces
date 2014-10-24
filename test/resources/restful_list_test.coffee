@@ -97,7 +97,7 @@ describe "Restful List", ->
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
-        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful"  pid="list">
+        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-listen-load="true" pid="list">
           <ul class="list">
           </ul>
         </div> 
@@ -150,7 +150,7 @@ describe "Restful List", ->
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
-        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-rest="Chef.find(1).testos" data-plugins="restful" data-load-rest="true" pid="list">
+        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-rest="Chef.find(1).testos" data-plugins="restful" data-load-rest="true" data-listen-load="true" pid="list">
           <ul class="list">
           </ul>
         </div> 
@@ -201,7 +201,7 @@ describe "Restful List", ->
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
-        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-load-rest="true" pid="list">
+        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-listen-load="true" data-load-rest="true" pid="list">
           <ul class="list">
           </ul>
         </div> 
@@ -252,7 +252,7 @@ describe "Restful List", ->
       @test_div.style position:'relative'
       root.append @test_div 
       @test_div.append """
-        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" pid="list">
+        <div class="pi pi-action-list" data-renderer="jst(test/testo)" data-plugins="restful" data-listen-load="true" pid="list">
           <ul class="list">
           </ul>
         </div> 
