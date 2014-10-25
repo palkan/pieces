@@ -17,7 +17,7 @@ _clear_mark_regexp = /<mark>([^<>]*)<\/mark>/gim
 _selector_regexp = /[\.#a-z\s\[\]=\"-_,]/i
 
 _is_continuation = (prev,query) ->
-  query.match(prev)?.index == 0
+  utils.escapeRegexp(query).match(utils.escapeRegexp(prev))?.index == 0
 
 class pi.List.Searchable extends pi.Plugin
   id: 'searchable'
