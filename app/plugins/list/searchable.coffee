@@ -119,7 +119,7 @@ class pi.List.Searchable extends pi.Plugin
 
     @_prevq = q
 
-    @matcher = @matcher_factory q
+    @matcher = @matcher_factory(utils.escapeRegexp(q))
 
     _buffer = (item for item in scope when @matcher(item))
     @list.data_provider(_buffer, false, false)

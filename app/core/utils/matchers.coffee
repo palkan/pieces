@@ -62,7 +62,6 @@ class pi.utils.matchers
   # string can be regexp
   # also it's possible to provide selectors: ".a,.b:smth" matches nods which have substr 'smth' in '.a' node or '.b' node 
   @nod: (string) ->
-    string = utils.escapeRegexp(string)
     if string.indexOf(":") > 0
       [selectors, query] = string.split ":"
       regexp = new RegExp(query,'i')

@@ -17,14 +17,14 @@ class pi.controllers.Paginated
         @_promise = utils.resolved_promise()
 
       @_promise = @_promise.then( (data) =>
-        if next_page and @scope().is_full
-          return utils.resolved_promise()
-
-        @_resource_query(params).then(
-          (data) =>
-            @page_resolver data
-            data
-        )
+        if @scope().is_full
+          utils.resolved_promise()
+        else
+          @_resource_query(params).then(
+            (data) =>
+              @page_resolver data
+              data
+          )
       )
 
     base::scope_blacklist.push 'page', 'per_page'

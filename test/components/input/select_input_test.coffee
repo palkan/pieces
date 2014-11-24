@@ -40,21 +40,18 @@ describe "select_input component", ->
       expect(@example.dropdown.selected_size()).to.eq 1
 
   describe "appearance", ->
-    it "should show dropdown on focus",  (done) ->
+    it "should show dropdown on focus", ->
       expect(@list.visible).to.be.false
-      after 100, => @example.focus()
-      after 200, =>
-        expect(@list.visible).to.be.true
-        done()
+      @example.trigger('focus')
+      expect(@list.visible).to.be.true
 
     it "should hide dropdown on blur", (done) ->
-      after 100, => @example.focus()
-      after 200, =>
-        expect(@list.visible).to.be.true
-        after 100, => $('.focus_me').focus()
-        after 200, =>
-          expect(@list.visible).to.be.false
-          done()
+      @example.trigger('focus')
+      expect(@list.visible).to.be.true
+      @example.trigger('blur')
+      after 150, =>
+        expect(@list.visible).to.be.false
+        done()
 
   describe "show + click + hide", ->
     it "should show dropdown on focus",  (done) ->

@@ -106,6 +106,13 @@ describe "Pieces RVC", ->
         )
 
     describe "index + search", ->
+      beforeEach ->
+        @t.scope_rules['q'] = 
+          (prev,query) ->
+            if query.match(prev)?.index == 0
+              prev || ''
+            else
+              false
       it "should make request if scope is not full", (done) ->
         @t.sort([{age: 'desc'}]).then( =>
           expect(@t.view.list.size()).to.eq 5
@@ -121,3 +128,31 @@ describe "Pieces RVC", ->
             )
           )
         )
+
+      it "should not make request if scope is full and was local", (done) ->
+        @t.sort([{age: 'desc'}]).then( =>
+          expect(@t.view.list.size()).to.eq 5
+          @t.search('ur').then( =>
+            expect(@t.view.list.size()).to.eq 2
+            expect(@t.next_page()).to.be.undefined
+            expect(@t.view.list.items[0].record.name).to.eq 'hurry' 
+            @t.search('urt').then( =>
+              expect(@t.view.list.size()).to.eq 1
+              @t.search('ur').then( =>
+                expect(@t.view.list.size()).to.eq 2
+                expect(@t.next_page()).to.be.undefined
+                expect(@t.view.list.items[0].record.name).to.eq 'hurry' 
+                done()
+              )
+            )
+          )
+        )
+
+      it "should not make request if scope is full and got debounce search calls", (done) ->
+        spy_fun = sinon.spy(@t, '_resource_query')
+        @t.search('ur')
+        @t.search('urt')
+        @t.search('urt wqeq')
+        utils.after 1000, =>
+          expect(spy_fun.callCount).to.eq 1
+          done()
