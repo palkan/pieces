@@ -22,9 +22,9 @@ class pi.BaseView.Listable
   searched: (query) ->
     utils.debug "loaded search #{query}"
     @list.searchable.start_search()
-    if query
-      @list.highlight query
-    else
+    @list.highlight query
+    
+    unless query
       @list.searchable.stop_search(false)
 
   filter: (data) ->

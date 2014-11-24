@@ -1,3 +1,7 @@
+## 0.3.12
+* fix bugs in ListController#search and around
+* fix Searchable
+
 ## 0.3.9
 * add conditional upstreaming of associations events
 
