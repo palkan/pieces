@@ -22,8 +22,9 @@ class pi.BaseView.Listable
   searched: (query) ->
     utils.debug "loaded search #{query}"
     @list.searchable.start_search()
+    @list.highlight query
+      
     if query
-      @list.highlight query
       @list.trigger pi.ListEvent.Searched
     else
       @list.searchable.stop_search(false)

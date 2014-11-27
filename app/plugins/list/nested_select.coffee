@@ -100,19 +100,19 @@ class pi.List.NestedSelect extends pi.List.Selectable
       item.host.select_item item
       return
 
-  clear_selection: (silent = false) ->
-    @selectable.clear_selection(silent)
+  clear_selection: (silent = false, force = false) ->
+    @selectable.clear_selection(silent, force)
     for item in @list.find_cut(".#{@nested_klass}")
       item._nod.clear_selection?(silent)          
     @list.trigger(pi.Events.SelectionCleared) unless silent
   
-  select_all: () ->
-    @selectable.select_all(true)
+  select_all: (silent = false, force = false) ->
+    @selectable.select_all(true, force)
     for item in @list.find_cut(".#{@nested_klass}")
-      item._nod.select_all?(true)         
-
-    _selected = @selected() 
-    @list.trigger(pi.Events.Selected, _selected) if _selected.length
+      item._nod.select_all?(true, force)         
+    unless silent
+      _selected = @selected() 
+      @list.trigger(pi.Events.Selected, _selected) if _selected.length
 
   selected: () ->
     _selected = []

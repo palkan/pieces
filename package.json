@@ -14,6 +14,7 @@
   },
   "scripts": {
     "start": "brunch watch --server",
+    "test": "mocha-phantomjs http://localhost:3333/test/",
     "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../public/js/pieces.bundle.js && cd .. && uglifyjs -m toplevel public/js/pieces.bundle.js > public/js/pieces.min.js",
     "gemify":  "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces-rails/app/assets/javascripts/pieces.js && cd .. && ./gem_sass.sh"
   },

@@ -2,6 +2,8 @@
 TestHelpers = require '../rvc/helpers'
 
 describe "Pieces REST base", ->
+  utils = pi.utils
+  
   describe "base resources test", ->
     Salt = pi.Salt
     Testo = pi.Testo
@@ -80,7 +82,7 @@ describe "Pieces REST base", ->
         Testo.listen (e) ->
          throw Error('udpate received!')
         
-        after 300, done
+        utils.after 300, done
 
         Testo.build {type: 'puff'}
 
@@ -102,7 +104,7 @@ describe "Pieces REST base", ->
           if e.data.type is 'update'
             throw Error('update received!')
        
-        after 300, done
+        utils.after 300, done
 
         t.set {type: 'blinno'}
 

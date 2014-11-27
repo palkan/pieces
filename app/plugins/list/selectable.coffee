@@ -74,12 +74,12 @@ class pi.List.Selectable extends pi.Plugin
   toggle_select: (item, force) ->
     if item.__selected__ then @deselect_item(item,force) else @select_item(item,force)
 
-  clear_selection: (silent = false) ->
-    @deselect_item(item) for item in @list.items
+  clear_selection: (silent = false, force = false) ->
+    @deselect_item(item) for item in @list.items when (item.enabled or force)
     @list.trigger(pi.Events.SelectionCleared) unless silent
   
-  select_all: (silent = false) ->
-    @select_item(item) for item in @list.items
+  select_all: (silent = false, force = false) ->
+    @select_item(item) for item in @list.items when (item.enabled or force)
     @list.trigger(pi.Events.Selected, @selected()) if @selected().length and not silent
 
 

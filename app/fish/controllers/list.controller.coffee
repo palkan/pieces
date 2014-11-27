@@ -24,16 +24,19 @@ class pi.controllers.ListController extends pi.controllers.Base
     super
 
   # Makes AJAX request on resource
-  # @params [String] action resource method name (fetch, create, destroy ...)
   # @params [Object] params query params
 
   query: (params={}) ->
     params = utils.merge(@scope().params,params) 
+    
     unless @_promise?
       @_promise = utils.resolved_promise()
 
     @_promise = @_promise.then( =>
-      @_resource_query(params)
+      if @scope().is_full
+        utils.resolved_promise()
+      else
+        @_resource_query(params)
     )
 
   _resource_query: (params) ->
@@ -63,38 +66,41 @@ class pi.controllers.ListController extends pi.controllers.Base
 
   search: (q) ->
     @scope().set({q: q})
-    if @scope().is_full
-      @view.search q
-    else
-      @query().then(
-        (data) =>
+    @query().then(
+      (data) =>
+        if data?
           @view.reload @_parse_response(data)
           @view.searched q
           data
-      )
+        else
+          @view.search(q)
+        data
+    )
 
   sort: (params=null) ->
     sort_params = {sort: params}
     @scope().set sort_params
-    if @scope().is_full
-      @view.sort params
-    else
-      @query().then(
-        (data) =>
+    @query().then(
+      (data) =>
+        if data?
           @view.reload @_parse_response(data)
           @view.sorted params
           data
-      )
+        else
+          @view.sort(params)
+        data
+    )
 
   filter: (params=null) ->
     filter_params = {filter: params}
     @scope().set filter_params
-    if @scope().is_full
-      @view.filter params
-    else
-      @query().then(
-        (data) =>
+    @query().then(
+      (data) =>
+        if data?
           @view.reload @_parse_response(data)
           @view.filtered params
           data
-      )
+        else
+          @view.filter(params)
+        data
+    )

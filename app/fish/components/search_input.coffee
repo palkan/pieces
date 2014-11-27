@@ -7,7 +7,7 @@ utils = pi.utils
 class pi.SearchInput extends pi.TextInput
   postinitialize: ->
     super
-    @input.on 'keyup', debounce(300,@_query,@)
+    @input.on 'keyup', utils.debounce((@options.debounce || 300),@_query,@)
 
   _query: ->
     @activate() if !@active

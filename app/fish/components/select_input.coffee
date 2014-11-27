@@ -29,7 +29,7 @@ class pi.SelectInput extends pi.BaseInput
       @dropdown.show()
 
     @on 'blur', =>
-      after 100, => @dropdown.hide() # ie is not sending click event for hidden element 
+      @_hide_tid = after(100, => @dropdown.hide()) # ie is not sending click event for hidden element  
 
     if @input.value()
       @value utils.serialize(@input.value())
@@ -53,3 +53,7 @@ class pi.SelectInput extends pi.BaseInput
     @placeholder.text('')
     super
     @placeholder.text(@placeholder.options.placeholder) if @placeholder.text() is ''
+
+  dispose: ->
+    clearTimeout(@_hide_tid) if @_hide_tid?
+    super

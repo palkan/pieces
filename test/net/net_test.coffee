@@ -52,65 +52,59 @@ describe "Net utils base", ->
   describe "requests", ->
     it "should send get request without data", (done) ->
       net.get('/echo?q=1').then( (data) ->
-        utils.debug data
         expect(data.q).to.eq '1'
         done()
-      )
+      ).catch(done)
 
     it "should send get request with data", (done) ->
       net.get('/echo',{q:1}).then( (data) ->
-        utils.debug data
         expect(data.q).to.eq '1'
         done()
-      )
+      ).catch(done)
 
     it "should send get request with data and url query", (done) ->
       net.get('/echo?a=test',{q:1}).then( (data) ->
-        utils.debug data
         expect(data.q).to.eq '1'
         expect(data.a).to.eq 'test'
         done()
-      )
+      ).catch(done)
 
     it "should send get request with nested data", (done) ->
       net.get('/echo',{item:{id:1,user:{id:123,name:'john'}}}).then( (data) ->
-        utils.debug data
         expect(data.item.id).to.eq '1'
         expect(data.item.user.name).to.eq 'john'
         done()
-      )
+      ).catch(done)
 
     it "should send post request with data", (done) ->
       net.post('/echo',{item:{id:1,user:{id:123,name:'john'}}},{json: false}).then( (data) ->
-        utils.debug data
         expect(data.post.item.id).to.eq '1'
         expect(data.post.item.user.name).to.eq 'john'
         done()
-      )
+      ).catch(done)
 
-    it "should send patch request with data", (done) ->
-      net.patch('/echo',{item:{id:1,user:{id:123,name:'john'}}},{json: false}).then( (data) ->
-        utils.debug data
-        expect(data.patch.item.id).to.eq '1'
-        expect(data.patch.item.user.name).to.eq 'john'
-        done()
-      )
+    # PATCH and DELETE doesn't work in PhantomJs! https://github.com/ariya/phantomjs/issues/11384
+    unless window.mochaPhantomJS
+      it "should send patch request with data", (done) ->
+        net.patch('/echo',{item:{id:1,user:{id:123,name:'john'}}},{json: false}).then( (data) ->
+          expect(data.patch.item.id).to.eq '1'
+          expect(data.patch.item.user.name).to.eq 'john'
+          done()
+        ).catch(done)
 
-    it "should send delete request with data", (done) ->
-      net.delete('/echo',{item:{id:1,user:{id:123,name:'john'}}},{json: false}).then( (data) ->
-        utils.debug data
-        expect(data.delete.item.id).to.eq '1'
-        expect(data.delete.item.user.name).to.eq 'john'
-        done()
-      )
+      it "should send delete request with data", (done) ->
+        net.delete('/echo',{item:{id:1,user:{id:123,name:'john'}}},{json: false}).then( (data) ->
+          expect(data.delete.item.id).to.eq '1'
+          expect(data.delete.item.user.name).to.eq 'john'
+          done()
+        ).catch(done)
 
     it "should send post request with data as json", (done) ->
       net.post('/echo',{item:{id:1,user:{id:123,name:'john'}}}).then( (data) ->
-        utils.debug data
         expect(data.post.item.id).to.eq 1
         expect(data.post.item.user.name).to.eq 'john'
         done()
-      )
+      ).catch(done)
 
 
 
@@ -154,7 +148,6 @@ describe "Net utils base", ->
     it "shuld upload data", (done) ->
       net.iframe_upload(@form, '/upload',{item:{user:{id:123,name:'john'}}}).then(
         ((data) ->
-          utils.debug data
           expect(data.data.item.id).to.eq '1'
           expect(data.data.item.user.name).to.eq 'john'
           done()),

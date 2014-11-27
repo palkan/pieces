@@ -88,7 +88,7 @@ class pi.resources.View extends pi.EventDispatcher
         @trigger(pi.ResourceEvent.Create, @_wrap(el)) unless silent
       el
     else
-      el.set(data)
+      el.set(data, silent)
 
   _wrap: (el) ->
     if el instanceof pi.resources.ViewItem
