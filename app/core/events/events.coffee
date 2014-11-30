@@ -54,7 +54,7 @@ class pi.EventListener extends pi.Core
 
 _types = (types) ->
   if typeof types is 'string'
-    types.split ','
+    types.split /\,\s*/
   else if Array.isArray(types)
     types
   else

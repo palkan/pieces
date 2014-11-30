@@ -1,38 +1,41 @@
 'use strict'
-TestHelpers = require './helpers'
+h = require './helpers'
+
+TestUsers = pi.resources.TestUsers
+Controller = pi.controllers.Base
+View = pi.TestView
+utils = pi.utils
+Nod = pi.Nod
 
 describe "Pieces RVC", ->
-  TestUsers = pi.resources.TestUsers
-  Controller = pi.controllers.Test
-  View = pi.TestView
-  utils = pi.utils
+  root = h.test_cont(pi.Nod.body)
 
-  Nod = pi.Nod
-  root = Nod.create 'div'
-  Nod.body.append root.node
+  after ->
+    root.remove()
 
   page = pi.app.page
 
-  describe "page test", ->
+  test_div = null
 
+  describe "page test", ->
     beforeEach ->
-      @test_div ||= Nod.create('div')
-      @test_div.style position:'relative'
-      root.append @test_div 
-      @test_div.append """
-        <div class="pi" data-component="test_view" pid="test" style="position:relative">
-          <div class="pi pi-progressbar" pid="loader"></div>
-          <div class="pi pi-list-container" pid="list">
-            <ul class="list">
-            </ul>
-          </div> 
+      test_div = h.test_cont root, '''
+        <div>
+          <div class="pi" data-component="test_view" pid="test" style="position:relative">
+            <div class="pi pi-progressbar" pid="loader"></div>
+            <div class="pi pi-list-container" pid="list">
+              <ul class="list">
+              </ul>
+            </div> 
+          </div>
+          <div class="pi" data-component="test2_view" pid="test" style="position:relative">
+          </div>
+          <div class="pi" data-component="base_view" data-controller="test_preload" pid="test" style="position:relative">
+          </div>
         </div>
-        <div class="pi" data-component="test2_view" pid="test" style="position:relative">
-        </div>
-      """
+      '''
 
     afterEach ->
-      @test_div.remove_children()
       page.dispose()
       TestUsers.clear_all()
 
@@ -42,42 +45,113 @@ describe "Pieces RVC", ->
         pi.app.initialize()
         expect(page.context).to.be.undefined
         expect(page._contexts['test']).to.be.instanceof Controller
+        expect(page._contexts['test_preload']).to.be.instanceof Controller
 
-
-      it "should set contexts with main", ->
-        cont = $('.pi')
+      it "should set contexts with main", (done) ->
+        cont = test_div.find('.pi')
         cont.data('main',true)
-        pi.app.initialize()
-        expect(page.context).to.be.instanceof Controller
-        expect(page._contexts['test']).to.be.instanceof Controller
+        pi.app.initialize().then(
+          =>
+            expect(page.context).to.be.instanceof Controller
+            expect(page._contexts['test']).to.be.instanceof Controller
+            done()
+        )
+
+
+    describe "preload", ->
+      cont = t = tp = null
+      beforeEach ->
+        cont = test_div.find('.pi')
+        cont.data('main',true)
+
+      it "should switch to context with preload", (done) ->
+        pi.app.initialize().then(
+          =>
+            t = page._contexts.test
+            tp = page._contexts.test_preload
+            expect(page.context_id).to.eq 'test'
+            page.switch_to('test_preload').then( 
+              (=>
+                expect(tp.preloaded).to.be.true
+                done()
+              ),
+              ((e) =>
+                done(e)
+                )
+            )
+        )
+
 
     describe "switching", ->
-
+      cont = t = t2 = null
       beforeEach ->
-        cont = $('.pi')
+        cont = test_div.find('.pi')
         cont.data('main',true)
-        pi.app.initialize()
-        @t = page._contexts.test
-        @t2 = page._contexts.test2
 
-      it "should switch to context", ->
-        expect(page.context_id).to.eq 'test'
-        page.switch_to 'test2'
-        expect(page.context_id).to.eq 'test2'
-        expect(page.context).to.eql @t2
-        expect(page._history.size()).to.eq 1
+      it "should switch to context", (done) ->
+        pi.app.initialize().then(
+          =>
+            t = page._contexts.test
+            t2 = page._contexts.test2
+            expect(page.context_id).to.eq 'test'
+            page.switch_to('test3').then( 
+              (=>
+                done('Error')),
+              (=>
+                done())
+            )
+        )
 
-      it "should switch back in history", ->
-        page.switch_to 'test2'
-        page.switch_to 'test'
-        page.switch_to 'test2'
-        page.switch_back()
-        page.switch_back()
-        expect(page.context_id).to.eq 'test2'
-        expect(page.context).to.eql @t2
-        page.switch_to 'test'
-        expect(page._history.size()).to.eq 2
-        page.switch_back()
-        page.switch_back()
-        page.switch_to 'test2'
-        expect(page._history.size()).to.eq 1
+      it "should fail if context is unknown", (done) ->
+        pi.app.initialize().then(
+          =>
+            t = page._contexts.test
+            t2 = page._contexts.test2
+            expect(page.context_id).to.eq 'test'
+            page.switch_to('test2').then( 
+              =>
+                expect(page.context_id).to.eq 'test2'
+                expect(page.context).to.eql t2
+                expect(page._history.size()).to.eq 1
+                done()
+            )
+        )
+
+      it "should switch back in history", (done) ->
+        pi.app.initialize().then(
+          =>
+            t = page._contexts.test
+            t2 = page._contexts.test2
+            page.switch_to('test2')
+        ).then( 
+          =>
+            page.switch_to('test')
+        ).then( 
+          =>
+            page.switch_to 'test2'
+        ).then(
+          =>
+            page.switch_back()
+        ).then(
+          =>
+            page.switch_back()
+        ).then( 
+          =>
+            expect(page.context_id).to.eq 'test2'
+            expect(page.context).to.eql t2
+            page.switch_to 'test'
+        ).then(
+          =>
+            expect(page._history.size()).to.eq 2
+            page.switch_back()
+        ).then(
+          =>
+            page.switch_back()
+        ).then(
+          =>
+            page.switch_to 'test2'
+        ).then(
+          =>
+            expect(page._history.size()).to.eq 1
+            done()
+        )

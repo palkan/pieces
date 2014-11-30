@@ -94,6 +94,17 @@ class pi.controllers.Test2 extends pi.controllers.Base
   submit: (data) ->
     @exit title: data
 
+class pi.controllers.TestPreload extends pi.controllers.Base
+  @has_resource pi.Testo  
+  id: 'test_preload'
+
+  preload: ->
+    new Promise((resolve, reject) =>
+      @preloaded = true
+      pi.utils.after 200, resolve
+    )
+
+
 class pi.TestView extends pi.BaseView
   default_controller: pi.controllers.Test 
 

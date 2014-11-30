@@ -196,8 +196,7 @@ describe "event dispatcher", ->
     spy_native = sinon.spy(el,"add_native_listener")
     spy_fun = sinon.spy()
     
-    el.on "click", spy_fun
-    el.on "mouseover", spy_fun
+    el.on "click, mouseover", spy_fun
 
     h.clickElement el.node
     

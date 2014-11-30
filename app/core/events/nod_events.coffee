@@ -110,7 +110,6 @@ class pi.MouseEvent extends NodEvent
 class pi.KeyEvent extends NodEvent
   constructor: ->
     super      
-    utils.debug 'I am a KEEEY!'
     @keyCode = @event.keyCode || @event.which
     @charCode = @event.charCode
 
