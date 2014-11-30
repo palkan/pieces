@@ -1,7 +1,7 @@
 'use strict'
-pi = require '../../../core'
-require '../../../plugins/plugin'
-require '../../../components/base/base'
+pi = require '../../core'
+require '../plugin'
+require '../../components/base/base'
 utils = pi.utils
 
 _finder_rxp = /^(\w+)\.find\((\d+)\)$/

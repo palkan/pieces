@@ -77,7 +77,7 @@ _raf =
     window.requestAnimationFrame
   else
     (callback) ->
-      callback()
+      utils.after 0, callback
 
 _caf =
   if window.cancelAnimationFrame?

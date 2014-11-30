@@ -4,7 +4,7 @@ require './base'
 utils = pi.utils
 
 # [Renderer]
-# Setup JST template as renderer for list by name
+# Setup JST template as renderer for component
 
 class pi.Renderers.Jst extends pi.Renderers.Base
   constructor: (template) ->

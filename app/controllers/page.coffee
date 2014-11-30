@@ -74,8 +74,8 @@ class pi.controllers.Page extends pi.Core
       @switch_context @context_id, @_history.pop(), data, true
   
   dispose: ->
-    @context = null
-    @context_id = null
+    @context = undefined
+    @context_id = undefined
     @_contexts = {}
     @_history.clear()
 
