@@ -2,7 +2,7 @@
   "author": "Vlad Dem <palkan>",
   "name": "js-pieces",
   "description": "JS library and framework",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "license": "MIT",
   "homepage": "",
   "repository": {
@@ -10,17 +10,21 @@
     "url": ""
   },
   "engines": {
-    "node": "~0.6.10 || 0.8 || 0.9"
+    "node": "~0.10"
   },
   "scripts": {
-    "start": "brunch watch --server",
+    "start": "./node_modules/.bin/brunch watch --server",
     "test": "mocha-phantomjs http://localhost:3333/test/",
     "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../public/js/pieces.bundle.js && cd .. && uglifyjs -m toplevel public/js/pieces.bundle.js > public/js/pieces.min.js",
     "gemify":  "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces-rails/app/assets/javascripts/pieces.js && cd .. && ./gem_sass.sh"
   },
+  "postinstall": "./node_modules/.bin/bower install",
   "dependencies": {
   },
   "devDependencies": {
+    "brunch": "~1.7",
+    "bower": "~1.2",
+
     "javascript-brunch": ">= 1.0 < 1.5",
     "coffee-script": "~1.6.3",
     "coffee-script-brunch": ">= 1.0 < 1.7",
@@ -29,21 +33,19 @@
     "css-brunch": "~1.7.0",
     "sass-brunch": "~1.8.0",
     "autoprefixer-brunch": "~1.8.0",
+    "auto-reload-brunch": "1.7.1",
     
-    "express": "*",
-    "connect-multiparty":"*",
-    "body-parser":"*",
+    "express": "~4",
+    "connect-multiparty": "~1",
+    "body-parser":"~1",
 
-    "jade": "*",
+    "jade": "~1.7",
     "jade-brunch": ">= 1.0 < 1.7",
     "static-jade-brunch": ">= 1.0 < 1.7",
-
-    "coffeeify": "*",
 
     "chai": ">= 1.2.0",
     "sinon": ">= 1.4.2",
     "mocha": ">= 1.3.0",
-    "sinon-chai": ">= 2.1.2",
-    "auto-reload-brunch": "1.7.1"
+    "sinon-chai": ">= 2.1.2"
   }
 }

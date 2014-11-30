@@ -5,6 +5,5 @@ branches:
   only:
     - v0.4
 before_script:
-  - "npm install -g brunch mocha-phantomjs bower"
-  - "bower install"
-  - "brunch watch --server"
+  - "npm install -g mocha-phantomjs"
+  - "npm start"

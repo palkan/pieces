@@ -1,6 +1,6 @@
-express = require('express');
+var express = require('express');
 
-app = express(); 
+var app = express(); 
 
 app.use(express.static(__dirname + '/public'));
 
@@ -157,6 +157,9 @@ exports.startServer = function(port, path, callback){
       res.send(404, 'Not found')
   });
 
-  app.listen(port) 
-  console.log('Listening on port: #{port}')
+  var server = app.listen(port,function () {
+    var host = server.address().address
+    var port = server.address().port
+    console.log('Example app listening at http://%s:%s', host, port)
+  }) 
 }
