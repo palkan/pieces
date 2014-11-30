@@ -6,4 +6,5 @@ branches:
     - v0.4
 before_script:
   - "npm install -g mocha-phantomjs"
-  - "npm start"
+  - "npm start &"
+  - "sleep 20"
