@@ -20,7 +20,7 @@ describe "Pieces RVC", ->
 
   describe "rvc app test", ->
 
-    beforeEach ->
+    beforeEach (done) ->
       @test_div = Nod.create 'div'
       @test_div.style position:'relative'
       root.append @test_div 
@@ -45,9 +45,12 @@ describe "Pieces RVC", ->
           <button class="pi" data-on-click="@@submit(@view.input_txt.value)"></button> 
         </div>
       """
-      pi.app.initialize()
-      @t = page._contexts.test
-      @t2 = page._contexts.test2
+      pi.app.initialize().then(
+        =>
+          @t = page._contexts.test
+          @t2 = page._contexts.test2
+          done()
+      )
 
     afterEach ->
       @test_div.remove()
@@ -63,17 +66,29 @@ describe "Pieces RVC", ->
         )
 
     describe "switching", ->
-      it "should switch with data", ->
-        @t.switch 'test2'
-        expect(page.context).to.eq @t2
-        @t2.view.input_txt.value('bla-bla')
-        TestHelpers.clickElement @t2.view.find('button').node
-
-        expect(page.context_id).to.eq 'test'
+      it "should switch with data", (done) ->
         expect(page.context).to.eq @t
-        expect(@t.view.title.text()).to.eq 'bla-bla'
-        page.switch_back()
-        expect(page.context_id).to.eq 'test'
+        @t.switch('test2').then(
+          =>
+            expect(page.context).to.eq @t2
+            @t2.view.input_txt.value('bla-bla')
+
+            TestHelpers.clickElement @t2.view.find('button').node
+
+            new Promise( (resolve) =>
+              utils.after 100, =>
+                expect(page.context_id).to.eq 'test'
+                expect(page.context).to.eq @t
+                expect(@t.view.title.text()).to.eq 'bla-bla'
+                resolve page.switch_back()
+            )
+        ).then(
+          =>
+            expect(page.context_id).to.eq 'test'
+            done()
+        ).catch(
+          (e) => done(e)
+        )
 
      describe "querying", ->
       it "should return search data", (done) ->
