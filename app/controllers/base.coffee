@@ -51,7 +51,7 @@ class pi.controllers.Base extends pi.Core
       utils.warning "trying to switch from non-active context"
       return utils.rejected_promise()
 
-    return if (!to || (@context_id is to))
+    return utils.rejected_promise() if (!to || (@context_id is to))
 
     if !@_contexts[to]
       utils.warning "undefined context: #{to}"
