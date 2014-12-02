@@ -46,7 +46,9 @@ class pi.controllers.Base extends pi.Core
   # @params [String] to context id of new id
   # @params [*] data additional data to be passed to new context's swithed function
 
-  switch_context: (from,to,data={}, exit = false) ->
+  switch_context: (from,to,data={}, exit = false, switch_hard = false) ->
+    switch_hard ||= @always_switch_hard
+
     if from and from != @context_id
       utils.warning "trying to switch from non-active context"
       return utils.rejected_promise()
@@ -62,21 +64,21 @@ class pi.controllers.Base extends pi.Core
     new_context = @_contexts[to]
 
     promise = 
-      if @context? and exit and (typeof @context.preunload is 'function')
+      if @context? and (exit or switch_hard) and (typeof @context.preunload is 'function')
         @context.preunload()
       else
         utils.resolved_promise()
 
     promise.then(
       =>
-        if !exit and new_context.preload? and (typeof new_context.preload is 'function')
+        if (!exit or switch_hard) and new_context.preload? and (typeof new_context.preload is 'function')
           new_context.preload()
         else
           utils.resolved_promise()
     ).then( 
       =>
         if @context?
-          if exit then @context.unload() else @context.switched()
+          if (exit or switch_hard) then @context.unload() else @context.switched()
     
         data = @wrap_context_data(@context, data)
     
@@ -85,7 +87,7 @@ class pi.controllers.Base extends pi.Core
         @context = @_contexts[to]
         @context_id = to
 
-        if exit then @context.reload(data) else @context.load data # load new context or return to prev context
+        if (exit and !switch_hard) then @context.reload(data) else @context.load data # load new context or return to prev context
     )
 
   switch_to: (to, data) ->
