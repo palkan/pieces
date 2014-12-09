@@ -31,7 +31,7 @@ class pi.List.Restful extends pi.Plugin
               [key,val] = param.split /\s*\:\s*/
               @scope[key] = utils.serialize val
           else if matches[2] is 'find'
-            el = ref.get(matches[3]|0)
+            el = ref.get(matches[3])
             if el? and typeof el[matches[4]] is 'function'
               resources = el[matches[4]]()
       else

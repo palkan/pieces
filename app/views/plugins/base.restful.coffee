@@ -4,7 +4,7 @@ require '../../plugins/plugin'
 require '../../components/pieces'
 utils = pi.utils
 
-_finder_rxp = /^(\w+)\.find\((\d+)\)$/
+_finder_rxp = /^(\w+)\.find\(([tid\_\d]+)\)$/
 _app_rxp = /^app\.([\.\w]+)$/
 
 
@@ -34,7 +34,7 @@ class pi.Base.Restful extends pi.Plugin
                 else if(matches = rest.match(_finder_rxp))
                   resources = utils.get_path($r, matches[1])
                   if resources?
-                    resources.find(matches[2]|0)
+                    resources.find(matches[2])
                   else
                     utils.rejected_promise()
       promise.then(
@@ -51,10 +51,13 @@ class pi.Base.Restful extends pi.Plugin
       @resource.off 'create', @resource_update()
     @resource = resource
     unless @resource
-      @target.render(null)
+      @redraw null
       return
     @resource.on 'update,create', @resource_update()
-    @target.render(resource) if render
+    @redraw(resource) if render
+
+  redraw: (data) ->
+    @target.render(data)
 
   resource_update: () ->
     @_resource_update ||= (e) =>
@@ -62,7 +65,7 @@ class pi.Base.Restful extends pi.Plugin
       @on_update e.currentTarget
 
   on_update: (data) ->
-    @target.render data
+    @redraw data
 
   dispose: ->
     @bind null
