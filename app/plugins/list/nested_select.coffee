@@ -120,6 +120,6 @@ class pi.List.NestedSelect extends pi.List.Selectable
         _selected.push item
       if item instanceof pi.List
         _selected = _selected.concat (item.selected?()||[])
-      else if (sublist = item.find('.pi-list'))
-        _selected = _selected.concat (sublist.selected?()||[])
+      else if (sublists = item.find_cut('.pi-list'))
+        _selected = _selected.concat(sublist._nod?.selected?()||[]) for sublist in sublists
     _selected
