@@ -77,13 +77,13 @@ _raf =
     window.requestAnimationFrame
   else
     (callback) ->
-      callback()
+      utils.after 0, callback
 
 _caf =
   if window.cancelAnimationFrame?
     window.cancelAnimationFrame
   else
-    -> true
+    (id) -> clearTimeout(id)
 
 class pi.Nod extends pi.NodEventDispatcher
   constructor: (@node) ->

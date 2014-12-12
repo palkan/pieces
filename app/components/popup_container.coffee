@@ -170,10 +170,11 @@ class pi.PopupContainer extends pi.Base
         @_base_layer
 
     for el in _elements
-      if el.__freezed__ and el.__freezer__ is @_popup_id
-        delete el.__freezed__
-        _st = el.__freeze_st__
-        el.style(overflow: null, top: null)
+      do(el) =>
+        if el.__freezed__ and el.__freezer__ is @_popup_id
+          delete el.__freezed__
+          _st = el.__freeze_st__
+          el._with_raf('reset_popup_styles', -> el.style(overflow: null, top: null))
 
     pi.Nod.win.scrollY(_st) if _st?
 
