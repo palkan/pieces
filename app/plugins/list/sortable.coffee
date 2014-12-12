@@ -20,7 +20,7 @@ class pi.List.Sortable extends pi.Plugin
           [key,order] = param.split(":")
           data[key] = order
           @_prevs.push data
-      @_compare_fun = (a,b) -> utils.keys_compare a.record, b.record, @_prevs
+      @_compare_fun = (a,b) => utils.keys_compare a.record, b.record, @_prevs
 
     @list.delegate_to @, 'sort'
     @list.on 'update', ((e) => @item_updated(e.data.item)), @, (e) => ((e.data.type is 'item_added' or e.data.type is 'item_updated') and e.data.item.host is @list) 
