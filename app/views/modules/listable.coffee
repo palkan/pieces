@@ -12,6 +12,9 @@ class pi.BaseView.Listable
   sort: (params) ->
     @list.sort params        
 
+  clear_sort: ->
+    @list.sortable.clear()
+
   sorted: (params) ->
     @list.sortable.sorted(params) if params?
 

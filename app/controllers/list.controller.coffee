@@ -83,6 +83,7 @@ class pi.controllers.ListController extends pi.controllers.Base
     @query().then(
       (data) =>
         if data?
+          @view.clear_sort()
           @view.reload @_parse_response(data)
           @view.sorted params
         else
