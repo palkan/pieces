@@ -434,7 +434,7 @@ _prop_hash(
   "style", 
   (prop, val) -> 
     if val is null
-      @node.style[prop] = null
+      @node.style.removeProperty(prop)
     else if val is undefined 
       return @node.style[prop]
     @node.style[prop] = val

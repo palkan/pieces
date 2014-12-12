@@ -6,9 +6,17 @@ utils = pi.utils
 class pi.PopupContainer extends pi.Base
   postinitialize: ->
     super
+    @_popup_id = "p_#{utils.uid()}"
     @__overlays__ = []
     @__containers__ = []
     @__popups__ = []
+
+    @_base_layer =
+      if @options.base_layer
+        @options.base_layer.split(/\,\s*/).map( (selector) -> pi.Nod.root.find(selector) ).filter( (nod) -> !!nod )
+      else
+        [ pi.app.view ]
+
     @z = @options.z || 300
     @show_delay = if @options.show_delay? then @options.show_delay else 200
     @hide_delay = if @options.hide_delay? then @options.hide_delay else 500
@@ -36,7 +44,8 @@ class pi.PopupContainer extends pi.Base
   # @params [Obejct] options 
 
   open: (@target, options = {}) ->
-    # disable previous popup if any
+    @_freeze_layer()
+
     @overlay.disable() if @overlay?
     @cont.disable() if @cont?
 
@@ -54,7 +63,7 @@ class pi.PopupContainer extends pi.Base
 
     @setup_target @target
     
-    @show()
+    @_with_raf('popup_show', => @show())
     
     utils.after @show_delay, =>
       @overlay.show()
@@ -94,6 +103,9 @@ class pi.PopupContainer extends pi.Base
     @target.hide()
     @overlay.hide()
 
+    # scroll to the top
+    pi.Nod.win.scrollY(0)
+
     if @__overlays__.length is 1
       @opened = false
       @trigger 'opened', false
@@ -123,8 +135,46 @@ class pi.PopupContainer extends pi.Base
           else
             @hide()
 
+          @_unfreeze_layer()
+
           @_closing = false
           resolve()
         )
+
+  has_content: ->
+    @__overlays__.length > 0
+
+  _freeze_layer: ->
+    _st = pi.Nod.win.scrollTop()
+    
+    _elements = 
+      if @has_content()
+        [@overlay, @cont]
+      else
+        @_base_layer
+
+    for el in _elements
+      unless el.__freezed__
+        el.__freezed__ = true
+        el.__freezer__ = @_popup_id
+        el.__freeze_st__ = _st
+        el.style(overflow: 'hidden', top: ''+(el.y() - _st)+'px') 
+
+  _unfreeze_layer: ->
+    _st = null
+
+    _elements = 
+      if @has_content()
+        [@overlay, @cont]
+      else
+        @_base_layer
+
+    for el in _elements
+      if el.__freezed__ and el.__freezer__ is @_popup_id
+        delete el.__freezed__
+        _st = el.__freeze_st__
+        el.style(overflow: null, top: null)
+
+    pi.Nod.win.scrollY(_st) if _st?
 
 pi.Guesser.rules_for 'popup_container', ['pi-popup']
