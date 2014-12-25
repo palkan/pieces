@@ -7,6 +7,9 @@ utils = pi.utils
 class pi.controllers.Paginated
   @included: (base) ->
     base::query = (_params={}, next_page = false) ->
+
+      _scope = utils.clone(@scope().params)
+
       params = utils.merge(@scope().params,_params) 
       
       unless params.page?
@@ -17,6 +20,8 @@ class pi.controllers.Paginated
         @_promise = utils.resolved_promise()
 
       @_promise = @_promise.then( (data) =>
+        # re-set scope, 'cause it might have changed
+        @scope().set _scope
         if @scope().is_full
           utils.resolved_promise()
         else

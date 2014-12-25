@@ -156,3 +156,13 @@ describe "Pieces RVC", ->
         utils.after 1000, =>
           expect(spy_fun.callCount).to.eq 1
           done()
+
+      it "should reload initial even if scope was full in beetween call series", (done) ->
+        spy_fun = sinon.spy(@t, '_resource_query')
+        @t.search('u')
+        @t.search('urt')
+        @t.search('u')
+        @t.search('')
+        utils.after 1000, =>
+          expect(@t.view.list.size()).to.eq 5
+          done()
