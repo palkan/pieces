@@ -76,12 +76,11 @@ class Scope
     @is_full = false
 
 class pi.controllers.Scoped
-  @included: ->
+  @included: (klass) ->
+    klass::scope_whitelist = []
+    klass::scope_blacklist = []
+    klass::scope_rules = {}
     true
   
-  scope_whitelist: []
-  scope_blacklist: []
-  scope_rules: {}
-
   scope: ->
     @_scope ||= new Scope(@scope_whitelist, @scope_blacklist, @scope_rules)
