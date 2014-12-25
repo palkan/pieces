@@ -6,25 +6,20 @@ utils = pi.utils
 
 class pi.controllers.Paginated
   @included: (base) ->
-    base::query = (_params={}, next_page = false) ->
-
-      _scope = utils.clone(@scope().params)
-
-      params = utils.merge(@scope().params,_params) 
-      
-      unless params.page?
-        params.page = @_page = 1
-      params.per_page = @per_page
+    base::query = (_params={}, scope_params={}, next_page = false) ->
+      unless _params.page?
+        _params.page = @_page = 1
+      _params.per_page = @per_page
 
       unless @_promise?
         @_promise = utils.resolved_promise()
 
       @_promise = @_promise.then( (data) =>
-        # re-set scope, 'cause it might have changed
-        @scope().set _scope
+        @scope().set scope_params
         if @scope().is_full
           utils.resolved_promise()
         else
+          params = utils.merge(@scope().params,_params) 
           @_resource_query(params).then(
             (data) =>
               @page_resolver data
@@ -47,7 +42,7 @@ class pi.controllers.Paginated
     
     @_page =  (@_page||0)+1
    
-    @query(page: @_page, true).then(
+    @query(page: @_page, {}, true).then(
       ((data) => 
         @view.load(@_parse_response(data)) if data?
         data

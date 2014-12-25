@@ -27,16 +27,16 @@ class pi.controllers.ListController extends pi.controllers.Base
   # Makes AJAX request on resource
   # @params [Object] params query params
 
-  query: (params={}) ->
-    params = utils.merge(@scope().params,params) 
-
+  query: (params={}, scope_params={}) ->
     unless @_promise?
       @_promise = utils.resolved_promise()
 
     @_promise = @_promise.then( =>
+      @scope().set(scope_params)
       if @scope().is_full
         utils.resolved_promise()
       else
+        params = utils.merge(@scope().params,params)
         @_resource_query(params)
     )
 
@@ -58,16 +58,14 @@ class pi.controllers.ListController extends pi.controllers.Base
     )
 
   index: (params) ->
-    @scope().set(params)
-    @query().then(
+    @query({}, params).then(
      (data) => 
         @view.load @_parse_response(data)
         data
     )
 
   search: (q) ->
-    @scope().set({q: q})
-    @query().then(
+    @query({}, {q: q}).then(
       (data) =>
         if data?
           @view.reload @_parse_response(data)
@@ -79,8 +77,7 @@ class pi.controllers.ListController extends pi.controllers.Base
 
   sort: (params=null) ->
     sort_params = {sort: params}
-    @scope().set sort_params
-    @query().then(
+    @query({},sort_params).then(
       (data) =>
         if data?
           @view.clear_sort()
@@ -93,8 +90,7 @@ class pi.controllers.ListController extends pi.controllers.Base
 
   filter: (params=null) ->
     filter_params = {filter: params}
-    @scope().set filter_params
-    @query().then(
+    @query({}, filter_params).then(
       (data) =>
         if data?
           @view.reload @_parse_response(data)
