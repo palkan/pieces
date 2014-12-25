@@ -76,6 +76,10 @@ class Scope
     @is_full = false
 
 class pi.controllers.Scoped
+  @rules: {}
+  @whitelist: []
+  @blacklist: []
+
   @included: (klass) ->
     klass::scope_whitelist = []
     klass::scope_blacklist = []
@@ -83,4 +87,8 @@ class pi.controllers.Scoped
     true
   
   scope: ->
-    @_scope ||= new Scope(@scope_whitelist, @scope_blacklist, @scope_rules)
+    @_scope ||= new Scope(
+      utils.uniq(pi.controllers.Scoped.whitelist.concat(@scope_whitelist)), 
+      utils.uniq(pi.controllers.Scoped.whitelist.concat(@scope_blacklist)), 
+      utils.merge(pi.controllers.Scoped.rules,@scope_rules)
+    )
