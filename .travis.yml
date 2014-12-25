@@ -3,6 +3,7 @@ node_js:
   - 0.10
 branches:
   except:
+    - master
     - /^cis-.*$/
 before_script:
   - 'gem install sass --version "=3.4.6"'
