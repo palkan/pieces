@@ -1,7 +1,7 @@
 {
   "author": "Vlad Dem <palkan>",
-  "name": "js-pieces",
-  "description": "JS library and framework",
+  "name": "pieces",
+  "description": "JS library and/or framework",
   "version": "0.4.0",
   "license": "MIT",
   "homepage": "",
@@ -15,8 +15,7 @@
   "scripts": {
     "start": "./node_modules/.bin/brunch watch --server",
     "test": "mocha-phantomjs http://localhost:3333/test/",
-    "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../public/js/pieces.bundle.js && cd .. && uglifyjs -m toplevel public/js/pieces.bundle.js > public/js/pieces.min.js",
-    "gemify":  "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces-rails/app/assets/javascripts/pieces.js && cd .. && ./gem_sass.sh",
+    "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces.js && cd .. && ./node_modules/uglify-js-brunch/node_modules/.bin/uglifyjs -m toplevel pieces.js > pieces.min.js",
     "postinstall": "./node_modules/.bin/bower install"
   },
   "dependencies": {
@@ -29,6 +28,7 @@
     "coffee-script": "~1.6.3",
     "coffee-script-brunch": ">= 1.0 < 1.7",
     "uglify-js-brunch": ">= 1.7",
+    "coffeeify": "~1.0",
     "clean-css-brunch": "~1.7.0",
     "css-brunch": "~1.7.0",
     "sass-brunch": "~1.8.0",
