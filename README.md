@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/palkan/pieces.svg?branch=v0.4)](https://travis-ci.org/palkan/pieces)
+[![Build Status](https://travis-ci.org/pieces-js/pieces.svg?branch=v0.4)](https://travis-ci.org/pieces-js/pieces)
 
 # Pisces.js
 TBD   
