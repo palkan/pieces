@@ -7,8 +7,11 @@ _method_rxp = /([\w\.]+)\.(\w+)/
 _str_rxp = /^['"].+['"]$/
 _condition_rxp = /^(.*\S)\s*\?\s*(@?[\w\.]+(?:\(.*\S\))?)\s*(?:\:\s*(@?[\w\.]+(?:\(.*\S\))?)\s*)$/
 
-_fun_rxp = /^(@?\w+)(?:\.([\w\.]+)(?:\((.+)\))?)?$/
+_fun_rxp = /^(@?\w+)(?:\.([\w\.\(\)]+)(?:\((.+)\))?)?$/
 _op_rxp = /(>|<|=)/
+_call_rxp = /\(\)/g
+_capital_rxp = /[A-Z]/
+_target_rxp = /(?:^|@)(app|host|view|this)/
 
 _true = -> true
 _null = ->
@@ -33,8 +36,6 @@ _operators =
           b = right.apply?(@,args) || right
           a == b
 
-_call_rxp = /\(\)/
-
 class pi.Compiler
   @modifiers: []
 
@@ -49,7 +50,8 @@ class pi.Compiler
       target = switch 
         when typeof target is 'object' then target 
         when target[0] is '@' then pi.find(target[1..],owner)
-        else @[target] # when call with context (str_to_event_listener)
+        when _capital_rxp.test(target[0]) then pi.resources[target]
+        else (@[target] || window[target]) # first check context (str_to_event_listener) and then window
 
       return target if !method_chain
 
@@ -77,8 +79,10 @@ class pi.Compiler
   @prepare_arg: (arg, host) ->
     if @is_simple_arg(arg)
       if _str_rxp.test(arg) then arg[1...-1] else utils.serialize arg
-    else
+    else if typeof arg is 'string'
       @str_to_fun arg, host
+    else
+      arg
 
   @_conditional: (condition, resolve, reject) ->
     (args...) ->
@@ -106,19 +110,34 @@ class pi.Compiler
 
   @parse_str: (callstr) ->
     if(matches = callstr.match _fun_rxp)
-      res = target: matches[1], method_chain: matches[2], args: if matches[3] then matches[3].split(",") else []
+      res = target: matches[1], method_chain: matches[2], args: if matches[3] then @_parse_args(matches[3]) else []
     else
       false
 
+  # arg_str can be args as object (e.g. 'id: 1, value: 2') or as normal args ('1, \'one\'')
+  @_parse_args: (arg_str) ->
+    if arg_str.indexOf(":")>0
+      obj = {}
+      for pair in arg_str.split(/\s*\,\s*/)
+        [key,val] = pair.split /\s*\:\s*/
+        obj[key] = utils.serialize(val)
+      [obj]
+    else
+      arg_str.split(",") 
+
   @compile_fun: (callstr, target) ->
     if(data = @parse_str(callstr))
-      data.target = switch 
-        when data.target == '@this' then target 
-        when data.target == '@app' then pi.app
-        when data.target == '$r' then pi.resources
-        when data.target == '@host' then target.host 
-        when data.target == '@view' then target.view?() 
-        else data.target
+      if (matches = _target_rxp.exec(data.target))
+        _target = matches[1]
+        data.target = switch 
+          when _target is "this" then target 
+          when _target is 'app' then pi.app
+          when _target is 'host' then target.host 
+          when _target is 'view' then target.view?() 
+          else {}
+      else 
+        data.target
+
       if data.method_chain
         utils.curry(pi.call,[target, data.target, data.method_chain, (if data.args then (@prepare_arg(arg,target) for arg in data.args) else [])])
       else

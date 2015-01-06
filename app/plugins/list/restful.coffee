@@ -4,8 +4,6 @@ require '../plugin'
 require '../../components/base/list'
 utils = pi.utils
 
-_where_rxp = /^(\w+)\.(where|find)\(([\w\s\,\:]+)\)(?:\.([\w]+))?$/i
-_app_rxp = /^app\.([\.\w]+)\.(\w+)$/
 # [Plugin]
 #
 # Bind resources to List (handle create, update and destroy events)  
@@ -17,25 +15,10 @@ class pi.List.Restful extends pi.Plugin
     @listen_load = @list.options.listen_load is true
     @listen_create = if @list.options.listen_create? then @list.options.listen_create else @listen_load
     if (rest = @list.options.rest)? 
-      if (matches = rest.match(_app_rxp))
-        ref = utils.get_path(pi.app, matches[1])
-        resources = ref[matches[2]]?() if ref? 
-      else if (matches = rest.match(_where_rxp))
-        rest = matches[1]
-        ref = $r[utils.camelCase(rest)]
-        if ref?
-          if matches[2] is 'where'
-            resources = ref
-            @scope = {}
-            for param in matches[3].split(/\s*\,\s*/)
-              [key,val] = param.split /\s*\:\s*/
-              @scope[key] = utils.serialize val
-          else if matches[2] is 'find'
-            el = ref.get(matches[3]|0)
-            if el? and typeof el[matches[4]] is 'function'
-              resources = el[matches[4]]()
-      else
-        resources = $r[utils.camelCase(rest)]
+      if rest.indexOf(".") > 0
+        rest = utils.capitalize(rest)
+
+      resources = pi.Compiler.str_to_fun(rest).call(@) 
 
     if resources?
       @bind resources, @list.options.load_rest, @scope
@@ -46,7 +29,7 @@ class pi.List.Restful extends pi.Plugin
       false
     @
 
-  bind: (resources, load = false, params) ->
+  bind: (resources, load = false) ->
     if @resources
       @resources.off @resource_update()
     @resources = resources
@@ -54,18 +37,10 @@ class pi.List.Restful extends pi.Plugin
        @items_by_id = {}
        @list.clear() unless @list._disposed
        return
-    if params?
-      matcher = utils.matchers.object(params)
-      filter = (e) => 
-        return true if e.data.type is pi.ResourceEvent.Load
-        matcher(e.data[@resources.resource_name])
-    @resources.listen @resource_update(), filter
+
+    @resources.listen @resource_update()
     
-    if load
-      if params?
-        @load(resources.where(params))
-      else
-        @load(resources.all())
+    @load(resources.all()) if load
 
   find_by_id: (id) ->
     if @listen_load
@@ -86,10 +61,7 @@ class pi.List.Restful extends pi.Plugin
 
   on_load: ->
     return unless @listen_load
-    if @scope?
-      @load @resources.where(@scope)
-    else
-      @load @resources.all()
+    @load @resources.all()
 
   on_create: (data) ->
     return unless @listen_create

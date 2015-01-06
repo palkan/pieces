@@ -4,16 +4,12 @@ require '../plugin'
 require '../../components/base/base'
 utils = pi.utils
 
-_finder_rxp = /^(\w+)\.find\((\d+)\)$/
-_app_rxp = /^app\.([\.\w]+)$/
-
-
 # [Plugin]
 # Bind resource to component:
 #  - on update re-render component
 #  - on destroy remove component   
 #  
-# Requires Renderable and 'rest' option as 'app.path.to.some.resource' or 'Resource.find(id)'
+# Requires Renderable and 'rest' option as compilable string (e.g. 'app.some.user' or 'Resource.get(1)')
 class pi.Base.Restful extends pi.Plugin
   id: 'restful'
   initialize: (@target) ->
@@ -22,24 +18,16 @@ class pi.Base.Restful extends pi.Plugin
       @target.attach_plugin pi.Base.Renderable
 
     if(rest = @target.options.rest)?
-      promise = if (matches = rest.match(_app_rxp))
-                  new Promise( 
-                    (resolve, reject) -> 
-                      res = utils.get_path(pi.app, matches[1])
-                      if res
-                        resolve res
-                      else
-                        reject res
-                    )
-                else if(matches = rest.match(_finder_rxp))
-                  resources = utils.get_path($r, matches[1])
-                  if resources?
-                    resources.find(matches[2]|0)
-                  else
-                    utils.rejected_promise()
+      
+      f = pi.Compiler.str_to_fun(rest)
+      promise = f.call(@)
+      
+      unless promise instanceof Promise
+        promise = if promise then utils.resolved_promise(promise) else utils.rejected_promise()
+
       promise.then(
         (resource) =>
-          @bind resource, !@target.firstChild
+          @bind resource, (@target.children().length is 0)
         () =>
           utils.error "resource not found: #{rest}", @target.options.rest
       )

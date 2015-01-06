@@ -145,6 +145,13 @@ class pi.resources.Base extends pi.EventDispatcher
   @where: (params) ->
     el for el in @__all__ when utils.matchers.object_ext(params)(el)
 
+  # generate scoped association by params
+  # TODO: cache views
+  @view: (params) ->
+    view = new pi.resources.Association(@, params, scope: params, copy: false, source: @)
+    view.reload()
+    view
+
   @_wrap: (el) ->
     if el instanceof pi.resources.Base
       utils.wrap el.constructor.resource_name, el
@@ -221,3 +228,17 @@ class pi.resources.Base extends pi.EventDispatcher
     if typeof @["on_#{name}_update"] is 'function'
       @["on_#{name}_update"].call(@, type, data)
     @trigger pi.ResourceEvent.Update, utils.wrap(name, true)
+
+# Create new resource by name and superclass (optional)
+$r.create = (name, parent = $r.Base) ->
+  klass=utils.subclass(parent)
+  if name?
+    if typeof name is 'string'
+      klass.set_resource name
+      $r[utils.capitalize(utils.camelCase(name))] = klass
+    else if Array.isArray(name)
+      klass.set_resource name[0], name[1]
+      $r[utils.capitalize(utils.camelCase(name[0]))] = klass
+  else
+    klass.set_resource "unknown"
+  klass

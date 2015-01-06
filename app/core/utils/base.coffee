@@ -231,6 +231,14 @@ class pi.utils
           @extract(data[key], source[key], vals)
     data
 
+  @subclass: (parent) ->
+    child = -> @constructor.__super__.constructor.apply(@,arguments)
+    for own key of parent 
+      child[key] = parent[key]
+    child:: = Object.create(parent::)
+    child::constructor = child 
+    child.__super__ = parent:: 
+    child
 
   ## Array utils
   

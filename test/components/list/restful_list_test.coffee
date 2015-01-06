@@ -38,7 +38,7 @@ describe "Restful List", ->
       test_div.style position:'relative'
       root.append test_div 
       test_div.append """
-        <div class="pi pi-action-list" data-component="list" data-renderer="jst(test/testo)" data-plugins="restful" data-load-rest="true" data-rest="testo.where(salt_id:1)" data-listen-load="true" pid="list">
+        <div class="pi pi-action-list" data-component="list" data-renderer="jst(test/testo)" data-plugins="restful" data-load-rest="true" data-rest="Testo.view(salt_id:1)" data-listen-load="true" pid="list">
           <ul class="list">
           </ul>
         </div> 
@@ -58,7 +58,7 @@ describe "Restful List", ->
       it "should reload elements on unbind-bind", ->
         expect(list.size()).to.eq 3
         list.restful.bind null
-        list.restful.bind Testo, true, salt_id:1
+        list.restful.bind Testo.view(salt_id:1), true
         expect(list.size()).to.eq 3
 
     describe "CRUD", ->
@@ -213,7 +213,7 @@ describe "Restful List", ->
       pi.app.initialize()
       chef = Chef.get(1)
       list = test_div.find('.pi-action-list')
-      list.restful.bind Testo2, true, chef_id: 1
+      list.restful.bind Testo2.view(chef_id:1), true
 
     afterEach ->
       test_div.remove()

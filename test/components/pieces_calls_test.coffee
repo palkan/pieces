@@ -47,6 +47,12 @@ describe "pieces calls", ->
       expect(res.method_chain).to.eq 'kill.some'
       expect(res.args).to.have.length 0
 
+    it "should parse string with function calls", ->
+      res = Compiler.parse_str("app.kill(1).res.to_s")
+      expect(res.target).to.eq 'app'
+      expect(res.method_chain).to.eq 'kill(1).res.to_s'
+      expect(res.args).to.have.length 0
+
     it "should parse string (call with 1 arg)", ->
       res = Compiler.parse_str("app.kill.some('human')")
       expect(res.target).to.eq 'app'
@@ -66,11 +72,48 @@ describe "pieces calls", ->
       expect(res.args).to.have.length 2
 
     it "should parse string with special symbols", ->
-      res = Compiler.parse_str("@app.accept('image/pnf; charset=utf-8')")
+      res = Compiler.parse_str("@app.accept('image/png; charset=utf-8')")
       expect(res.target).to.eq '@app'
       expect(res.method_chain).to.eq 'accept'
       expect(res.args).to.have.length 1
 
+    it "should parse string with object arg", ->
+      res = Compiler.parse_str("@app.log(level: 'debug', code: 1)")
+      expect(res.target).to.eq '@app'
+      expect(res.method_chain).to.eq 'log'
+      expect(res.args).to.have.length 1
+
+  describe "pi call", ->
+    R = $r.create("pi_call_tests")
+    window._abc_ = 
+      fun: -> true
+      echo: (data) -> data
+      chain: ->
+        {data: {to_s: -> 'data'}}
+
+    afterEach ->
+      R.clear_all()
+
+    it "should call global (window) object", ->
+      f = Compiler.str_to_fun("_abc_.fun()")
+      expect(f.call({})).to.be.true
+
+     it "should call with object arg", ->
+      f = Compiler.str_to_fun("_abc_.echo(id: 1, hello: 'world', correct: true)")
+      res = f.call({})
+      expect(res.correct).to.be.true
+      expect(res.id).to.eq 1
+      expect(res.hello).to.eq 'world'
+
+    it "should call chained functions object", ->
+      f = Compiler.str_to_fun("_abc_.chain().data.to_s()")
+      expect(f.call({})).to.be.eq 'data'
+
+    it "should call resources function", ->
+      R.build {id: 1, name: 'juju'}
+      f = Compiler.str_to_fun("PiCallTests.get(1)")
+      obj = f.call({})
+      expect(obj.name).to.be.eq 'juju'
 
   describe "pi complex call queries", ->
     test_div = null
