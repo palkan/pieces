@@ -7,11 +7,12 @@ _method_rxp = /([\w\.]+)\.(\w+)/
 _str_rxp = /^['"].+['"]$/
 _condition_rxp = /^(.*\S)\s*\?\s*(@?[\w\.]+(?:\(.*\S\))?)\s*(?:\:\s*(@?[\w\.]+(?:\(.*\S\))?)\s*)$/
 
-_fun_rxp = /^(@?\w+)(?:\.([\w\.\(\)]+)(?:\((.+)\))?)?$/
+_fun_rxp = /^(@?\w+)(?:\.([\w\.\(\,\)]+)(?:\((.+)\))?)?$/
 _op_rxp = /(>|<|=)/
 _call_rxp = /\(\)/g
 _capital_rxp = /[A-Z]/
 _target_rxp = /(?:^|@)(app|host|view|this)/
+_funcall_rxp = /^\w+\([^\)]+\)$/
 
 _true = -> true
 _null = ->
