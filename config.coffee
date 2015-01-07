@@ -25,7 +25,7 @@ exports.config =
     javascripts:
       defaultExtension: 'coffee'
       joinTo:
-        'js/pieces.js': /^(app\/pi\.js|app\/(core|components|plugins|controllers|resources|views|net))/
+        'js/pieces.js': /^(app\/pi\.js|app\/(core|grammar|components|plugins|controllers|resources|views|net))/
         'js/vendor.js': /^(bower_components|vendor)[\\/](?!test)/
         'test/js/test.js': /^test/
         'test/js/test-vendor.js':  /^vendor[\\/](?=test)/
