@@ -230,15 +230,15 @@ class pi.resources.Base extends pi.EventDispatcher
     @trigger pi.ResourceEvent.Update, utils.wrap(name, true)
 
 # Create new resource by name and superclass (optional)
-$r.create = (name, parent = $r.Base) ->
+pi.resources.create = (name, parent = $r.Base) ->
   klass=utils.subclass(parent)
   if name?
     if typeof name is 'string'
       klass.set_resource name
-      $r[utils.capitalize(utils.camelCase(name))] = klass
+      pi.resources[utils.capitalize(utils.camelCase(name))] = klass
     else if Array.isArray(name)
       klass.set_resource name[0], name[1]
-      $r[utils.capitalize(utils.camelCase(name[0]))] = klass
+      pi.resources[utils.capitalize(utils.camelCase(name[0]))] = klass
   else
     klass.set_resource "unknown"
   klass

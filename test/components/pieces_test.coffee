@@ -81,15 +81,15 @@ describe "pieces core", ->
     beforeEach  ->
       test_div = h.test_cont root, '<div style="position: relative;"></div>'
       test_div.append('<div class="pi test" data-component="test_component" data-pid="test" style="position:relative"></div>')
-      test_div.append('<a id="hide" href="@test.hide">Hide</div>')
-      test_div.append('<a id="show" href="@test.show">Show</div>')
-      test_div.append('<a id="text" href="@test.text(hello_test)">Text</div>')
+      test_div.append('<a id="hide" href="@test.hide()">Hide</div>')
+      test_div.append('<a id="show" href="@test.show()">Show</div>')
+      test_div.append('<a id="text" href="@test.text(\'hello_test\')">Text</div>')
       test_div.append('<a id="move" href="@test.move(20,30)">Move</div>')
       test_div.append('<a id="append" href="@test.append(@span)">Append</div>')
       test_div.append('<span id="append_click" class="pi" data-on-click="@test.append(@span)">Append</div>')
       test_div.append('<a id="append_self" class="pi" href="@test.append(@this)">Append self</div>')
       test_div.append('<span class="pi" data-pid="span">Append me</span>')
-      test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate">Active This</div>')
+      test_div.append('<a id="thiz" class="pi" data-component="test_component" href="@this.activate()">Active This</div>')
       pi.app.initialize()
 
     afterEach ->

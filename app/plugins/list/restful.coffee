@@ -15,10 +15,11 @@ class pi.List.Restful extends pi.Plugin
     @listen_load = @list.options.listen_load is true
     @listen_create = if @list.options.listen_create? then @list.options.listen_create else @listen_load
     if (rest = @list.options.rest)? 
-      if rest.indexOf(".") > 0
-        rest = utils.capitalize(rest)
+      # we want to use it with snake-cased names too (e.g. 'user', 'user_data')
+      unless rest.indexOf(".") > 0
+        rest = utils.camelCase(rest)
 
-      resources = pi.Compiler.str_to_fun(rest).call(@) 
+      resources = pi.Compiler.str_to_fun(rest).call() 
 
     if resources?
       @bind resources, @list.options.load_rest, @scope

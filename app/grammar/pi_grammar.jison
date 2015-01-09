@@ -56,14 +56,14 @@ e
     | simple_e
         {$$ = $1;}
     | '(' object ')'
-        {$$ = fn_arr_obj($2);}
+        {$$ = {code: 'simple', value: fn_arr_obj($2)};}
     ;
 
 
 
 group_e
     : '(' e ')'
-         {$$ = {code: 'group', value: $2};}
+         {$$ = $2;}
     ;
 
 simple_e
@@ -91,9 +91,9 @@ method
 
 resource
     : 'RES' '(' object ')'
-       {$$ = [{code: 'res', name: $1}, {code: 'call', name: 'view', args: [fn_arr_obj($3)]}];}
+       {$$ = [{code: 'res', name: $1}, {code: 'call', name: 'view', args: [{code: 'simple', value: fn_arr_obj($3)}]}];}
     | 'RES' '(' val ')'
-       {$$ = [{code: 'res', name: $1}, {code: 'call', name: 'get', args: [$3]}];}
+       {$$ = [{code: 'res', name: $1}, {code: 'call', name: 'get', args: [{code: 'simple', value: $3}]}];}
     | 'RES'
        {$$ = [{code: 'res', name: $1}];}
     ;
@@ -111,7 +111,7 @@ args
     | e
         {$$ = [$1];}
     | object
-        {$$ = fn_arr_obj(tmp);}
+        {$$ = [{code: 'simple', value: fn_arr_obj($1)}];}
     |
         {$$ = [];}
    ;
@@ -131,10 +131,10 @@ key_val
 val
     : NUMBER
          {$$ = Number(yytext);}
+    | BOOL
+         {$$ = yytext=="true";}
     | STRING
          {$$ = yytext.replace(/(^['"]|['"]$)/g,'');}
-    | BOOL
-         {$$ = yytext;}
     ;
 
 op

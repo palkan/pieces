@@ -75,8 +75,8 @@ var parser = (function(){
 var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,6],$V1=[1,16],$V2=[1,17],$V3=[1,11],$V4=[1,12],$V5=[1,13],$V6=[5,11,33],$V7=[2,2],$V8=[2,4],$V9=[1,21],$Va=[1,22],$Vb=[1,23],$Vc=[1,19],$Vd=[5,11,21,28,29,30,32,33],$Ve=[5,11,15,21,28,29,30,32,33],$Vf=[2,12],$Vg=[1,30],$Vh=[19,20,24,25,26],$Vi=[1,37],$Vj=[2,22];
 var parser = {trace: function trace() { },
 yy: {},
-symbols_: {"error":2,"expressions":3,"e":4,"EOF":5,"group_e":6,"ternary":7,"simple_e":8,"(":9,"object":10,")":11,"method_chain":12,"val":13,"method":14,".":15,"resource":16,"key":17,"args":18,"RES":19,"KEY":20,",":21,"key_val":22,":":23,"NUMBER":24,"STRING":25,"BOOL":26,"op":27,"EQL":28,"MORE":29,"LESS":30,"cond":31,"TIF":32,"TELSE":33,"$accept":0,"$end":1},
-terminals_: {2:"error",5:"EOF",9:"(",11:")",15:".",19:"RES",20:"KEY",21:",",23:":",24:"NUMBER",25:"STRING",26:"BOOL",28:"EQL",29:"MORE",30:"LESS",32:"TIF",33:"TELSE"},
+symbols_: {"error":2,"expressions":3,"e":4,"EOF":5,"group_e":6,"ternary":7,"simple_e":8,"(":9,"object":10,")":11,"method_chain":12,"val":13,"method":14,".":15,"resource":16,"key":17,"args":18,"RES":19,"KEY":20,",":21,"key_val":22,":":23,"NUMBER":24,"BOOL":25,"STRING":26,"op":27,"EQL":28,"MORE":29,"LESS":30,"cond":31,"TIF":32,"TELSE":33,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"EOF",9:"(",11:")",15:".",19:"RES",20:"KEY",21:",",23:":",24:"NUMBER",25:"BOOL",26:"STRING",28:"EQL",29:"MORE",30:"LESS",32:"TIF",33:"TELSE"},
 productions_: [0,[3,2],[4,1],[4,1],[4,1],[4,3],[6,3],[8,1],[8,1],[12,1],[12,3],[14,1],[14,1],[14,4],[16,4],[16,4],[16,1],[17,1],[18,3],[18,3],[18,1],[18,1],[18,0],[10,3],[10,1],[22,3],[13,1],[13,1],[13,1],[27,1],[27,1],[27,1],[31,3],[7,5],[7,5]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
@@ -90,10 +90,10 @@ case 2: case 3: case 4: case 9: case 11: case 24:
 this.$ = $$[$0];
 break;
 case 5:
-this.$ = fn_arr_obj($$[$0-1]);
+this.$ = {code: 'simple', value: fn_arr_obj($$[$0-1])};
 break;
 case 6:
-this.$ = {code: 'group', value: $$[$0-1]};
+this.$ = $$[$0-1];
 break;
 case 7:
 this.$ = {code: 'chain', value: $$[$0]};
@@ -111,15 +111,15 @@ case 13:
 this.$ = [{code: 'call', name: $$[$0-3], args: $$[$0-1]}];
 break;
 case 14:
-this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'view', args: [fn_arr_obj($$[$0-1])]}];
+this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'view', args: [{code: 'simple', value: fn_arr_obj($$[$0-1])}]}];
 break;
 case 15:
-this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'get', args: [$$[$0-1]]}];
+this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'get', args: [{code: 'simple', value: $$[$0-1]}]}];
 break;
 case 16:
 this.$ = [{code: 'res', name: $$[$0]}];
 break;
-case 17: case 28:
+case 17:
 this.$ = yytext;
 break;
 case 18: case 19:
@@ -129,7 +129,7 @@ case 20:
 this.$ = [$$[$0]];
 break;
 case 21:
-this.$ = fn_arr_obj(tmp);
+this.$ = [{code: 'simple', value: fn_arr_obj($$[$0])}];
 break;
 case 22:
 this.$ = [];
@@ -141,6 +141,9 @@ case 26:
 this.$ = Number(yytext);
 break;
 case 27:
+this.$ = yytext=="true";
+break;
+case 28:
 this.$ = yytext.replace(/(^['"]|['"]$)/g,'');
 break;
 case 29: case 30: case 31:
@@ -656,11 +659,11 @@ case 7:return 9
 break;
 case 8:return 11
 break;
-case 9:return 25
+case 9:return 26
 break;
-case 10:return 25
+case 10:return 26
 break;
-case 11:return 26
+case 11:return 25
 break;
 case 12:return 19
 break;

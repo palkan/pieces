@@ -12,7 +12,7 @@ describe "pi calls with view", ->
   beforeEach ->
     test_div = h.test_cont root, '''
       <div><div class="pi test" data-pid="test" data-component="base_view">
-        <span pid="btn" class="pi" data-on-click="@this.view.log.text('bla')"></span>
+        <span pid="btn" class="pi" data-on-click="@view.log.text('bla')"></span>
         <span pid="log" class="pi">loggo</span>
       </div></div>
       '''

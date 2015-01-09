@@ -15,7 +15,7 @@ describe "jst renderer list plugin", ->
     test_div = Nod.create('div')
     test_div.style position:'relative'
     root.append test_div
-    window.JST = {}
+    window.JST ||= {}
 
     window.JST['test/item'] = (data) ->
       nod = Nod.create("<div>#{ data.name }</div>")

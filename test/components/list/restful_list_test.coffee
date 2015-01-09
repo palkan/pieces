@@ -17,15 +17,15 @@ describe "Restful List", ->
 
   page = pi.app.page
 
+  (window.JST||={})['test/testo'] = (data) ->
+    nod = Nod.create("<div class='type'>#{ data.type }</div>")
+    nod.addClass 'item'
+    nod.append "<span class='salt'>#{ data.salt_id||'' }</span>"
+    nod  
+
   describe "restful list with params", ->
 
     beforeEach ->
-      (window.JST||={})['test/testo'] = (data) ->
-        nod = Nod.create("<div class='type'>#{ data.type }</div>")
-        nod.addClass 'item'
-        nod.append "<span class='salt'>#{ data.salt_id||'' }</span>"
-        nod  
-
       Testo.load [
         {id:1, type: 'puff', salt_id: 2},
         {id:2, type: 'gut', salt_id: 1},
@@ -155,7 +155,7 @@ describe "Restful List", ->
       test_div.style position:'relative'
       root.append test_div 
       test_div.append """
-        <div class="pi pi-action-list" data-component="list" data-renderer="jst(test/testo)" data-listen-load="true" data-rest="Chef.find(1).testos" data-plugins="restful" data-load-rest="true" pid="list">
+        <div class="pi pi-action-list" data-component="list" data-renderer="jst(test/testo)" data-listen-load="true" data-rest="Chef(1).testos()" data-plugins="restful" data-load-rest="true" pid="list">
           <ul class="list">
           </ul>
         </div> 

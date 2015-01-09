@@ -401,22 +401,14 @@ pi.BaseInput = (function(_super) {
 
 },{"../../core":34,"../events/input_events":13,"./base":2}],4:[function(require,module,exports){
 'use strict';
-var pi, utils, _call_rxp, _condition_rxp, _fun_rxp, _method_rxp, _null, _op_rxp, _operators, _str_rxp, _true,
+var CompiledFun, parser, pi, utils, _error, _null, _operators, _true, _view_context_mdf,
   __slice = [].slice;
 
 pi = require('../../core');
 
+parser = require('../../grammar/pi_grammar').parser;
+
 utils = pi.utils;
-
-_method_rxp = /([\w\.]+)\.(\w+)/;
-
-_str_rxp = /^['"].+['"]$/;
-
-_condition_rxp = /^(.*\S)\s*\?\s*(@?[\w\.]+(?:\(.*\S\))?)\s*(?:\:\s*(@?[\w\.]+(?:\(.*\S\))?)\s*)$/;
-
-_fun_rxp = /^(@?\w+)(?:\.([\w\.]+)(?:\((.+)\))?)?$/;
-
-_op_rxp = /(>|<|=)/;
 
 _true = function() {
   return true;
@@ -424,37 +416,137 @@ _true = function() {
 
 _null = function() {};
 
+_error = function(fun_str) {
+  utils.error("Function [" + fun_str + "] was compiled with error");
+  return false;
+};
+
 _operators = {
-  ">": function(left, right) {
-    return function() {
-      var a, args, b;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      a = (typeof left.apply === "function" ? left.apply(this, args) : void 0) || left;
-      b = (typeof right.apply === "function" ? right.apply(this, args) : void 0) || right;
-      return a > b;
-    };
+  ">": function(a, b) {
+    return a > b;
   },
-  "<": function(left, right) {
-    return function() {
-      var a, args, b;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      a = (typeof left.apply === "function" ? left.apply(this, args) : void 0) || left;
-      b = (typeof right.apply === "function" ? right.apply(this, args) : void 0) || right;
-      return a < b;
-    };
+  "<": function(a, b) {
+    return a < b;
   },
-  "=": function(left, right) {
-    return function() {
-      var a, args, b;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      a = (typeof left.apply === "function" ? left.apply(this, args) : void 0) || left;
-      b = (typeof right.apply === "function" ? right.apply(this, args) : void 0) || right;
-      return a === b;
-    };
+  "=": function(a, b) {
+    return a === b;
+  },
+  "bool": function(a) {
+    return !!a;
   }
 };
 
-_call_rxp = /\(\)/;
+CompiledFun = (function() {
+  function CompiledFun(target, fun_str) {
+    var e;
+    this.target = target != null ? target : {};
+    this.fun_str = fun_str;
+    try {
+      this._parsed = parser.parse(fun_str);
+    } catch (_error) {
+      e = _error;
+      this._compiled = utils.curry(_error, [fun_str]);
+    }
+  }
+
+  CompiledFun.prototype.call = function() {
+    var args, ths;
+    ths = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    return this.apply(ths, args);
+  };
+
+  CompiledFun.prototype.apply = function(ths, args) {
+    this.call_ths = ths || {};
+    return this.compiled().apply(this, args);
+  };
+
+  CompiledFun.prototype.compiled = function() {
+    return this._compiled || (this._compiled = this._compile_fun());
+  };
+
+  CompiledFun.prototype._compile_fun = function() {
+    return (function(_this) {
+      return function() {
+        return _this["_get_" + _this._parsed.code](_this._parsed);
+      };
+    })(this);
+  };
+
+  CompiledFun.prototype._get_chain = function(data) {
+    var frst, i, step, _target;
+    frst = data.value[0];
+    _target = (function() {
+      var _base;
+      switch (frst.name) {
+        case 'this':
+          return this.target;
+        case 'app':
+          return pi.app;
+        case 'host':
+          return this.target.host;
+        case 'view':
+          return typeof (_base = this.target).view === "function" ? _base.view() : void 0;
+        default:
+          return this["_get_" + frst.code](frst, this.call_ths) || this["_get_" + frst.code](frst, window);
+      }
+    }).call(this);
+    i = 1;
+    while (i < data.value.length) {
+      step = data.value[i++];
+      _target = this["_get_" + step.code](step, _target);
+    }
+    return _target;
+  };
+
+  CompiledFun.prototype._get_res = function(data, from) {
+    if (from == null) {
+      from = {};
+    }
+    return from[data.name] || pi.resources[data.name];
+  };
+
+  CompiledFun.prototype._get_prop = function(data, from) {
+    return from[data.name];
+  };
+
+  CompiledFun.prototype._get_call = function(data, from) {
+    return from[data.name].apply(from, this._get_args(data.args));
+  };
+
+  CompiledFun.prototype._get_args = function(args) {
+    var arg, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = args.length; _i < _len; _i++) {
+      arg = args[_i];
+      _results.push(this["_get_" + arg.code](arg));
+    }
+    return _results;
+  };
+
+  CompiledFun.prototype._get_if = function(data) {
+    var _left, _right;
+    _left = data.cond.left;
+    _right = data.cond.right;
+    _left = this["_get_" + _left.code](_left);
+    if (_right != null) {
+      _right = this["_get_" + _right.code](_right);
+    }
+    if (_operators[data.cond.type](_left, _right)) {
+      return this["_get_" + data.left.code](data.left);
+    } else if (data.right != null) {
+      return this["_get_" + data.right.code](data.right);
+    } else {
+      return false;
+    }
+  };
+
+  CompiledFun.prototype._get_simple = function(data) {
+    return data.value;
+  };
+
+  return CompiledFun;
+
+})();
 
 pi.Compiler = (function() {
   function Compiler() {}
@@ -471,174 +563,16 @@ pi.Compiler = (function() {
     return str;
   };
 
-  Compiler.call = function(owner, target, method_chain, fixed_args) {
-    var arg, error, key_, method, method_, target_, target_chain, _, _ref, _ref1;
-    try {
-      utils.debug("pi call: target - " + target + "; method chain - " + method_chain);
-      target = (function() {
-        switch (false) {
-          case typeof target !== 'object':
-            return target;
-          case target[0] !== '@':
-            return pi.find(target.slice(1), owner);
-          default:
-            return this[target];
-        }
-      }).call(this);
-      if (!method_chain) {
-        return target;
-      }
-      _ref = (function() {
-        var _fn, _i, _len, _ref, _ref1;
-        if (method_chain.indexOf(".") < 0) {
-          return [method_chain, target];
-        } else {
-          _ref = method_chain.match(_method_rxp), _ = _ref[0], target_chain = _ref[1], method_ = _ref[2];
-          target_ = target;
-          _ref1 = target_chain.split('.');
-          _fn = function(key_) {
-            return target_ = typeof target_[key_] === 'function' ? target_[key_].call(target_) : target_[key_];
-          };
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            key_ = _ref1[_i];
-            _fn(key_);
-          }
-          return [method_, target_];
-        }
-      })(), method = _ref[0], target = _ref[1];
-      if (((_ref1 = target[method]) != null ? _ref1.call : void 0) != null) {
-        return target[method].apply(target, (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = fixed_args.length; _i < _len; _i++) {
-            arg = fixed_args[_i];
-            _results.push(typeof arg === 'function' ? arg.apply(this) : arg);
-          }
-          return _results;
-        }).call(this));
-      } else {
-        return target[method];
-      }
-    } catch (_error) {
-      error = _error;
-      return utils.error(error, {
-        backtrace: error.stack,
-        target: target,
-        method: method_chain,
-        args: fixed_args
-      });
-    }
-  };
-
-  Compiler.is_simple_arg = function(arg) {
-    return !(_method_rxp.test(arg) || arg[0] === '@');
-  };
-
-  Compiler.prepare_arg = function(arg, host) {
-    if (this.is_simple_arg(arg)) {
-      if (_str_rxp.test(arg)) {
-        return arg.slice(1, -1);
-      } else {
-        return utils.serialize(arg);
-      }
-    } else {
-      return this.str_to_fun(arg, host);
-    }
-  };
-
-  Compiler._conditional = function(condition, resolve, reject) {
-    return function() {
-      var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      if (condition.apply(this, args)) {
-        return resolve.apply(this, args);
-      } else {
-        return reject.apply(this, args);
-      }
-    };
-  };
-
-  Compiler.str_to_fun = function(callstr, host) {
-    var condition, matches, reject, resolve;
-    callstr = this.process_modifiers(callstr);
-    if ((matches = callstr.match(_condition_rxp))) {
-      condition = this.compile_condition(matches[1], host);
-      resolve = this.compile_fun(matches[2], host);
-      reject = matches[3] ? this.compile_fun(matches[3], host) : _true;
-      return this._conditional(condition, resolve, reject);
-    } else {
-      return this.compile_fun(callstr, host);
-    }
-  };
-
-  Compiler.compile_condition = function(callstr, host) {
-    var matches, parts;
-    if ((matches = callstr.match(_op_rxp))) {
-      parts = callstr.split(_op_rxp);
-      return _operators[matches[1]](this.prepare_arg(parts[0]), this.prepare_arg(parts[2]));
-    } else {
-      return this.compile_fun(callstr, host);
-    }
-  };
-
-  Compiler.parse_str = function(callstr) {
-    var matches, res;
-    if ((matches = callstr.match(_fun_rxp))) {
-      return res = {
-        target: matches[1],
-        method_chain: matches[2],
-        args: matches[3] ? matches[3].split(",") : []
-      };
-    } else {
-      return false;
-    }
-  };
-
   Compiler.compile_fun = function(callstr, target) {
-    var arg, data;
-    if ((data = this.parse_str(callstr))) {
-      data.target = (function() {
-        switch (false) {
-          case data.target !== '@this':
-            return target;
-          case data.target !== '@app':
-            return pi.app;
-          case data.target !== '$r':
-            return pi.resources;
-          case data.target !== '@host':
-            return target.host;
-          case data.target !== '@view':
-            return typeof target.view === "function" ? target.view() : void 0;
-          default:
-            return data.target;
-        }
-      })();
-      if (data.method_chain) {
-        return utils.curry(pi.call, [
-          target, data.target, data.method_chain, (data.args ? (function() {
-            var _i, _len, _ref, _results;
-            _ref = data.args;
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              arg = _ref[_i];
-              _results.push(this.prepare_arg(arg, target));
-            }
-            return _results;
-          }).call(this) : [])
-        ]);
-      } else {
-        return utils.curry(pi.call, [target, data.target, void 0, void 0]);
-      }
-    } else {
-      utils.error("cannot compile function: " + callstr);
-      return _null;
-    }
+    callstr = this.process_modifiers(callstr);
+    return new CompiledFun(target, callstr);
   };
+
+  Compiler.str_to_fun = Compiler.compile_fun;
 
   Compiler.str_to_event_handler = function(callstr, host) {
     var _f;
-    callstr = callstr.replace(/\be\b/, "e");
-    _f = this.str_to_fun(callstr, host);
+    _f = this.compile_fun(callstr, host);
     return function(e) {
       return _f.call({
         e: e
@@ -650,15 +584,17 @@ pi.Compiler = (function() {
 
 })();
 
+_view_context_mdf = function(str) {
+  return str.replace(/@(this|app|host|view)(\b)/g, '$1$2').replace(/@@/g, 'pi.app.page.context.').replace(/@/g, 'pi.app.view.');
+};
+
+pi.Compiler.modifiers.push(_view_context_mdf);
+
 pi.call = pi.Compiler.call;
 
-pi.Compiler.modifiers.push(function(str) {
-  return str.replace(_call_rxp, '');
-});
 
 
-
-},{"../../core":34}],5:[function(require,module,exports){
+},{"../../core":34,"../../grammar/pi_grammar":44}],5:[function(require,module,exports){
 'use strict';
 require('./base');
 
@@ -1151,7 +1087,7 @@ pi.List = (function(_super) {
 
 
 
-},{"../../core":34,"../../plugins/base/renderable":49,"../events/list_events":14,"./base":2}],9:[function(require,module,exports){
+},{"../../core":34,"../../plugins/base/renderable":50,"../events/list_events":14,"./base":2}],9:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -1813,7 +1749,7 @@ require('./renderers');
 
 
 
-},{"../plugins/index":52,"./app":1,"./base/index":5,"./events":12,"./form":16,"./guess/guesser":17,"./renderers":20}],19:[function(require,module,exports){
+},{"../plugins/index":53,"./app":1,"./base/index":5,"./events":12,"./form":16,"./guess/guesser":17,"./renderers":20}],19:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -4559,6 +4495,21 @@ pi.utils = (function() {
     return data;
   };
 
+  utils.subclass = function(parent) {
+    var child, key;
+    child = function() {
+      return this.constructor.__super__.constructor.apply(this, arguments);
+    };
+    for (key in parent) {
+      if (!__hasProp.call(parent, key)) continue;
+      child[key] = parent[key];
+    }
+    child.prototype = Object.create(parent.prototype);
+    child.prototype.constructor = child;
+    child.__super__ = parent.prototype;
+    return child;
+  };
+
   utils.uniq = function(arr) {
     var el, res, _i, _len;
     res = [];
@@ -5197,6 +5148,724 @@ utils.time = {
 
 
 },{"../pi":36,"./base":37}],44:[function(require,module,exports){
+(function (process){
+/* parser generated by jison 0.4.15 */
+/*
+  Returns a Parser object of the following structure:
+
+  Parser: {
+    yy: {}
+  }
+
+  Parser.prototype: {
+    yy: {},
+    trace: function(),
+    symbols_: {associative list: name ==> number},
+    terminals_: {associative list: number ==> name},
+    productions_: [...],
+    performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate, $$, _$),
+    table: [...],
+    defaultActions: {...},
+    parseError: function(str, hash),
+    parse: function(input),
+
+    lexer: {
+        EOF: 1,
+        parseError: function(str, hash),
+        setInput: function(input),
+        input: function(),
+        unput: function(str),
+        more: function(),
+        less: function(n),
+        pastInput: function(),
+        upcomingInput: function(),
+        showPosition: function(),
+        test_match: function(regex_match_array, rule_index),
+        next: function(),
+        lex: function(),
+        begin: function(condition),
+        popState: function(),
+        _currentRules: function(),
+        topState: function(),
+        pushState: function(condition),
+
+        options: {
+            ranges: boolean           (optional: true ==> token location info will include a .range[] member)
+            flex: boolean             (optional: true ==> flex-like lexing behaviour where the rules are tested exhaustively to find the longest match)
+            backtrack_lexer: boolean  (optional: true ==> lexer regexes are tested in order and for each matching regex the action code is invoked; the lexer terminates the scan when a token is returned by the action code)
+        },
+
+        performAction: function(yy, yy_, $avoiding_name_collisions, YY_START),
+        rules: [...],
+        conditions: {associative list: name ==> set},
+    }
+  }
+
+
+  token location info (@$, _$, etc.): {
+    first_line: n,
+    last_line: n,
+    first_column: n,
+    last_column: n,
+    range: [start_number, end_number]       (where the numbers are indexes into the input string, regular zero-based)
+  }
+
+
+  the parseError function receives a 'hash' object with these members for lexer and parser errors: {
+    text:        (matched text)
+    token:       (the produced terminal token, if any)
+    line:        (yylineno)
+  }
+  while parser (grammar) errors will also provide these members, i.e. parser errors deliver a superset of attributes: {
+    loc:         (yylloc)
+    expected:    (string describing the set of expected tokens)
+    recoverable: (boolean: TRUE when the parser has a error recovery rule available for this particular error)
+  }
+*/
+var parser = (function(){
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,6],$V1=[1,16],$V2=[1,17],$V3=[1,11],$V4=[1,12],$V5=[1,13],$V6=[5,11,33],$V7=[2,2],$V8=[2,4],$V9=[1,21],$Va=[1,22],$Vb=[1,23],$Vc=[1,19],$Vd=[5,11,21,28,29,30,32,33],$Ve=[5,11,15,21,28,29,30,32,33],$Vf=[2,12],$Vg=[1,30],$Vh=[19,20,24,25,26],$Vi=[1,37],$Vj=[2,22];
+var parser = {trace: function trace() { },
+yy: {},
+symbols_: {"error":2,"expressions":3,"e":4,"EOF":5,"group_e":6,"ternary":7,"simple_e":8,"(":9,"object":10,")":11,"method_chain":12,"val":13,"method":14,".":15,"resource":16,"key":17,"args":18,"RES":19,"KEY":20,",":21,"key_val":22,":":23,"NUMBER":24,"BOOL":25,"STRING":26,"op":27,"EQL":28,"MORE":29,"LESS":30,"cond":31,"TIF":32,"TELSE":33,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"EOF",9:"(",11:")",15:".",19:"RES",20:"KEY",21:",",23:":",24:"NUMBER",25:"BOOL",26:"STRING",28:"EQL",29:"MORE",30:"LESS",32:"TIF",33:"TELSE"},
+productions_: [0,[3,2],[4,1],[4,1],[4,1],[4,3],[6,3],[8,1],[8,1],[12,1],[12,3],[14,1],[14,1],[14,4],[16,4],[16,4],[16,1],[17,1],[18,3],[18,3],[18,1],[18,1],[18,0],[10,3],[10,1],[22,3],[13,1],[13,1],[13,1],[27,1],[27,1],[27,1],[31,3],[7,5],[7,5]],
+performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
+/* this == yyval */
+
+var $0 = $$.length - 1;
+switch (yystate) {
+case 1:
+ return $$[$0-1]; 
+break;
+case 2: case 3: case 4: case 9: case 11: case 24:
+this.$ = $$[$0];
+break;
+case 5:
+this.$ = {code: 'simple', value: fn_arr_obj($$[$0-1])};
+break;
+case 6:
+this.$ = $$[$0-1];
+break;
+case 7:
+this.$ = {code: 'chain', value: $$[$0]};
+break;
+case 8:
+this.$ = {code: 'simple', value: $$[$0]};
+break;
+case 10: case 23:
+this.$ = $$[$0-2].concat($$[$0]);
+break;
+case 12:
+this.$ = [{code: 'prop', name: $$[$0]}];
+break;
+case 13:
+this.$ = [{code: 'call', name: $$[$0-3], args: $$[$0-1]}];
+break;
+case 14:
+this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'view', args: [{code: 'simple', value: fn_arr_obj($$[$0-1])}]}];
+break;
+case 15:
+this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'get', args: [{code: 'simple', value: $$[$0-1]}]}];
+break;
+case 16:
+this.$ = [{code: 'res', name: $$[$0]}];
+break;
+case 17:
+this.$ = yytext;
+break;
+case 18: case 19:
+this.$ = [$$[$0-2]].concat($$[$0]);
+break;
+case 20:
+this.$ = [$$[$0]];
+break;
+case 21:
+this.$ = [{code: 'simple', value: fn_arr_obj($$[$0])}];
+break;
+case 22:
+this.$ = [];
+break;
+case 25:
+this.$ = [$$[$0-2],$$[$0]];
+break;
+case 26:
+this.$ = Number(yytext);
+break;
+case 27:
+this.$ = yytext=="true";
+break;
+case 28:
+this.$ = yytext.replace(/(^['"]|['"]$)/g,'');
+break;
+case 29: case 30: case 31:
+this.$ = yytext.replace(/(^\s+|\s+$)/g,'');
+break;
+case 32:
+this.$ = {left: $$[$0-2], right: $$[$0], type: $$[$0-1]};
+break;
+case 33:
+this.$ = {code: 'if', cond: $$[$0-4], left: $$[$0-2], right: $$[$0]};
+break;
+case 34:
+this.$ = {code: 'if', cond: {left: $$[$0-4], type: 'bool'}, left: $$[$0-2], right: $$[$0]};
+break;
+}
+},
+table: [{3:1,4:2,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{1:[3]},{5:[1,18]},o($V6,$V7),o($V6,[2,3]),o($V6,$V8,{27:20,28:$V9,29:$Va,30:$Vb,32:$Vc}),{4:25,6:3,7:4,8:5,9:$V0,10:24,12:8,13:9,14:10,16:14,17:27,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},{32:[1,28]},o($Vd,[2,7]),o($Vd,[2,8]),o($Vd,[2,9],{15:[1,29]}),o($Vd,[2,26]),o($Vd,[2,27]),o($Vd,[2,28]),o($Ve,[2,11]),o($Ve,$Vf,{9:$Vg}),o($Ve,[2,16],{9:[1,31]}),o([5,9,11,15,21,23,28,29,30,32,33],[2,17]),{1:[2,1]},{4:32,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{8:33,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5},o($Vh,[2,29]),o($Vh,[2,30]),o($Vh,[2,31]),{11:[1,34]},{11:[1,35]},{11:[2,24],21:[1,36]},o([11,15,21,28,29,30,32],$Vf,{9:$Vg,23:$Vi}),{4:38,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{12:39,14:10,16:14,17:15,19:$V1,20:$V2},{4:43,6:41,7:4,8:42,9:$V0,10:44,11:$Vj,12:8,13:9,14:10,16:14,17:27,18:40,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},{10:45,13:46,17:47,20:$V2,22:26,24:$V3,25:$V4,26:$V5},{33:[1,48]},{32:[2,32]},o($V6,[2,5]),o([5,11,21,33],[2,6]),{10:49,17:47,20:$V2,22:26},{13:50,24:$V3,25:$V4,26:$V5},{33:[1,51]},o($Vd,[2,10]),{11:[1,52]},{11:$V7,21:[1,53]},{11:$V8,21:[1,54],27:20,28:$V9,29:$Va,30:$Vb,32:$Vc},{11:[2,20]},{11:[2,21]},{11:[1,55]},{11:[1,56]},{23:$Vi},{4:57,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{11:[2,23]},o([11,21],[2,25]),{4:58,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},o($Ve,[2,13]),{4:43,6:41,7:4,8:42,9:$V0,10:44,11:$Vj,12:8,13:9,14:10,16:14,17:27,18:59,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},{4:43,6:41,7:4,8:42,9:$V0,10:44,11:$Vj,12:8,13:9,14:10,16:14,17:27,18:60,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},o($Ve,[2,14]),o($Ve,[2,15]),o($V6,[2,34]),o($V6,[2,33]),{11:[2,18]},{11:[2,19]}],
+defaultActions: {18:[2,1],33:[2,32],43:[2,20],44:[2,21],49:[2,23],59:[2,18],60:[2,19]},
+parseError: function parseError(str, hash) {
+    if (hash.recoverable) {
+        this.trace(str);
+    } else {
+        throw new Error(str);
+    }
+},
+parse: function parse(input) {
+    var self = this, stack = [0], tstack = [], vstack = [null], lstack = [], table = this.table, yytext = '', yylineno = 0, yyleng = 0, recovering = 0, TERROR = 2, EOF = 1;
+    var args = lstack.slice.call(arguments, 1);
+    var lexer = Object.create(this.lexer);
+    var sharedState = { yy: {} };
+    for (var k in this.yy) {
+        if (Object.prototype.hasOwnProperty.call(this.yy, k)) {
+            sharedState.yy[k] = this.yy[k];
+        }
+    }
+    lexer.setInput(input, sharedState.yy);
+    sharedState.yy.lexer = lexer;
+    sharedState.yy.parser = this;
+    if (typeof lexer.yylloc == 'undefined') {
+        lexer.yylloc = {};
+    }
+    var yyloc = lexer.yylloc;
+    lstack.push(yyloc);
+    var ranges = lexer.options && lexer.options.ranges;
+    if (typeof sharedState.yy.parseError === 'function') {
+        this.parseError = sharedState.yy.parseError;
+    } else {
+        this.parseError = Object.getPrototypeOf(this).parseError;
+    }
+    function popStack(n) {
+        stack.length = stack.length - 2 * n;
+        vstack.length = vstack.length - n;
+        lstack.length = lstack.length - n;
+    }
+    _token_stack:
+        function lex() {
+            var token;
+            token = lexer.lex() || EOF;
+            if (typeof token !== 'number') {
+                token = self.symbols_[token] || token;
+            }
+            return token;
+        }
+    var symbol, preErrorSymbol, state, action, a, r, yyval = {}, p, len, newState, expected;
+    while (true) {
+        state = stack[stack.length - 1];
+        if (this.defaultActions[state]) {
+            action = this.defaultActions[state];
+        } else {
+            if (symbol === null || typeof symbol == 'undefined') {
+                symbol = lex();
+            }
+            action = table[state] && table[state][symbol];
+        }
+                    if (typeof action === 'undefined' || !action.length || !action[0]) {
+                var errStr = '';
+                expected = [];
+                for (p in table[state]) {
+                    if (this.terminals_[p] && p > TERROR) {
+                        expected.push('\'' + this.terminals_[p] + '\'');
+                    }
+                }
+                if (lexer.showPosition) {
+                    errStr = 'Parse error on line ' + (yylineno + 1) + ':\n' + lexer.showPosition() + '\nExpecting ' + expected.join(', ') + ', got \'' + (this.terminals_[symbol] || symbol) + '\'';
+                } else {
+                    errStr = 'Parse error on line ' + (yylineno + 1) + ': Unexpected ' + (symbol == EOF ? 'end of input' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
+                }
+                this.parseError(errStr, {
+                    text: lexer.match,
+                    token: this.terminals_[symbol] || symbol,
+                    line: lexer.yylineno,
+                    loc: yyloc,
+                    expected: expected
+                });
+            }
+        if (action[0] instanceof Array && action.length > 1) {
+            throw new Error('Parse Error: multiple actions possible at state: ' + state + ', token: ' + symbol);
+        }
+        switch (action[0]) {
+        case 1:
+            stack.push(symbol);
+            vstack.push(lexer.yytext);
+            lstack.push(lexer.yylloc);
+            stack.push(action[1]);
+            symbol = null;
+            if (!preErrorSymbol) {
+                yyleng = lexer.yyleng;
+                yytext = lexer.yytext;
+                yylineno = lexer.yylineno;
+                yyloc = lexer.yylloc;
+                if (recovering > 0) {
+                    recovering--;
+                }
+            } else {
+                symbol = preErrorSymbol;
+                preErrorSymbol = null;
+            }
+            break;
+        case 2:
+            len = this.productions_[action[1]][1];
+            yyval.$ = vstack[vstack.length - len];
+            yyval._$ = {
+                first_line: lstack[lstack.length - (len || 1)].first_line,
+                last_line: lstack[lstack.length - 1].last_line,
+                first_column: lstack[lstack.length - (len || 1)].first_column,
+                last_column: lstack[lstack.length - 1].last_column
+            };
+            if (ranges) {
+                yyval._$.range = [
+                    lstack[lstack.length - (len || 1)].range[0],
+                    lstack[lstack.length - 1].range[1]
+                ];
+            }
+            r = this.performAction.apply(yyval, [
+                yytext,
+                yyleng,
+                yylineno,
+                sharedState.yy,
+                action[1],
+                vstack,
+                lstack
+            ].concat(args));
+            if (typeof r !== 'undefined') {
+                return r;
+            }
+            if (len) {
+                stack = stack.slice(0, -1 * len * 2);
+                vstack = vstack.slice(0, -1 * len);
+                lstack = lstack.slice(0, -1 * len);
+            }
+            stack.push(this.productions_[action[1]][0]);
+            vstack.push(yyval.$);
+            lstack.push(yyval._$);
+            newState = table[stack[stack.length - 2]][stack[stack.length - 1]];
+            stack.push(newState);
+            break;
+        case 3:
+            return true;
+        }
+    }
+    return true;
+}};
+
+  var fn_arr_obj = function(arr){ 
+     var tmp = {};
+     for(var i=0,size=arr.length; i<size; i+=2)
+       tmp[arr[i]] = arr[i+1];
+     return tmp;
+  };
+/* generated by jison-lex 0.3.4 */
+var lexer = (function(){
+var lexer = ({
+
+EOF:1,
+
+parseError:function parseError(str, hash) {
+        if (this.yy.parser) {
+            this.yy.parser.parseError(str, hash);
+        } else {
+            throw new Error(str);
+        }
+    },
+
+// resets the lexer, sets new input
+setInput:function (input, yy) {
+        this.yy = yy || this.yy || {};
+        this._input = input;
+        this._more = this._backtrack = this.done = false;
+        this.yylineno = this.yyleng = 0;
+        this.yytext = this.matched = this.match = '';
+        this.conditionStack = ['INITIAL'];
+        this.yylloc = {
+            first_line: 1,
+            first_column: 0,
+            last_line: 1,
+            last_column: 0
+        };
+        if (this.options.ranges) {
+            this.yylloc.range = [0,0];
+        }
+        this.offset = 0;
+        return this;
+    },
+
+// consumes and returns one char from the input
+input:function () {
+        var ch = this._input[0];
+        this.yytext += ch;
+        this.yyleng++;
+        this.offset++;
+        this.match += ch;
+        this.matched += ch;
+        var lines = ch.match(/(?:\r\n?|\n).*/g);
+        if (lines) {
+            this.yylineno++;
+            this.yylloc.last_line++;
+        } else {
+            this.yylloc.last_column++;
+        }
+        if (this.options.ranges) {
+            this.yylloc.range[1]++;
+        }
+
+        this._input = this._input.slice(1);
+        return ch;
+    },
+
+// unshifts one char (or a string) into the input
+unput:function (ch) {
+        var len = ch.length;
+        var lines = ch.split(/(?:\r\n?|\n)/g);
+
+        this._input = ch + this._input;
+        this.yytext = this.yytext.substr(0, this.yytext.length - len);
+        //this.yyleng -= len;
+        this.offset -= len;
+        var oldLines = this.match.split(/(?:\r\n?|\n)/g);
+        this.match = this.match.substr(0, this.match.length - 1);
+        this.matched = this.matched.substr(0, this.matched.length - 1);
+
+        if (lines.length - 1) {
+            this.yylineno -= lines.length - 1;
+        }
+        var r = this.yylloc.range;
+
+        this.yylloc = {
+            first_line: this.yylloc.first_line,
+            last_line: this.yylineno + 1,
+            first_column: this.yylloc.first_column,
+            last_column: lines ?
+                (lines.length === oldLines.length ? this.yylloc.first_column : 0)
+                 + oldLines[oldLines.length - lines.length].length - lines[0].length :
+              this.yylloc.first_column - len
+        };
+
+        if (this.options.ranges) {
+            this.yylloc.range = [r[0], r[0] + this.yyleng - len];
+        }
+        this.yyleng = this.yytext.length;
+        return this;
+    },
+
+// When called from action, caches matched text and appends it on next action
+more:function () {
+        this._more = true;
+        return this;
+    },
+
+// When called from action, signals the lexer that this rule fails to match the input, so the next matching rule (regex) should be tested instead.
+reject:function () {
+        if (this.options.backtrack_lexer) {
+            this._backtrack = true;
+        } else {
+            return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).\n' + this.showPosition(), {
+                text: "",
+                token: null,
+                line: this.yylineno
+            });
+
+        }
+        return this;
+    },
+
+// retain first n characters of the match
+less:function (n) {
+        this.unput(this.match.slice(n));
+    },
+
+// displays already matched input, i.e. for error messages
+pastInput:function () {
+        var past = this.matched.substr(0, this.matched.length - this.match.length);
+        return (past.length > 20 ? '...':'') + past.substr(-20).replace(/\n/g, "");
+    },
+
+// displays upcoming input, i.e. for error messages
+upcomingInput:function () {
+        var next = this.match;
+        if (next.length < 20) {
+            next += this._input.substr(0, 20-next.length);
+        }
+        return (next.substr(0,20) + (next.length > 20 ? '...' : '')).replace(/\n/g, "");
+    },
+
+// displays the character position where the lexing error occurred, i.e. for error messages
+showPosition:function () {
+        var pre = this.pastInput();
+        var c = new Array(pre.length + 1).join("-");
+        return pre + this.upcomingInput() + "\n" + c + "^";
+    },
+
+// test the lexed token: return FALSE when not a match, otherwise return token
+test_match:function (match, indexed_rule) {
+        var token,
+            lines,
+            backup;
+
+        if (this.options.backtrack_lexer) {
+            // save context
+            backup = {
+                yylineno: this.yylineno,
+                yylloc: {
+                    first_line: this.yylloc.first_line,
+                    last_line: this.last_line,
+                    first_column: this.yylloc.first_column,
+                    last_column: this.yylloc.last_column
+                },
+                yytext: this.yytext,
+                match: this.match,
+                matches: this.matches,
+                matched: this.matched,
+                yyleng: this.yyleng,
+                offset: this.offset,
+                _more: this._more,
+                _input: this._input,
+                yy: this.yy,
+                conditionStack: this.conditionStack.slice(0),
+                done: this.done
+            };
+            if (this.options.ranges) {
+                backup.yylloc.range = this.yylloc.range.slice(0);
+            }
+        }
+
+        lines = match[0].match(/(?:\r\n?|\n).*/g);
+        if (lines) {
+            this.yylineno += lines.length;
+        }
+        this.yylloc = {
+            first_line: this.yylloc.last_line,
+            last_line: this.yylineno + 1,
+            first_column: this.yylloc.last_column,
+            last_column: lines ?
+                         lines[lines.length - 1].length - lines[lines.length - 1].match(/\r?\n?/)[0].length :
+                         this.yylloc.last_column + match[0].length
+        };
+        this.yytext += match[0];
+        this.match += match[0];
+        this.matches = match;
+        this.yyleng = this.yytext.length;
+        if (this.options.ranges) {
+            this.yylloc.range = [this.offset, this.offset += this.yyleng];
+        }
+        this._more = false;
+        this._backtrack = false;
+        this._input = this._input.slice(match[0].length);
+        this.matched += match[0];
+        token = this.performAction.call(this, this.yy, this, indexed_rule, this.conditionStack[this.conditionStack.length - 1]);
+        if (this.done && this._input) {
+            this.done = false;
+        }
+        if (token) {
+            return token;
+        } else if (this._backtrack) {
+            // recover context
+            for (var k in backup) {
+                this[k] = backup[k];
+            }
+            return false; // rule action called reject() implying the next rule should be tested instead.
+        }
+        return false;
+    },
+
+// return next match in input
+next:function () {
+        if (this.done) {
+            return this.EOF;
+        }
+        if (!this._input) {
+            this.done = true;
+        }
+
+        var token,
+            match,
+            tempMatch,
+            index;
+        if (!this._more) {
+            this.yytext = '';
+            this.match = '';
+        }
+        var rules = this._currentRules();
+        for (var i = 0; i < rules.length; i++) {
+            tempMatch = this._input.match(this.rules[rules[i]]);
+            if (tempMatch && (!match || tempMatch[0].length > match[0].length)) {
+                match = tempMatch;
+                index = i;
+                if (this.options.backtrack_lexer) {
+                    token = this.test_match(tempMatch, rules[i]);
+                    if (token !== false) {
+                        return token;
+                    } else if (this._backtrack) {
+                        match = false;
+                        continue; // rule action called reject() implying a rule MISmatch.
+                    } else {
+                        // else: this is a lexer rule which consumes input without producing a token (e.g. whitespace)
+                        return false;
+                    }
+                } else if (!this.options.flex) {
+                    break;
+                }
+            }
+        }
+        if (match) {
+            token = this.test_match(match, rules[index]);
+            if (token !== false) {
+                return token;
+            }
+            // else: this is a lexer rule which consumes input without producing a token (e.g. whitespace)
+            return false;
+        }
+        if (this._input === "") {
+            return this.EOF;
+        } else {
+            return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. Unrecognized text.\n' + this.showPosition(), {
+                text: "",
+                token: null,
+                line: this.yylineno
+            });
+        }
+    },
+
+// return next match that has a token
+lex:function lex() {
+        var r = this.next();
+        if (r) {
+            return r;
+        } else {
+            return this.lex();
+        }
+    },
+
+// activates a new lexer condition state (pushes the new lexer condition state onto the condition stack)
+begin:function begin(condition) {
+        this.conditionStack.push(condition);
+    },
+
+// pop the previously active lexer condition state off the condition stack
+popState:function popState() {
+        var n = this.conditionStack.length - 1;
+        if (n > 0) {
+            return this.conditionStack.pop();
+        } else {
+            return this.conditionStack[0];
+        }
+    },
+
+// produce the lexer rule set which is active for the currently active lexer condition state
+_currentRules:function _currentRules() {
+        if (this.conditionStack.length && this.conditionStack[this.conditionStack.length - 1]) {
+            return this.conditions[this.conditionStack[this.conditionStack.length - 1]].rules;
+        } else {
+            return this.conditions["INITIAL"].rules;
+        }
+    },
+
+// return the currently active lexer condition state; when an index argument is provided it produces the N-th previous condition state, if available
+topState:function topState(n) {
+        n = this.conditionStack.length - 1 - Math.abs(n || 0);
+        if (n >= 0) {
+            return this.conditionStack[n];
+        } else {
+            return "INITIAL";
+        }
+    },
+
+// alias for begin(condition)
+pushState:function pushState(condition) {
+        this.begin(condition);
+    },
+
+// return the number of states currently on the stack
+stateStackSize:function stateStackSize() {
+        return this.conditionStack.length;
+    },
+options: {},
+performAction: function anonymous(yy,yy_,$avoiding_name_collisions,YY_START) {
+var YYSTATE=YY_START;
+switch($avoiding_name_collisions) {
+case 0:/* skip whitespace */
+break;
+case 1:return 24
+break;
+case 2:return 33
+break;
+case 3:return 23
+break;
+case 4:return 32
+break;
+case 5:return '?'
+break;
+case 6:return 21
+break;
+case 7:return 9
+break;
+case 8:return 11
+break;
+case 9:return 26
+break;
+case 10:return 26
+break;
+case 11:return 25
+break;
+case 12:return 19
+break;
+case 13:return 20
+break;
+case 14:return 15
+break;
+case 15:return 28
+break;
+case 16:return 29
+break;
+case 17:return 30
+break;
+case 18:return 5
+break;
+case 19:return 'INVALID'
+break;
+}
+},
+rules: [/^(?:\s\s+)/,/^(?:[0-9]+(\.[0-9]+)?\b)/,/^(?:\s+:\s+)/,/^(?::\s*)/,/^(?:\s+\?\s+)/,/^(?:\?)/,/^(?:,\s*)/,/^(?:\()/,/^(?:\))/,/^(?:"(\\"|[^\"])*")/,/^(?:'(\\'|[^\'])*')/,/^(?:(true|false))/,/^(?:[A-Z][\w\d]*)/,/^(?:\w[\w\d]*)/,/^(?:\.)/,/^(?:\s*=\s*)/,/^(?:\s*>\s*)/,/^(?:\s*<\s*)/,/^(?:$)/,/^(?:.)/],
+conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],"inclusive":true}}
+});
+return lexer;
+})();
+parser.lexer = lexer;
+function Parser () {
+  this.yy = {};
+}
+Parser.prototype = parser;parser.Parser = Parser;
+return new Parser;
+})();
+
+
+if (typeof require !== 'undefined' && typeof exports !== 'undefined') {
+exports.parser = parser;
+exports.Parser = parser.Parser;
+exports.parse = function () { return parser.parse.apply(parser, arguments); };
+exports.main = function commonjsMain(args) {
+    if (!args[1]) {
+        console.log('Usage: '+args[0]+' FILE');
+        process.exit(1);
+    }
+    var source = require('fs').readFileSync(require('path').normalize(args[1]), "utf8");
+    return exports.parser.parse(source);
+};
+if (typeof module !== 'undefined' && require.main === module) {
+  exports.main(process.argv.slice(1));
+}
+}
+}).call(this,require('_process'))
+},{"_process":77,"fs":75,"path":76}],45:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -5283,7 +5952,7 @@ pi.net.IframeUpload = (function() {
 
 
 
-},{"../core":34,"./net":46}],45:[function(require,module,exports){
+},{"../core":34,"./net":47}],46:[function(require,module,exports){
 'use strict';
 require('./net');
 
@@ -5291,7 +5960,7 @@ require('./iframe.upload');
 
 
 
-},{"./iframe.upload":44,"./net":46}],46:[function(require,module,exports){
+},{"./iframe.upload":45,"./net":47}],47:[function(require,module,exports){
 'use strict';
 var method, pi, utils, _i, _len, _ref,
   __hasProp = {}.hasOwnProperty;
@@ -5542,7 +6211,7 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
 
 
 
-},{"../core":34}],47:[function(require,module,exports){
+},{"../core":34}],48:[function(require,module,exports){
 'use strict'
 window.pi = require('./core')
 require('./components')
@@ -5551,7 +6220,7 @@ require('./resources')
 require('./controllers')
 require('./views')
 module.exports = window.pi
-},{"./components":18,"./controllers":24,"./core":34,"./net":45,"./resources":65,"./views":73}],48:[function(require,module,exports){
+},{"./components":18,"./controllers":24,"./core":34,"./net":46,"./resources":66,"./views":74}],49:[function(require,module,exports){
 'use strict';
 require('./selectable');
 
@@ -5561,7 +6230,7 @@ require('./restful');
 
 
 
-},{"./renderable":49,"./restful":50,"./selectable":51}],49:[function(require,module,exports){
+},{"./renderable":50,"./restful":51,"./selectable":52}],50:[function(require,module,exports){
 'use strict';
 var pi, utils, _renderer_reg,
   __hasProp = {}.hasOwnProperty,
@@ -5635,9 +6304,9 @@ pi.Base.Renderable = (function(_super) {
 
 
 
-},{"../../components/base":5,"../../core":34,"../plugin":61}],50:[function(require,module,exports){
+},{"../../components/base":5,"../../core":34,"../plugin":62}],51:[function(require,module,exports){
 'use strict';
-var pi, utils, _app_rxp, _finder_rxp,
+var pi, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -5649,10 +6318,6 @@ require('../../components/base/base');
 
 utils = pi.utils;
 
-_finder_rxp = /^(\w+)\.find\((\d+)\)$/;
-
-_app_rxp = /^app\.([\.\w]+)$/;
-
 pi.Base.Restful = (function(_super) {
   __extends(Restful, _super);
 
@@ -5663,25 +6328,21 @@ pi.Base.Restful = (function(_super) {
   Restful.prototype.id = 'restful';
 
   Restful.prototype.initialize = function(target) {
-    var matches, promise, resources, rest;
+    var f, promise, rest;
     this.target = target;
     Restful.__super__.initialize.apply(this, arguments);
     if (!this.target.has_renderable) {
       this.target.attach_plugin(pi.Base.Renderable);
     }
     if ((rest = this.target.options.rest) != null) {
-      promise = (matches = rest.match(_app_rxp)) ? new Promise(function(resolve, reject) {
-        var res;
-        res = utils.get_path(pi.app, matches[1]);
-        if (res) {
-          return resolve(res);
-        } else {
-          return reject(res);
-        }
-      }) : (matches = rest.match(_finder_rxp)) ? (resources = utils.get_path($r, matches[1]), resources != null ? resources.find(matches[2] | 0) : utils.rejected_promise()) : void 0;
+      f = pi.Compiler.str_to_fun(rest);
+      promise = f.call(this);
+      if (!(promise instanceof Promise)) {
+        promise = promise ? utils.resolved_promise(promise) : utils.rejected_promise();
+      }
       promise.then((function(_this) {
         return function(resource) {
-          return _this.bind(resource, !_this.target.firstChild);
+          return _this.bind(resource, _this.target.children().length === 0);
         };
       })(this), (function(_this) {
         return function() {
@@ -5734,7 +6395,7 @@ pi.Base.Restful = (function(_super) {
 
 
 
-},{"../../components/base/base":2,"../../core":34,"../plugin":61}],51:[function(require,module,exports){
+},{"../../components/base/base":2,"../../core":34,"../plugin":62}],52:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -5809,7 +6470,7 @@ pi.Base.Selectable = (function(_super) {
 
 
 
-},{"../../components/base":5,"../../core":34,"../plugin":61}],52:[function(require,module,exports){
+},{"../../components/base":5,"../../core":34,"../plugin":62}],53:[function(require,module,exports){
 'use strict';
 require('./plugin');
 
@@ -5819,7 +6480,7 @@ require('./list');
 
 
 
-},{"./base":48,"./list":54,"./plugin":61}],53:[function(require,module,exports){
+},{"./base":49,"./list":55,"./plugin":62}],54:[function(require,module,exports){
 'use strict';
 var pi, utils, _is_continuation,
   __hasProp = {}.hasOwnProperty,
@@ -5952,7 +6613,7 @@ pi.List.Filterable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61}],54:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62}],55:[function(require,module,exports){
 'use strict';
 require('./selectable');
 
@@ -5970,7 +6631,7 @@ require('./restful');
 
 
 
-},{"./filterable":53,"./nested_select":55,"./restful":56,"./scrollend":57,"./searchable":58,"./selectable":59,"./sortable":60}],55:[function(require,module,exports){
+},{"./filterable":54,"./nested_select":56,"./restful":57,"./scrollend":58,"./searchable":59,"./selectable":60,"./sortable":61}],56:[function(require,module,exports){
 'use strict';
 var pi, utils, _null,
   __hasProp = {}.hasOwnProperty,
@@ -6213,9 +6874,9 @@ pi.List.NestedSelect = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61,"./selectable":59}],56:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62,"./selectable":60}],57:[function(require,module,exports){
 'use strict';
-var pi, utils, _app_rxp, _where_rxp,
+var pi, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -6227,10 +6888,6 @@ require('../../components/base/list');
 
 utils = pi.utils;
 
-_where_rxp = /^(\w+)\.(where|find)\(([\w\s\,\:]+)\)(?:\.([\w]+))?$/i;
-
-_app_rxp = /^app\.([\.\w]+)\.(\w+)$/;
-
 pi.List.Restful = (function(_super) {
   __extends(Restful, _super);
 
@@ -6241,41 +6898,17 @@ pi.List.Restful = (function(_super) {
   Restful.prototype.id = 'restful';
 
   Restful.prototype.initialize = function(list) {
-    var el, key, matches, param, ref, resources, rest, val, _i, _len, _name, _ref, _ref1;
+    var resources, rest;
     this.list = list;
     Restful.__super__.initialize.apply(this, arguments);
     this.items_by_id = {};
     this.listen_load = this.list.options.listen_load === true;
     this.listen_create = this.list.options.listen_create != null ? this.list.options.listen_create : this.listen_load;
     if ((rest = this.list.options.rest) != null) {
-      if ((matches = rest.match(_app_rxp))) {
-        ref = utils.get_path(pi.app, matches[1]);
-        if (ref != null) {
-          resources = typeof ref[_name = matches[2]] === "function" ? ref[_name]() : void 0;
-        }
-      } else if ((matches = rest.match(_where_rxp))) {
-        rest = matches[1];
-        ref = $r[utils.camelCase(rest)];
-        if (ref != null) {
-          if (matches[2] === 'where') {
-            resources = ref;
-            this.scope = {};
-            _ref = matches[3].split(/\s*\,\s*/);
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              param = _ref[_i];
-              _ref1 = param.split(/\s*\:\s*/), key = _ref1[0], val = _ref1[1];
-              this.scope[key] = utils.serialize(val);
-            }
-          } else if (matches[2] === 'find') {
-            el = ref.get(matches[3] | 0);
-            if ((el != null) && typeof el[matches[4]] === 'function') {
-              resources = el[matches[4]]();
-            }
-          }
-        }
-      } else {
-        resources = $r[utils.camelCase(rest)];
+      if (!(rest.indexOf(".") > 0)) {
+        rest = utils.camelCase(rest);
       }
+      resources = pi.Compiler.str_to_fun(rest).call();
     }
     if (resources != null) {
       this.bind(resources, this.list.options.load_rest, this.scope);
@@ -6290,8 +6923,7 @@ pi.List.Restful = (function(_super) {
     return this;
   };
 
-  Restful.prototype.bind = function(resources, load, params) {
-    var filter, matcher;
+  Restful.prototype.bind = function(resources, load) {
     if (load == null) {
       load = false;
     }
@@ -6306,24 +6938,9 @@ pi.List.Restful = (function(_super) {
       }
       return;
     }
-    if (params != null) {
-      matcher = utils.matchers.object(params);
-      filter = (function(_this) {
-        return function(e) {
-          if (e.data.type === pi.ResourceEvent.Load) {
-            return true;
-          }
-          return matcher(e.data[_this.resources.resource_name]);
-        };
-      })(this);
-    }
-    this.resources.listen(this.resource_update(), filter);
+    this.resources.listen(this.resource_update());
     if (load) {
-      if (params != null) {
-        return this.load(resources.where(params));
-      } else {
-        return this.load(resources.all());
-      }
+      return this.load(resources.all());
     }
   };
 
@@ -6369,11 +6986,7 @@ pi.List.Restful = (function(_super) {
     if (!this.listen_load) {
       return;
     }
-    if (this.scope != null) {
-      return this.load(this.resources.where(this.scope));
-    } else {
-      return this.load(this.resources.all());
-    }
+    return this.load(this.resources.all());
   };
 
   Restful.prototype.on_create = function(data) {
@@ -6418,7 +7031,7 @@ pi.List.Restful = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61}],57:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62}],58:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -6502,7 +7115,7 @@ pi.List.ScrollEnd = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61}],58:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62}],59:[function(require,module,exports){
 'use strict';
 var pi, utils, _clear_mark_regexp, _is_continuation, _selector_regexp,
   __hasProp = {}.hasOwnProperty,
@@ -6715,7 +7328,7 @@ pi.List.Searchable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61}],59:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62}],60:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -6927,7 +7540,7 @@ pi.List.Selectable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61}],60:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62}],61:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7047,7 +7660,7 @@ pi.List.Sortable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":61}],61:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":62}],62:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7095,7 +7708,7 @@ pi.Plugin = (function(_super) {
 
 
 
-},{"../core":34}],62:[function(require,module,exports){
+},{"../core":34}],63:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7239,7 +7852,7 @@ pi.resources.Association = (function(_super) {
 
 
 
-},{"../core":34,"./base":63,"./view":71}],63:[function(require,module,exports){
+},{"../core":34,"./base":64,"./view":72}],64:[function(require,module,exports){
 'use strict';
 var pi, utils, _singular,
   __hasProp = {}.hasOwnProperty,
@@ -7464,6 +8077,17 @@ pi.resources.Base = (function(_super) {
     return _results;
   };
 
+  Base.view = function(params) {
+    var view;
+    view = new pi.resources.Association(this, params, {
+      scope: params,
+      copy: false,
+      source: this
+    });
+    view.reload();
+    return view;
+  };
+
   Base._wrap = function(el) {
     if (el instanceof pi.resources.Base) {
       return utils.wrap(el.constructor.resource_name, el);
@@ -7595,9 +8219,29 @@ pi.resources.Base = (function(_super) {
 
 })(pi.EventDispatcher);
 
+pi.resources.create = function(name, parent) {
+  var klass;
+  if (parent == null) {
+    parent = $r.Base;
+  }
+  klass = utils.subclass(parent);
+  if (name != null) {
+    if (typeof name === 'string') {
+      klass.set_resource(name);
+      pi.resources[utils.capitalize(utils.camelCase(name))] = klass;
+    } else if (Array.isArray(name)) {
+      klass.set_resource(name[0], name[1]);
+      pi.resources[utils.capitalize(utils.camelCase(name[0]))] = klass;
+    }
+  } else {
+    klass.set_resource("unknown");
+  }
+  return klass;
+};
 
 
-},{"../core":34,"./events":64}],64:[function(require,module,exports){
+
+},{"../core":34,"./events":65}],65:[function(require,module,exports){
 'use strict';
 var pi;
 
@@ -7612,7 +8256,7 @@ pi.ResourceEvent = {
 
 
 
-},{"../core":34}],65:[function(require,module,exports){
+},{"../core":34}],66:[function(require,module,exports){
 'use strict';
 require('./base');
 
@@ -7626,7 +8270,7 @@ require('./modules');
 
 
 
-},{"./association":62,"./base":63,"./modules":68,"./rest":70,"./view":71}],66:[function(require,module,exports){
+},{"./association":63,"./base":64,"./modules":69,"./rest":71,"./view":72}],67:[function(require,module,exports){
 'use strict';
 var pi, utils, _false, _true;
 
@@ -7759,7 +8403,7 @@ pi.resources.HasMany = (function() {
 
 
 
-},{"../../core":34,"../rest":70}],67:[function(require,module,exports){
+},{"../../core":34,"../rest":71}],68:[function(require,module,exports){
 'use strict';
 var pi, utils, _false, _true;
 
@@ -7894,7 +8538,7 @@ pi.resources.HasOne = (function() {
 
 
 
-},{"../../core":34,"../rest":70}],68:[function(require,module,exports){
+},{"../../core":34,"../rest":71}],69:[function(require,module,exports){
 'use strict';
 require('./query');
 
@@ -7904,7 +8548,7 @@ require('./has_one');
 
 
 
-},{"./has_many":66,"./has_one":67,"./query":69}],69:[function(require,module,exports){
+},{"./has_many":67,"./has_one":68,"./query":70}],70:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -7935,7 +8579,7 @@ pi.resources.Query = (function() {
 
 
 
-},{"../../core":34,"../rest":70}],70:[function(require,module,exports){
+},{"../../core":34,"../rest":71}],71:[function(require,module,exports){
 'use strict';
 var pi, utils, _double_slashes_reg, _path_reg, _tailing_slash_reg,
   __hasProp = {}.hasOwnProperty,
@@ -8300,7 +8944,7 @@ pi.resources.REST = (function(_super) {
 
 
 
-},{"../core":34,"./base":63}],71:[function(require,module,exports){
+},{"../core":34,"./base":64}],72:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -8505,7 +9149,7 @@ pi.resources.View = (function(_super) {
 
 
 
-},{"../core":34,"./base":63}],72:[function(require,module,exports){
+},{"../core":34,"./base":64}],73:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -8571,10 +9215,305 @@ pi.BaseView = (function(_super) {
 
 
 
-},{"../components/base":5,"../core":34}],73:[function(require,module,exports){
+},{"../components/base":5,"../core":34}],74:[function(require,module,exports){
 'use strict';
 require('./base');
 
 
 
-},{"./base":72}]},{},[47]);
+},{"./base":73}],75:[function(require,module,exports){
+
+},{}],76:[function(require,module,exports){
+(function (process){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
+};
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
+}
+
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
+
+}).call(this,require('_process'))
+},{"_process":77}],77:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+
+process.nextTick = (function () {
+    var canSetImmediate = typeof window !== 'undefined'
+    && window.setImmediate;
+    var canPost = typeof window !== 'undefined'
+    && window.postMessage && window.addEventListener
+    ;
+
+    if (canSetImmediate) {
+        return function (f) { return window.setImmediate(f) };
+    }
+
+    if (canPost) {
+        var queue = [];
+        window.addEventListener('message', function (ev) {
+            var source = ev.source;
+            if ((source === window || source === null) && ev.data === 'process-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+
+        return function nextTick(fn) {
+            queue.push(fn);
+            window.postMessage('process-tick', '*');
+        };
+    }
+
+    return function nextTick(fn) {
+        setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+}
+
+// TODO(shtylman)
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+
+},{}]},{},[48]);
