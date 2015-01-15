@@ -109,7 +109,7 @@ class pi.EventDispatcher extends pi.Core
     event.data = data if data?
     event.currentTarget = @
     if @listeners[event.type]?
-      utils.debug "Event: #{event.type}", event
+      utils.debug_verbose "Event: #{event.type}", event
       for listener in @listeners[event.type]
         listener.dispatch event
         break if event.canceled is true

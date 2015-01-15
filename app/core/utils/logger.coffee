@@ -33,6 +33,9 @@ _log_levels =
   debug:
     color: "#009922"
     sort: 0
+  debug_verbose:
+    color: "#eee"
+    sort: -1
   info:
     color: "#1122ff"
     sort: 1

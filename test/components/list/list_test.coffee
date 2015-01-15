@@ -86,7 +86,7 @@ describe "list component", ->
         expect(event.data.type).to.eq 'item_updated'
         expect(event.data.item.record.id).to.eq 4
         expect(event.data.item.record.key).to.eq 'new'
-        expect(utils.trim(test_div.find('.test').text())).to.eq 'NewTwopuppy, cowardTrebully,zombopuppy'
+        expect((test_div.find('.test').text()).trim()).to.eq 'NewTwopuppy, cowardTrebully,zombopuppy'
         event.data.item.enable()
         h.clickElement test_div.find(".test").first(".item").node
 

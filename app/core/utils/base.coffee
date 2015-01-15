@@ -25,23 +25,19 @@ class pi.utils
   @esc_rxp: /[-[\]{}()*+?.,\\^$|#]/g
   @clickable_rxp: /^(a|button|input|textarea)$/i
   @input_rxp: /^(input|select|textarea)$/i
-  @trim_rxp: /^\s*([\s\S]*[^\s])\s*$/m
   @notsnake_rxp: /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g
   @str_rxp: /(^'|'$)/g
 
 
   # Generate uniq string (but int) id
-  @uid: ->
-    ""+(++@uniq_id)
+  @uid: (pref) ->
+    (pref||"")+(++@uniq_id)
 
   ## String functions
 
   #Escape regular expression characters (to use string in regexp)
   @escapeRegexp: (str) -> 
     str.replace(@esc_rxp, "\\$&")
-
-  @trim: (str) ->
-    str.replace(@trim_rxp,"$1")
 
   @is_digital: (str) ->
     @digital_rxp.test str
@@ -52,7 +48,7 @@ class pi.utils
   @is_html: (str) ->
     @html_rxp.test str
 
-  @clickable: (node) ->
+  @is_clickable: (node) ->
     @clickable_rxp.test node.nodeName
 
   @is_input: (node) ->
@@ -249,7 +245,8 @@ class pi.utils
     res
 
   @to_a: (obj) ->
-   if Array.isArray(obj) then obj else [obj]
+    return [] unless obj?
+    if Array.isArray(obj) then obj else [obj]
 
   ## Promise utils
   

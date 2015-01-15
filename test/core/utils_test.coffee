@@ -24,16 +24,6 @@ describe "pieces utils", ->
     it "should handle multiline html", ->
       expect(utils.is_html('<textarea>Kill\nMe!</textarea>')).to.be.true
 
-  describe "trim string", ->
-    it "should trim one word", ->
-      expect(utils.trim(" qwertty  ")).to.eq 'qwertty'
-
-    it "should trim sentence", ->
-      expect(utils.trim(" how are yours?  ")).to.eq 'how are yours?'
-
-    it "should trim multiline string", ->
-      expect(utils.trim(" qwe\nrty ")).to.eq 'qwe\nrty' 
-
   describe "camel case", ->
     it "should work with one word", ->
       expect(utils.camelCase("worm")).to.equal("Worm")

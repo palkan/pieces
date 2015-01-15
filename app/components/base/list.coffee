@@ -29,7 +29,7 @@ class pi.List extends pi.Base
     @_check_empty()
     unless @options.noclick?
       @listen ".#{ @item_klass }", 'click', (e) =>  
-        unless utils.clickable(e.origTarget)
+        unless utils.is_clickable(e.origTarget)
           if  @_item_clicked(e.target) 
             e.cancel()
   

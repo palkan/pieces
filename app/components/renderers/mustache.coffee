@@ -11,7 +11,7 @@ class pi.Renderers.Mustache extends pi.Renderers.Base
 
     tpl_nod = $("##{template}")
     throw Error("Template ##{template} not found!") unless tpl_nod?
-    @template = utils.trim tpl_nod.html()
+    @template = tpl_nod.html().trim()
     window.Mustache.parse(@template)
 
   render: (data, piecified, host) ->

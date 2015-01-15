@@ -88,14 +88,12 @@ class pi.controllers.Test extends pi.controllers.Base
   id: 'test'
 
 class pi.controllers.Test2 extends pi.controllers.Base
-  @has_resource pi.Testo  
   id: 'test2'
 
   submit: (data) ->
     @exit title: data
 
 class pi.controllers.TestPreload extends pi.controllers.Base
-  @has_resource pi.Testo  
   id: 'test_preload'
 
   preload: ->

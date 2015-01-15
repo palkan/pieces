@@ -6,12 +6,6 @@ pi.controllers = {}
 app = pi.app
 
 class pi.controllers.Base extends pi.Core
-
-  # add shortcut for resource
-  @has_resource: (resource) ->
-    return unless resource.resources_name?
-    @::[resource.resources_name] = resource
-
   id: 'base'
 
   constructor: (@view) ->
