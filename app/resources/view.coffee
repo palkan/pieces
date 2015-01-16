@@ -22,7 +22,7 @@ class pi.resources.ViewItem extends pi.EventDispatcher
 
   attributes: ->
     if @options.params?
-      data = utils.extract({},@,@options.params)
+      data = utils.extract(@,@options.params)
       if @options.id_alias?
         data[@options.id_alias] = data.id if @options.id_alias
         delete data.id
@@ -92,9 +92,9 @@ class pi.resources.View extends pi.EventDispatcher
 
   _wrap: (el) ->
     if el instanceof pi.resources.ViewItem
-      utils.wrap el.view.resource_name, el
+      utils.obj.wrap el.view.resource_name, el
     else if el instanceof pi.resources.Base
-      utils.wrap el.constructor.resource_name, el
+      utils.obj.wrap el.constructor.resource_name, el
     else
       el
 

@@ -71,10 +71,17 @@ _formatter =
     _formatter.P(d).toLowerCase()
 
 utils.time = 
+  normalize_time: (t) ->
+    # convert to milliseconds if time was provided as number of seconds
+    if typeof t is 'number' and t < 4000000000
+      t*=1000
+    new Date(t) # t can be date object or string or ts
+ 
   now: (fmt) ->
     @format(new Date(), fmt)
 
   format:(t, fmt) ->
+    t = @normalize_time(t)
     return t unless fmt?
     fmt_arr = _splitter fmt
     flag = false
@@ -82,4 +89,22 @@ utils.time =
     for i in fmt_arr 
       res+= (if flag then _formatter[i].call(null,t) else i)
       flag = !flag
+    res
+
+  # return string representing given time as duration ('%H:%M:%S(.%L)')
+  duration: (val, milliseconds = false, show_milliseconds = false) ->
+    if milliseconds
+      ms = val % 1000
+      val = (val/1000)|0
+    arr = []
+    m = (val/60)|0
+    # add hours
+    arr.push((m / 60)|0)
+    # add minutes
+    arr.push(_pad(m % 60))
+    # add seconds
+    arr.push(_pad(val % 60))
+    res = arr.join(":")
+    if ms? and show_milliseconds
+      res+=".#{_pad(ms,2)}"
     res

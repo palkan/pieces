@@ -18,7 +18,7 @@ class pi.BaseView extends pi.Base
   postinitialize: ->
     controller_klass = null
     if @options.controller
-      controller_klass = utils.get_class_path pi.controllers, @options.controller
+      controller_klass = utils.obj.get_class_path pi.controllers, @options.controller
 
     controller_klass ||= @default_controller
 

@@ -48,7 +48,7 @@ class pi.resources.HasOne
             delete @[name]
           else if e.type is pi.ResourceEvent.Create
             target[bind_fun] el, true
-          target.trigger_assoc_event(name, e.type, utils.wrap(name, @[name])) if _update_filter(e,el) 
+          target.trigger_assoc_event(name, e.type, utils.obj.wrap(name, @[name])) if _update_filter(e,el) 
 
     # bind function
     @::[bind_fun] = (el, silent = false) ->
@@ -56,17 +56,17 @@ class pi.resources.HasOne
       @[name] = el
       if @_persisted and not @[name][params.foreign_key]
         @[name][params.foreign_key] = @id
-      @trigger_assoc_event(name, pi.ResourceEvent.Create, utils.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
+      @trigger_assoc_event(name, pi.ResourceEvent.Create, utils.obj.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
 
     # add callbacks
 
     @after_initialize ->
-      if @_persisted and (el = params.source.get_by(utils.wrap(params.foreign_key,@id)))
+      if @_persisted and (el = params.source.get_by(utils.obj.wrap(params.foreign_key,@id)))
         @[bind_fun](el, true)
 
     @after_update (data) ->
       return if data instanceof pi.resources.Base
-      if @_persisted and not @[name] and (el = params.source.get_by(utils.wrap(params.foreign_key,@id)))
+      if @_persisted and not @[name] and (el = params.source.get_by(utils.obj.wrap(params.foreign_key,@id)))
         @[bind_fun](el, true)
       if data[name]
         if @[name] instanceof pi.resources.Base 

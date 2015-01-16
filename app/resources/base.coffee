@@ -154,7 +154,7 @@ class pi.resources.Base extends pi.EventDispatcher
 
   @_wrap: (el) ->
     if el instanceof pi.resources.Base
-      utils.wrap el.constructor.resource_name, el
+      utils.obj.wrap el.constructor.resource_name, el
     else
       el
 
@@ -227,7 +227,7 @@ class pi.resources.Base extends pi.EventDispatcher
   trigger_assoc_event: (name, type, data) ->
     if typeof @["on_#{name}_update"] is 'function'
       @["on_#{name}_update"].call(@, type, data)
-    @trigger pi.ResourceEvent.Update, utils.wrap(name, true)
+    @trigger pi.ResourceEvent.Update, utils.obj.wrap(name, true)
 
 # Create new resource by name and superclass (optional)
 pi.resources.create = (name, parent = $r.Base) ->

@@ -36,7 +36,7 @@ class pi.Guesser
   @find: (nod) ->
     matches=[]
     if @klass_reg && (_match = nod.node.className.match(@klass_reg))
-      matches = utils.uniq _match
+      matches = utils.arr.uniq _match
       if matches.length == 1
         return @klass_to_component[matches[0]]
 
@@ -54,7 +54,7 @@ class pi.Guesser
       else
         tmatches = @tag_to_component[tag] 
       
-      tmatches = utils.uniq tmatches
+      tmatches = utils.arr.uniq tmatches
     
       if tmatches.length == 1
         return tmatches[0]

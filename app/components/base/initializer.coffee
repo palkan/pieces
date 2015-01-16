@@ -7,7 +7,7 @@ event_re = /^on_(.+)/i
 class pi.ComponentInitializer
   @guess_component: (nod) ->
     component_name = nod.data('component') || pi.Guesser.find(nod)
-    component = utils.get_class_path(pi, component_name)
+    component = utils.obj.get_class_path(pi, component_name)
     unless component?
       utils.error "Unknown component #{component_name}", nod.data()
     else

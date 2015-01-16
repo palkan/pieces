@@ -14,9 +14,9 @@ pi.noconflict = () ->
   for own name,fun of _conflicts
     window[name] = fun
 
-class pi.utils
+_uniq_id = 100
 
-  @uniq_id: 100
+class pi.utils
 
   ## regular experssion
   @email_rxp: /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i
@@ -31,7 +31,13 @@ class pi.utils
 
   # Generate uniq string (but int) id
   @uid: (pref) ->
-    (pref||"")+(++@uniq_id)
+    (pref||"")+(++_uniq_id)
+
+  @random: (min, max=null) ->
+    unless max? 
+      [max, min] = [min, 0]
+
+    min + (Math.random() * (max - min + 1))|0
 
   ## String functions
 
@@ -82,7 +88,6 @@ class pi.utils
       else Number(val)
 
   ## Sorting utils
-
       
   # Compare objects by specific key
   # order is 'asc' or 'desc'
@@ -106,56 +111,6 @@ class pi.utils
           r_ = @key_compare(a,b,key,order)
           r = r_ if r is 0
     return r
-
-  # sort array by many keys provided as hash: {key: order}
-  # order is 'asc' or 'desc'
-  @sort: (arr, sort_params) ->
-    arr.sort @curry(@keys_compare,[sort_params],@,true)
-
-  # sort array by key
-  @sort_by: (arr, key, order = 'asc') ->
-    arr.sort @curry(@key_compare,[key,order],@,true)
-
-
-  ## Object utils
-
-  # return property by path-like name
-  # get_path(obj,'a.b.c') = obj.a.b.c
-  @get_path: (obj, path) ->
-    parts = path.split "."
-    res = obj     
-    
-    while(parts.length)
-      key = parts.shift()
-      if res[key]?
-        res = res[key]
-      else
-        return null
-    res
-
-
-  # set proprty on path
-  @set_path: (obj, path, val) ->
-    parts = path.split "."
-    res = obj     
-    
-    while(parts.length>1)
-      key = parts.shift()
-      unless res[key]?
-        res[key] = {}
-      res = res[key]
-    res[parts[0]] = val
-
-  # convert path parts to camelCase and then get_path
-  @get_class_path: (pckg, path) ->
-    path = path.split('.').map((p) => @camelCase(p)).join('.')
-    @get_path pckg, path
-
-  # generate new object containing as key provided object
-  @wrap: (key, obj) ->
-    data = {}
-    data[key] = obj
-    data
 
   # Clone object (without excepted fields) 
   # @param [Object] obj
@@ -205,13 +160,13 @@ class pi.utils
 
   # fill data with params
   # e.g. 'params' is ['id','name',{tags: ['name','id']}] then 'data' will contain only them from 'source'
-  @extract: (data, source, param) ->
+  @extract_to: (data, source, param) ->
     return unless source?
     if Array.isArray(source)
       for el in source
         do(el) =>
           el_data = {}
-          @extract(el_data, el, param)
+          @extract_to(el_data, el, param)
           data.push el_data
       data
     else
@@ -219,12 +174,18 @@ class pi.utils
         data[param] = source[param] if source[param]?
       else if Array.isArray(param)
         for p in param
-          @extract(data,source,p)
+          @extract_to(data,source,p)
       else
         for own key, vals of param
           return unless source[key]?
           if Array.isArray(source[key]) then (data[key]=[]) else (data[key]={})
-          @extract(data[key], source[key], vals)
+          @extract_to(data[key], source[key], vals)
+    data
+
+  # extract data from source into new object
+  @extract: (source, param) ->
+    data = {}
+    @extract_to data, source, param
     data
 
   @subclass: (parent) ->
@@ -238,35 +199,13 @@ class pi.utils
 
   ## Array utils
   
-  @uniq: (arr) ->
-    res = []
-    for el in arr
-      res.push(el) if (el not in res)
-    res
-
   @to_a: (obj) ->
     return [] unless obj?
     if Array.isArray(obj) then obj else [obj]
 
-  ## Promise utils
-  
-  @as_promise: (fun, resolved = true) ->
-    new Promise( (resolve, reject) ->
-      if resolved
-        resolve(fun.call(null))
-      else
-        reject(fun.call(null))
-      )
-
-  @resolved_promise: (data) ->
-    new Promise((resolve) -> resolve(data))
-
-  @rejected_promise: (error) ->
-    new Promise((_,reject) -> reject(error))
-  
   ## Function utils
 
-  @debounce: (period, fun, ths) ->
+  @debounce: (period, fun, ths, throttle = false) ->
     _wait = false
     _buf = null
 
@@ -277,12 +216,15 @@ class pi.utils
 
       (ths||{}).__debounce_id__ = pi.utils.after period, ->
         _wait = false
-        if _buf?
+        if throttle and _buf?
           fun.apply(ths,_buf) 
-          _buf = null
+        _buf = null
 
       _wait = true
       fun.apply(ths,args) unless _buf?
+
+  @throttle: (period, fun, ths) ->
+    pi.utils.debounce period, fun, ths, true
 
   @curry: (fun, args = [], ths, last = false) ->
       fun = if ("function" == typeof fun) then fun else ths[fun]
@@ -304,3 +246,4 @@ pi.export pi.utils.curry, 'curry'
 pi.export pi.utils.delayed, 'delayed'
 pi.export pi.utils.after, 'after'
 pi.export pi.utils.debounce, 'debounce'
+pi.export pi.utils.throttle, 'throttle'

@@ -137,5 +137,5 @@ class pi.Form extends pi.Base
     # cannot proccess array value without context
     return if _array_name(name) is true
     
-    utils.set_path @_value, name, val
+    utils.obj.set_path @_value, name, val
     @trigger pi.FormEvent.Update, @_value unless silent

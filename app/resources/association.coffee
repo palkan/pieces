@@ -23,13 +23,13 @@ class pi.resources.Association extends pi.resources.View
 
             # update temp associated resources
             for el in @__all__
-              el.set(utils.wrap(@owner_name_id, @owner.id), true)
+              el.set(utils.obj.wrap(@owner_name_id, @owner.id), true)
 
             unless @options._scope is false
               if @options._scope?[@options.key]?
-                @options.scope = utils.merge(@options._scope, utils.wrap(@options.key,@owner.id))
+                @options.scope = utils.merge(@options._scope, utils.obj.wrap(@options.key,@owner.id))
               else
-                @options.scope = utils.wrap(@options.key,@owner.id)
+                @options.scope = utils.obj.wrap(@options.key,@owner.id)
               @reload()
           )
     else

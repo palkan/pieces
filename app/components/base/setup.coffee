@@ -38,7 +38,7 @@ pi.event = new pi.EventDispatcher()
 # return component by its path (relative to app.view)
 # find('a.b.c') -> app.view.a.b.c
 pi.find = (pid_path, from) ->
-  utils.get_path pi.app.view, pid_path
+  utils.obj.get_path pi.app.view, pid_path
 
 utils.extend(
   pi.Nod::, 

@@ -43,7 +43,7 @@ class pi.NodEvent.ResizeDelegate
     pi.NodEvent.remove pi.Nod.win.node, 'resize', @resize_listener()
 
   resize_listener: ->
-    @_resize_listener ||= utils.debounce 300, (e) =>
+    @_resize_listener ||= utils.throttle 300, (e) =>
       for listener in @listeners
         listener.dispatch @_create_event(listener)
 

@@ -39,7 +39,7 @@ class pi.resources.HasMany
           options.key = params.key || "#{@constructor.resource_name}_id"
           options.copy = false unless params.copy?
           options._scope = params.scope
-          default_scope = utils.wrap options.key, @id
+          default_scope = utils.obj.wrap options.key, @id
           unless params.scope?
             options.scope = if @._persisted then default_scope else false
           else

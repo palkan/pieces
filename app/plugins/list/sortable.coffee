@@ -48,7 +48,6 @@ class pi.List.Sortable extends pi.Plugin
     @_bisect_sort item, left, right 
 
 
-  # @see pi.utils.sort 
   sort: (sort_params) ->
     return unless sort_params?
     sort_params = utils.to_a sort_params

@@ -1,5 +1,8 @@
 'use strict'
 require './base'
+require './arr'
+require './obj'
+require './promise'
 require './browser'
 require './time'
 require './logger'
