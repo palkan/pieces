@@ -18,7 +18,7 @@ describe "pieces utils", ->
       date2.setSeconds(5)
       date2.setMilliseconds(2)
 
-      ts1 = 1433106000000 # 06/01/2015
+      ts1 = +new Date('Jun 1 2015')
       
       it "should work with utc ts", ->
         expect(utils.time.format(ts1,'%Y-%m-%d')).to.eq "2015-06-01"
