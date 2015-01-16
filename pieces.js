@@ -213,7 +213,7 @@ pi.Base = (function(_super) {
 
   Base.prototype.attach_plugin = function(plugin) {
     if (plugin != null) {
-      utils.debug("plugin attached " + plugin.prototype.id);
+      utils.debug_verbose("plugin attached " + plugin.prototype.id);
       return this.__plugins__.push(plugin.attached(this));
     }
   };
@@ -594,7 +594,7 @@ pi.call = pi.Compiler.call;
 
 
 
-},{"../../core":34,"../../grammar/pi_grammar":44}],5:[function(require,module,exports){
+},{"../../core":34,"../../grammar/pi_grammar":48}],5:[function(require,module,exports){
 'use strict';
 require('./base');
 
@@ -622,12 +622,12 @@ pi.ComponentInitializer = (function() {
   ComponentInitializer.guess_component = function(nod) {
     var component, component_name;
     component_name = nod.data('component') || pi.Guesser.find(nod);
-    component = utils.get_class_path(pi, component_name);
+    component = utils.obj.get_class_path(pi, component_name);
     if (component == null) {
       return utils.error("Unknown component " + component_name, nod.data());
     } else {
       component.class_name = component_name;
-      utils.debug("Component created: " + component_name);
+      utils.debug_verbose("Component created: " + component_name);
       return component;
     }
   };
@@ -739,7 +739,7 @@ pi.List = (function(_super) {
     if (this.options.noclick == null) {
       return this.listen("." + this.item_klass, 'click', (function(_this) {
         return function(e) {
-          if (!utils.clickable(e.origTarget)) {
+          if (!utils.is_clickable(e.origTarget)) {
             if (_this._item_clicked(e.target)) {
               return e.cancel();
             }
@@ -1087,7 +1087,7 @@ pi.List = (function(_super) {
 
 
 
-},{"../../core":34,"../../plugins/base/renderable":50,"../events/list_events":14,"./base":2}],9:[function(require,module,exports){
+},{"../../core":34,"../../plugins/base/renderable":54,"../events/list_events":14,"./base":2}],9:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -1128,7 +1128,7 @@ pi.piecify = function(nod, host) {
 pi.event = new pi.EventDispatcher();
 
 pi.find = function(pid_path, from) {
-  return utils.get_path(pi.app.view, pid_path);
+  return utils.obj.get_path(pi.app.view, pid_path);
 };
 
 utils.extend(pi.Nod.prototype, {
@@ -1594,7 +1594,7 @@ pi.Form = (function(_super) {
     if (_array_name(name) === true) {
       return;
     }
-    utils.set_path(this._value, name, val);
+    utils.obj.set_path(this._value, name, val);
     if (!silent) {
       return this.trigger(pi.FormEvent.Update, this._value);
     }
@@ -1670,7 +1670,7 @@ pi.Guesser = (function() {
     var el, m, match, matches, resolver, tag, tmatches, _i, _j, _len, _len1, _match, _ref, _ref1;
     matches = [];
     if (this.klass_reg && (_match = nod.node.className.match(this.klass_reg))) {
-      matches = utils.uniq(_match);
+      matches = utils.arr.uniq(_match);
       if (matches.length === 1) {
         return this.klass_to_component[matches[0]];
       }
@@ -1697,7 +1697,7 @@ pi.Guesser = (function() {
       } else {
         tmatches = this.tag_to_component[tag];
       }
-      tmatches = utils.uniq(tmatches);
+      tmatches = utils.arr.uniq(tmatches);
       if (tmatches.length === 1) {
         return tmatches[0];
       } else {
@@ -1749,7 +1749,7 @@ require('./renderers');
 
 
 
-},{"../plugins/index":53,"./app":1,"./base/index":5,"./events":12,"./form":16,"./guess/guesser":17,"./renderers":20}],19:[function(require,module,exports){
+},{"../plugins/index":57,"./app":1,"./base/index":5,"./events":12,"./form":16,"./guess/guesser":17,"./renderers":20}],19:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -1857,7 +1857,7 @@ pi.Renderers.Mustache = (function(_super) {
     if (tpl_nod == null) {
       throw Error("Template #" + template + " not found!");
     }
-    this.template = utils.trim(tpl_nod.html());
+    this.template = tpl_nod.html().trim();
     window.Mustache.parse(this.template);
   }
 
@@ -1893,13 +1893,6 @@ app = pi.app;
 
 pi.controllers.Base = (function(_super) {
   __extends(Base, _super);
-
-  Base.has_resource = function(resource) {
-    if (resource.resources_name == null) {
-      return;
-    }
-    return this.prototype[resource.resources_name] = resource;
-  };
 
   Base.prototype.id = 'base';
 
@@ -2012,18 +2005,18 @@ pi.controllers.Page = (function(_super) {
     }
     if (from && from !== this.context_id) {
       utils.warning("trying to switch from non-active context");
-      return utils.rejected_promise();
+      return utils.promise.rejected_promise();
     }
     if (!to || (this.context_id === to)) {
       return;
     }
     if (!this._contexts[to]) {
       utils.warning("undefined context: " + to);
-      return utils.rejected_promise();
+      return utils.promise.rejected_promise();
     }
     utils.info("context switch: " + from + " -> " + to);
     new_context = this._contexts[to];
-    promise = !exit && (new_context.preload != null) && (typeof new_context.preload === 'function') ? new_context.preload() : utils.resolved_promise();
+    promise = !exit && (new_context.preload != null) && (typeof new_context.preload === 'function') ? new_context.preload() : utils.promise.resolved_promise();
     return promise.then((function(_this) {
       return function() {
         if (_this.context != null) {
@@ -2056,7 +2049,7 @@ pi.controllers.Page = (function(_super) {
     if (this.context != null) {
       return this.switch_context(this.context_id, this._history.pop(), data, true);
     } else {
-      return utils.rejected_promise();
+      return utils.promise.rejected_promise();
     }
   };
 
@@ -2082,7 +2075,7 @@ pi.Compiler.modifiers.push(function(str) {
 
 
 
-},{"../core":34,"../core/utils/history":39,"./base":23}],26:[function(require,module,exports){
+},{"../core":34,"../core/utils/history":41,"./base":23}],26:[function(require,module,exports){
 'use strict';
 var pi;
 
@@ -2104,6 +2097,8 @@ require('./utils');
 utils = pi.utils;
 
 pi.Core = (function() {
+  var _after, _before;
+
   Core.include = function() {
     var mixin, mixins, _i, _len, _results;
     mixins = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -2181,6 +2176,29 @@ pi.Core = (function() {
     return (this.callbacked || (this.callbacked = [])).push(method);
   };
 
+  _before = function(name) {
+    if (this["__h__" + name] != null) {
+      return this["__h__" + name];
+    }
+  };
+
+  _after = function(name, res) {
+    return this["__h__" + name] = res;
+  };
+
+  Core.event_handler = function(name, options) {
+    if (options == null) {
+      options = {};
+    }
+    if (typeof this.prototype[name] !== 'function') {
+      return utils.error("undefined handler", this, name);
+    }
+    this.prototype[name] = utils.func.unwrap(this.prototype[name], options);
+    return this.prototype[name] = utils.func.wrap(this.prototype[name], utils.curry(_before, name), utils.curry(_after, name), {
+      break_if_value: true
+    });
+  };
+
   function Core() {
     var method, _fn, _i, _len, _ref;
     _ref = this.constructor.callbacked || [];
@@ -2231,7 +2249,7 @@ pi.Core = (function() {
 
 
 
-},{"./pi":36,"./utils":40}],28:[function(require,module,exports){
+},{"./pi":36,"./utils":42}],28:[function(require,module,exports){
 'use strict';
 var pi;
 
@@ -2395,7 +2413,7 @@ pi.EventDispatcher = (function(_super) {
     }
     event.currentTarget = this;
     if (this.listeners[event.type] != null) {
-      utils.debug("Event: " + event.type, event);
+      utils.debug_verbose("Event: " + event.type, event);
       _ref = this.listeners[event.type];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         listener = _ref[_i];
@@ -2499,7 +2517,7 @@ pi.EventDispatcher = (function(_super) {
 
 
 
-},{"../core":27,"../pi":36,"../utils/index":40}],30:[function(require,module,exports){
+},{"../core":27,"../pi":36,"../utils/index":42}],30:[function(require,module,exports){
 'use strict';
 require('./events');
 
@@ -2782,7 +2800,7 @@ pi.NodEventDispatcher = (function(_super) {
 
 
 
-},{"../pi":36,"../utils":40,"./events":29}],32:[function(require,module,exports){
+},{"../pi":36,"../utils":42,"./events":29}],32:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -2823,7 +2841,9 @@ pi.NodEvent.ResizeListener = (function(_super) {
 
 })(pi.EventListener);
 
-pi.NodEvent.ResizeDelegate = (function() {
+pi.NodEvent.ResizeDelegate = (function(_super) {
+  __extends(ResizeDelegate, _super);
+
   function ResizeDelegate() {
     this.listeners = [];
   }
@@ -2859,20 +2879,20 @@ pi.NodEvent.ResizeDelegate = (function() {
     return pi.NodEvent.remove(pi.Nod.win.node, 'resize', this.resize_listener());
   };
 
-  ResizeDelegate.prototype.resize_listener = function() {
-    return this._resize_listener || (this._resize_listener = utils.debounce(300, (function(_this) {
-      return function(e) {
-        var listener, _i, _len, _ref, _results;
-        _ref = _this.listeners;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          listener = _ref[_i];
-          _results.push(listener.dispatch(_this._create_event(listener)));
-        }
-        return _results;
-      };
-    })(this)));
+  ResizeDelegate.prototype.resize_listener = function(e) {
+    var listener, _i, _len, _ref, _results;
+    _ref = this.listeners;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      listener = _ref[_i];
+      _results.push(listener.dispatch(this._create_event(listener)));
+    }
+    return _results;
   };
+
+  ResizeDelegate.event_handler('resize_listener', {
+    throttle: 300
+  });
 
   ResizeDelegate.prototype._create_event = function(listener) {
     var nod;
@@ -2887,13 +2907,13 @@ pi.NodEvent.ResizeDelegate = (function() {
 
   return ResizeDelegate;
 
-})();
+})(pi.Core);
 
 pi.NodEvent.register_delegate('resize', new pi.NodEvent.ResizeDelegate());
 
 
 
-},{"../pi":36,"../utils":40,"./nod_events":31}],33:[function(require,module,exports){
+},{"../pi":36,"../utils":42,"./nod_events":31}],33:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -4119,7 +4139,7 @@ pi.Nod.root.initialize();
 
 
 
-},{"./events":30,"./pi":36,"./utils":40}],36:[function(require,module,exports){
+},{"./events":30,"./pi":36,"./utils":42}],36:[function(require,module,exports){
 'use strict';
 var pi;
 
@@ -4131,7 +4151,77 @@ module.exports = {};
 
 },{}],37:[function(require,module,exports){
 'use strict';
-var pi, _conflicts,
+var pi, utils,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+pi = require('../pi');
+
+require('./base');
+
+utils = pi.utils;
+
+utils.arr = (function() {
+  function arr() {}
+
+  arr.sort = function(arr, sort_params) {
+    return arr.sort(utils.curry(utils.keys_compare, [sort_params], utils, true));
+  };
+
+  arr.sort_by = function(arr, key, order) {
+    if (order == null) {
+      order = 'asc';
+    }
+    return arr.sort(utils.curry(utils.key_compare, [key, order], utils, true));
+  };
+
+  arr.uniq = function(arr) {
+    var el, res, _i, _len;
+    res = [];
+    for (_i = 0, _len = arr.length; _i < _len; _i++) {
+      el = arr[_i];
+      if ((__indexOf.call(res, el) < 0)) {
+        res.push(el);
+      }
+    }
+    return res;
+  };
+
+  arr.shuffle = function(arr) {
+    var i, j, len, res, _, _i, _len;
+    len = arr.length;
+    res = Array(len);
+    for (i = _i = 0, _len = arr.length; _i < _len; i = ++_i) {
+      _ = arr[i];
+      j = utils.random(0, i);
+      if (i !== j) {
+        res[i] = res[j];
+      }
+      res[j] = arr[i];
+    }
+    return res;
+  };
+
+  arr.sample = function(arr, size) {
+    var len;
+    if (size == null) {
+      size = 1;
+    }
+    len = arr.length;
+    if (size === 1) {
+      return arr[utils.random(len - 1)];
+    }
+    return this.shuffle(arr).slice(0, +(size - 1) + 1 || 9e9);
+  };
+
+  return arr;
+
+})();
+
+
+
+},{"../pi":36,"./base":38}],38:[function(require,module,exports){
+'use strict';
+var pi, _conflicts, _uniq_id,
   __hasProp = {}.hasOwnProperty,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
   __slice = [].slice;
@@ -4160,10 +4250,10 @@ pi.noconflict = function() {
   return _results;
 };
 
+_uniq_id = 100;
+
 pi.utils = (function() {
   function utils() {}
-
-  utils.uniq_id = 100;
 
   utils.email_rxp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i;
 
@@ -4177,22 +4267,27 @@ pi.utils = (function() {
 
   utils.input_rxp = /^(input|select|textarea)$/i;
 
-  utils.trim_rxp = /^\s*([\s\S]*[^\s])\s*$/m;
-
   utils.notsnake_rxp = /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g;
 
   utils.str_rxp = /(^'|'$)/g;
 
-  utils.uid = function() {
-    return "" + (++this.uniq_id);
+  utils.uid = function(pref) {
+    return (pref || "") + (++_uniq_id);
+  };
+
+  utils.random = function(min, max) {
+    var _ref;
+    if (max == null) {
+      max = null;
+    }
+    if (max == null) {
+      _ref = [min, 0], max = _ref[0], min = _ref[1];
+    }
+    return min + (Math.random() * (max - min + 1)) | 0;
   };
 
   utils.escapeRegexp = function(str) {
     return str.replace(this.esc_rxp, "\\$&");
-  };
-
-  utils.trim = function(str) {
-    return str.replace(this.trim_rxp, "$1");
   };
 
   utils.is_digital = function(str) {
@@ -4207,7 +4302,7 @@ pi.utils = (function() {
     return this.html_rxp.test(str);
   };
 
-  utils.clickable = function(node) {
+  utils.is_clickable = function(node) {
     return this.clickable_rxp.test(node.nodeName);
   };
 
@@ -4320,62 +4415,6 @@ pi.utils = (function() {
     return r;
   };
 
-  utils.sort = function(arr, sort_params) {
-    return arr.sort(this.curry(this.keys_compare, [sort_params], this, true));
-  };
-
-  utils.sort_by = function(arr, key, order) {
-    if (order == null) {
-      order = 'asc';
-    }
-    return arr.sort(this.curry(this.key_compare, [key, order], this, true));
-  };
-
-  utils.get_path = function(obj, path) {
-    var key, parts, res;
-    parts = path.split(".");
-    res = obj;
-    while (parts.length) {
-      key = parts.shift();
-      if (res[key] != null) {
-        res = res[key];
-      } else {
-        return null;
-      }
-    }
-    return res;
-  };
-
-  utils.set_path = function(obj, path, val) {
-    var key, parts, res;
-    parts = path.split(".");
-    res = obj;
-    while (parts.length > 1) {
-      key = parts.shift();
-      if (res[key] == null) {
-        res[key] = {};
-      }
-      res = res[key];
-    }
-    return res[parts[0]] = val;
-  };
-
-  utils.get_class_path = function(pckg, path) {
-    path = path.split('.').map((function(_this) {
-      return function(p) {
-        return _this.camelCase(p);
-      };
-    })(this)).join('.');
-    return this.get_path(pckg, path);
-  };
-
-  utils.wrap = function(key, obj) {
-    var data;
-    data = {};
-    data[key] = obj;
-    return data;
-  };
-
   utils.clone = function(obj, except) {
     var flags, key, newInstance;
     if (except == null) {
@@ -4447,7 +4486,7 @@ pi.utils = (function() {
     return target;
   };
 
-  utils.extract = function(data, source, param) {
+  utils.extract_to = function(data, source, param) {
     var el, key, p, vals, _fn, _i, _j, _len, _len1;
     if (source == null) {
       return;
@@ -4457,7 +4496,7 @@ pi.utils = (function() {
         return function(el) {
           var el_data;
           el_data = {};
-          _this.extract(el_data, el, param);
+          _this.extract_to(el_data, el, param);
           return data.push(el_data);
         };
       })(this);
@@ -4474,7 +4513,7 @@ pi.utils = (function() {
       } else if (Array.isArray(param)) {
         for (_j = 0, _len1 = param.length; _j < _len1; _j++) {
           p = param[_j];
-          this.extract(data, source, p);
+          this.extract_to(data, source, p);
         }
       } else {
         for (key in param) {
@@ -4488,10 +4527,17 @@ pi.utils = (function() {
           } else {
             data[key] = {};
           }
-          this.extract(data[key], source[key], vals);
+          this.extract_to(data[key], source[key], vals);
         }
       }
     }
+    return data;
+  };
+
+  utils.extract = function(source, param) {
+    var data;
+    data = {};
+    this.extract_to(data, source, param);
     return data;
   };
 
@@ -4510,19 +4556,10 @@ pi.utils = (function() {
     return child;
   };
 
-  utils.uniq = function(arr) {
-    var el, res, _i, _len;
-    res = [];
-    for (_i = 0, _len = arr.length; _i < _len; _i++) {
-      el = arr[_i];
-      if ((__indexOf.call(res, el) < 0)) {
-        res.push(el);
-      }
-    }
-    return res;
-  };
-
   utils.to_a = function(obj) {
+    if (obj == null) {
+      return [];
+    }
     if (Array.isArray(obj)) {
       return obj;
     } else {
@@ -4530,33 +4567,11 @@ pi.utils = (function() {
     }
   };
 
-  utils.as_promise = function(fun, resolved) {
-    if (resolved == null) {
-      resolved = true;
-    }
-    return new Promise(function(resolve, reject) {
-      if (resolved) {
-        return resolve(fun.call(null));
-      } else {
-        return reject(fun.call(null));
-      }
-    });
-  };
-
-  utils.resolved_promise = function(data) {
-    return new Promise(function(resolve) {
-      return resolve(data);
-    });
-  };
-
-  utils.rejected_promise = function(error) {
-    return new Promise(function(_, reject) {
-      return reject(error);
-    });
-  };
-
-  utils.debounce = function(period, fun, ths) {
+  utils.debounce = function(period, fun, ths, throttle) {
     var _buf, _wait;
+    if (throttle == null) {
+      throttle = false;
+    }
     _wait = false;
     _buf = null;
     return function() {
@@ -4568,16 +4583,20 @@ pi.utils = (function() {
       }
       (ths || {}).__debounce_id__ = pi.utils.after(period, function() {
         _wait = false;
-        if (_buf != null) {
+        if (throttle && (_buf != null)) {
           fun.apply(ths, _buf);
-          return _buf = null;
         }
+        return _buf = null;
       });
       _wait = true;
       if (_buf == null) {
         return fun.apply(ths, args);
       }
     };
+  };
+
+  utils.throttle = function(period, fun, ths) {
+    return pi.utils.debounce(period, fun, ths, true);
   };
 
   utils.curry = function(fun, args, ths, last) {
@@ -4621,9 +4640,11 @@ pi["export"](pi.utils.after, 'after');
 
 pi["export"](pi.utils.debounce, 'debounce');
 
+pi["export"](pi.utils.throttle, 'throttle');
 
 
-},{"../pi":36}],38:[function(require,module,exports){
+
+},{"../pi":36}],39:[function(require,module,exports){
 'use strict';
 var pi, utils, _android_version_rxp, _ios_rxp, _ios_version_rxp, _mac_os_version_rxp, _win_version, _win_version_rxp;
 
@@ -4732,7 +4753,86 @@ pi.utils.browser = (function() {
 
 
 
-},{"../pi":36,"./base":37}],39:[function(require,module,exports){
+},{"../pi":36,"./base":38}],40:[function(require,module,exports){
+'use strict';
+var pi, utils,
+  __slice = [].slice;
+
+pi = require('../pi');
+
+require('./base');
+
+utils = pi.utils;
+
+utils.func = (function() {
+  function func() {}
+
+  func.BREAK = "__BREAK__";
+
+  func.wrap = function(target, before, after, options) {
+    if (options == null) {
+      options = {};
+    }
+    return function() {
+      var a, args, b, res, self;
+      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+      self = options["this"] || this;
+      if (before != null) {
+        b = before.apply(self, args);
+        if (b && (options.break_if_value === true)) {
+          return b;
+        }
+        if (b === utils.func.BREAK) {
+          return options.break_with;
+        }
+      }
+      res = target.apply(self, args);
+      if (after != null) {
+        a = after.call(self, res, args, b);
+      }
+      return res;
+    };
+  };
+
+  func.append = function(target, callback, options) {
+    if (options == null) {
+      options = {};
+    }
+    return pi.utils.func.wrap(target, null, callback, options);
+  };
+
+  func.prepend = function(target, callback, options) {
+    if (options == null) {
+      options = {};
+    }
+    return pi.utils.func.wrap(target, callback, null, options);
+  };
+
+  func.unwrap = function(fun, options, ths) {
+    if (options == null) {
+      options = {};
+    }
+    if (ths == null) {
+      ths = null;
+    }
+    return function() {
+      if (options.debounce != null) {
+        return utils.debounce(options.debounce, fun, ths || this);
+      }
+      if (options.throttle != null) {
+        return utils.throttle(options.throttle, fun, ths || this);
+      }
+      return fun.bind(ths || this);
+    };
+  };
+
+  return func;
+
+})();
+
+
+
+},{"../pi":36,"./base":38}],41:[function(require,module,exports){
 'use strict';
 var History;
 
@@ -4772,9 +4872,17 @@ module.exports = History;
 
 
 
-},{}],40:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 require('./base');
+
+require('./arr');
+
+require('./obj');
+
+require('./promise');
+
+require('./func');
 
 require('./browser');
 
@@ -4786,7 +4894,7 @@ require('./matchers');
 
 
 
-},{"./base":37,"./browser":38,"./logger":41,"./matchers":42,"./time":43}],41:[function(require,module,exports){
+},{"./arr":37,"./base":38,"./browser":39,"./func":40,"./logger":43,"./matchers":44,"./obj":45,"./promise":46,"./time":47}],43:[function(require,module,exports){
 'use strict';
 var info, level, pi, utils, val, _formatter, _log_levels, _show_log,
   __slice = [].slice;
@@ -4830,6 +4938,10 @@ _log_levels = {
     color: "#009922",
     sort: 0
   },
+  debug_verbose: {
+    color: "#eee",
+    sort: -1
+  },
   info: {
     color: "#1122ff",
     sort: 1
@@ -4857,7 +4969,7 @@ for (level in _log_levels) {
 
 
 
-},{"../pi":36,"./base":37,"./browser":38,"./time":43}],42:[function(require,module,exports){
+},{"../pi":36,"./base":38,"./browser":39,"./time":47}],44:[function(require,module,exports){
 'use strict';
 var pi, utils, _key_operand, _operands,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -5011,7 +5123,125 @@ pi.utils.matchers = (function() {
 
 
 
-},{"../pi":36,"./base":37}],43:[function(require,module,exports){
+},{"../pi":36,"./base":38}],45:[function(require,module,exports){
+'use strict';
+var pi, utils;
+
+pi = require('../pi');
+
+require('./base');
+
+utils = pi.utils;
+
+utils.obj = (function() {
+  function obj() {}
+
+  obj.get_path = function(obj, path) {
+    var key, parts, res;
+    parts = path.split(".");
+    res = obj;
+    while (parts.length) {
+      key = parts.shift();
+      if (res[key] != null) {
+        res = res[key];
+      } else {
+        return;
+      }
+    }
+    return res;
+  };
+
+  obj.set_path = function(obj, path, val) {
+    var key, parts, res;
+    parts = path.split(".");
+    res = obj;
+    while (parts.length > 1) {
+      key = parts.shift();
+      if (res[key] == null) {
+        res[key] = {};
+      }
+      res = res[key];
+    }
+    return res[parts[0]] = val;
+  };
+
+  obj.get_class_path = function(pckg, path) {
+    path = path.split('.').map((function(_this) {
+      return function(p) {
+        return utils.camelCase(p);
+      };
+    })(this)).join('.');
+    return this.get_path(pckg, path);
+  };
+
+  obj.wrap = function(key, obj) {
+    var data;
+    data = {};
+    data[key] = obj;
+    return data;
+  };
+
+  obj.from_arr = function(arr) {
+    var data, i, _, _i, _len;
+    data = {};
+    for (i = _i = 0, _len = arr.length; _i < _len; i = _i += 2) {
+      _ = arr[i];
+      data[arr[i]] = arr[i + 1];
+    }
+    return data;
+  };
+
+  return obj;
+
+})();
+
+
+
+},{"../pi":36,"./base":38}],46:[function(require,module,exports){
+'use strict';
+var pi, utils;
+
+pi = require('../pi');
+
+require('./base');
+
+utils = pi.utils;
+
+utils.promise = (function() {
+  function promise() {}
+
+  promise.as_promise = function(fun, resolved) {
+    if (resolved == null) {
+      resolved = true;
+    }
+    return new Promise(function(resolve, reject) {
+      if (resolved) {
+        return resolve(fun.call(null));
+      } else {
+        return reject(fun.call(null));
+      }
+    });
+  };
+
+  promise.resolved_promise = function(data) {
+    return new Promise(function(resolve) {
+      return resolve(data);
+    });
+  };
+
+  promise.rejected_promise = function(error) {
+    return new Promise(function(_, reject) {
+      return reject(error);
+    });
+  };
+
+  return promise;
+
+})();
+
+
+
+},{"../pi":36,"./base":38}],47:[function(require,module,exports){
 'use strict';
 var pi, utils, _formatter, _pad, _reg, _splitter;
 
@@ -5125,11 +5355,18 @@ _formatter = {
 };
 
 utils.time = {
+  normalize_time: function(t) {
+    if (typeof t === 'number' && t < 4000000000) {
+      t *= 1000;
+    }
+    return new Date(t);
+  },
   now: function(fmt) {
     return this.format(new Date(), fmt);
   },
   format: function(t, fmt) {
     var flag, fmt_arr, i, res, _i, _len;
+    t = this.normalize_time(t);
     if (fmt == null) {
       return t;
     }
@@ -5142,12 +5379,35 @@ utils.time = {
       flag = !flag;
     }
     return res;
+  },
+  duration: function(val, milliseconds, show_milliseconds) {
+    var arr, m, ms, res;
+    if (milliseconds == null) {
+      milliseconds = false;
+    }
+    if (show_milliseconds == null) {
+      show_milliseconds = false;
+    }
+    if (milliseconds) {
+      ms = val % 1000;
+      val = (val / 1000) | 0;
+    }
+    arr = [];
+    m = (val / 60) | 0;
+    arr.push((m / 60) | 0);
+    arr.push(_pad(m % 60));
+    arr.push(_pad(val % 60));
+    res = arr.join(":");
+    if ((ms != null) && show_milliseconds) {
+      res += "." + (_pad(ms, 2));
+    }
+    return res;
   }
 };
 
 
 
-},{"../pi":36,"./base":37}],44:[function(require,module,exports){
+},{"../pi":36,"./base":38}],48:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.15 */
 /*
@@ -5865,7 +6125,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require('_process'))
-},{"_process":77,"fs":75,"path":76}],45:[function(require,module,exports){
+},{"_process":81,"fs":79,"path":80}],49:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -5952,7 +6212,7 @@ pi.net.IframeUpload = (function() {
 
 
 
-},{"../core":34,"./net":47}],46:[function(require,module,exports){
+},{"../core":34,"./net":51}],50:[function(require,module,exports){
 'use strict';
 require('./net');
 
@@ -5960,7 +6220,7 @@ require('./iframe.upload');
 
 
 
-},{"./iframe.upload":45,"./net":47}],47:[function(require,module,exports){
+},{"./iframe.upload":49,"./net":51}],51:[function(require,module,exports){
 'use strict';
 var method, pi, utils, _i, _len, _ref,
   __hasProp = {}.hasOwnProperty;
@@ -6211,7 +6471,7 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
 
 
 
-},{"../core":34}],48:[function(require,module,exports){
+},{"../core":34}],52:[function(require,module,exports){
 'use strict'
 window.pi = require('./core')
 require('./components')
@@ -6220,7 +6480,7 @@ require('./resources')
 require('./controllers')
 require('./views')
 module.exports = window.pi
-},{"./components":18,"./controllers":24,"./core":34,"./net":46,"./resources":66,"./views":74}],49:[function(require,module,exports){
+},{"./components":18,"./controllers":24,"./core":34,"./net":50,"./resources":70,"./views":78}],53:[function(require,module,exports){
 'use strict';
 require('./selectable');
 
@@ -6230,7 +6490,7 @@ require('./restful');
 
 
 
-},{"./renderable":50,"./restful":51,"./selectable":52}],50:[function(require,module,exports){
+},{"./renderable":54,"./restful":55,"./selectable":56}],54:[function(require,module,exports){
 'use strict';
 var pi, utils, _renderer_reg,
   __hasProp = {}.hasOwnProperty,
@@ -6304,7 +6564,7 @@ pi.Base.Renderable = (function(_super) {
 
 
 
-},{"../../components/base":5,"../../core":34,"../plugin":62}],51:[function(require,module,exports){
+},{"../../components/base":5,"../../core":34,"../plugin":66}],55:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -6331,6 +6591,7 @@ pi.Base.Restful = (function(_super) {
     var f, promise, rest;
     this.target = target;
     Restful.__super__.initialize.apply(this, arguments);
+    this._uid = utils.uid('r');
     if (!this.target.has_renderable) {
       this.target.attach_plugin(pi.Base.Renderable);
     }
@@ -6338,7 +6599,7 @@ pi.Base.Restful = (function(_super) {
       f = pi.Compiler.str_to_fun(rest);
       promise = f.call(this);
       if (!(promise instanceof Promise)) {
-        promise = promise ? utils.resolved_promise(promise) : utils.rejected_promise();
+        promise = promise ? utils.promise.resolved_promise(promise) : utils.promise.rejected_promise();
       }
       promise.then((function(_this) {
         return function(resource) {
@@ -6372,14 +6633,12 @@ pi.Base.Restful = (function(_super) {
     }
   };
 
-  Restful.prototype.resource_update = function() {
-    return this._resource_update || (this._resource_update = (function(_this) {
-      return function(e) {
-        utils.debug('Restful component event');
-        return _this.on_update(e.currentTarget);
-      };
-    })(this));
+  Restful.prototype.resource_update = function(e) {
+    utils.debug_verbose('Restful component event', e);
+    return this.on_update(e.currentTarget);
   };
+
+  Restful.event_handler('resource_update');
 
   Restful.prototype.on_update = function(data) {
     return this.target.render(data);
@@ -6395,7 +6654,7 @@ pi.Base.Restful = (function(_super) {
 
 
 
-},{"../../components/base/base":2,"../../core":34,"../plugin":62}],52:[function(require,module,exports){
+},{"../../components/base/base":2,"../../core":34,"../plugin":66}],56:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -6426,17 +6685,15 @@ pi.Base.Selectable = (function(_super) {
     return this;
   };
 
-  Selectable.prototype.click_handler = function() {
-    return this._click_handler || (this._click_handler = (function(_this) {
-      return function(e) {
-        if (!_this.target.enabled) {
-          return;
-        }
-        _this.toggle_select();
-        return false;
-      };
-    })(this));
+  Selectable.prototype.click_handler = function(e) {
+    if (!this.target.enabled) {
+      return;
+    }
+    this.toggle_select();
+    return false;
   };
+
+  Selectable.event_handler('click_handler');
 
   Selectable.prototype.toggle_select = function() {
     if (this.__selected__) {
@@ -6470,7 +6727,7 @@ pi.Base.Selectable = (function(_super) {
 
 
 
-},{"../../components/base":5,"../../core":34,"../plugin":62}],53:[function(require,module,exports){
+},{"../../components/base":5,"../../core":34,"../plugin":66}],57:[function(require,module,exports){
 'use strict';
 require('./plugin');
 
@@ -6480,7 +6737,7 @@ require('./list');
 
 
 
-},{"./base":49,"./list":55,"./plugin":62}],54:[function(require,module,exports){
+},{"./base":53,"./list":59,"./plugin":66}],58:[function(require,module,exports){
 'use strict';
 var pi, utils, _is_continuation,
   __hasProp = {}.hasOwnProperty,
@@ -6613,7 +6870,7 @@ pi.List.Filterable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62}],55:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66}],59:[function(require,module,exports){
 'use strict';
 require('./selectable');
 
@@ -6631,7 +6888,7 @@ require('./restful');
 
 
 
-},{"./filterable":54,"./nested_select":56,"./restful":57,"./scrollend":58,"./searchable":59,"./selectable":60,"./sortable":61}],56:[function(require,module,exports){
+},{"./filterable":58,"./nested_select":60,"./restful":61,"./scrollend":62,"./searchable":63,"./selectable":64,"./sortable":65}],60:[function(require,module,exports){
 'use strict';
 var pi, utils, _null,
   __hasProp = {}.hasOwnProperty,
@@ -6874,7 +7131,7 @@ pi.List.NestedSelect = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62,"./selectable":60}],57:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66,"./selectable":64}],61:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -6972,15 +7229,13 @@ pi.List.Restful = (function(_super) {
     return this.list.update();
   };
 
-  Restful.prototype.resource_update = function() {
-    return this._resource_update || (this._resource_update = (function(_this) {
-      return function(e) {
-        var _ref;
-        utils.debug('Restful list event', e.data.type);
-        return (_ref = _this["on_" + e.data.type]) != null ? _ref.call(_this, e.data[_this.resources.resource_name]) : void 0;
-      };
-    })(this));
+  Restful.prototype.resource_update = function(e) {
+    var _ref;
+    utils.debug_verbose('Restful list event', e);
+    return (_ref = this["on_" + e.data.type]) != null ? _ref.call(this, e.data[this.resources.resource_name]) : void 0;
   };
+
+  Restful.event_handler('resource_update');
 
   Restful.prototype.on_load = function() {
     if (!this.listen_load) {
@@ -7031,7 +7286,7 @@ pi.List.Restful = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62}],58:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66}],62:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7090,20 +7345,20 @@ pi.List.ScrollEnd = (function(_super) {
     return this.enabled = false;
   };
 
-  ScrollEnd.prototype.scroll_listener = function() {
-    return this._scroll_listener || (this._scroll_listener = utils.debounce(500, ((function(_this) {
-      return function(event) {
-        if (_this.list._disposed) {
-          return false;
-        }
-        if (_this._prev_top <= _this.scroll_object.scrollTop() && _this.list.height() - _this.scroll_object.scrollTop() - _this.scroll_object.height() < 50) {
-          _this.list.trigger(pi.ListEvent.ScrollEnd);
-        }
-        _this._prev_top = _this.scroll_object.scrollTop();
-        return false;
-      };
-    })(this)), this));
+  ScrollEnd.prototype.scroll_listener = function(event) {
+    if (this.list._disposed) {
+      return false;
+    }
+    if (this._prev_top <= this.scroll_object.scrollTop() && this.list.height() - this.scroll_object.scrollTop() - this.scroll_object.height() < 50) {
+      this.list.trigger(pi.ListEvent.ScrollEnd);
+    }
+    this._prev_top = this.scroll_object.scrollTop();
+    return false;
   };
+
+  ScrollEnd.event_handler('scroll_listener', {
+    throttle: 500
+  });
 
   ScrollEnd.prototype.dispose = function() {
     return this.disable();
@@ -7115,7 +7370,7 @@ pi.List.ScrollEnd = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62}],59:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66}],63:[function(require,module,exports){
 'use strict';
 var pi, utils, _clear_mark_regexp, _is_continuation, _selector_regexp,
   __hasProp = {}.hasOwnProperty,
@@ -7328,7 +7583,7 @@ pi.List.Searchable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62}],60:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66}],64:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7399,16 +7654,14 @@ pi.List.Selectable = (function(_super) {
     return this.is_check = !!value.match('check');
   };
 
-  Selectable.prototype.item_click_handler = function() {
-    return this._item_click_handler || (this._item_click_handler = (function(_this) {
-      return function(e) {
-        _this.list.toggle_select(e.data.item, true);
-        if (e.data.item.enabled) {
-          _this._check_selected();
-        }
-      };
-    })(this));
+  Selectable.prototype.item_click_handler = function(e) {
+    this.list.toggle_select(e.data.item, true);
+    if (e.data.item.enabled) {
+      this._check_selected();
+    }
   };
+
+  Selectable.event_handler('item_click_handler');
 
   Selectable.prototype._check_selected = function() {
     if (this.list.selected().length) {
@@ -7540,7 +7793,7 @@ pi.List.Selectable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62}],61:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66}],65:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7660,7 +7913,7 @@ pi.List.Sortable = (function(_super) {
 
 
 
-},{"../../components/base/list":8,"../../core":34,"../plugin":62}],62:[function(require,module,exports){
+},{"../../components/base/list":8,"../../core":34,"../plugin":66}],66:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7708,7 +7961,7 @@ pi.Plugin = (function(_super) {
 
 
 
-},{"../core":34}],63:[function(require,module,exports){
+},{"../core":34}],67:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7745,13 +7998,13 @@ pi.resources.Association = (function(_super) {
             _ref = _this.__all__;
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
               el = _ref[_i];
-              el.set(utils.wrap(_this.owner_name_id, _this.owner.id), true);
+              el.set(utils.obj.wrap(_this.owner_name_id, _this.owner.id), true);
             }
             if (_this.options._scope !== false) {
               if (((_ref1 = _this.options._scope) != null ? _ref1[_this.options.key] : void 0) != null) {
-                _this.options.scope = utils.merge(_this.options._scope, utils.wrap(_this.options.key, _this.owner.id));
+                _this.options.scope = utils.merge(_this.options._scope, utils.obj.wrap(_this.options.key, _this.owner.id));
               } else {
-                _this.options.scope = utils.wrap(_this.options.key, _this.owner.id);
+                _this.options.scope = utils.obj.wrap(_this.options.key, _this.owner.id);
               }
               return _this.reload();
             }
@@ -7852,7 +8105,7 @@ pi.resources.Association = (function(_super) {
 
 
 
-},{"../core":34,"./base":64,"./view":72}],64:[function(require,module,exports){
+},{"../core":34,"./base":68,"./view":76}],68:[function(require,module,exports){
 'use strict';
 var pi, utils, _singular,
   __hasProp = {}.hasOwnProperty,
@@ -8090,7 +8343,7 @@ pi.resources.Base = (function(_super) {
 
   Base._wrap = function(el) {
     if (el instanceof pi.resources.Base) {
-      return utils.wrap(el.constructor.resource_name, el);
+      return utils.obj.wrap(el.constructor.resource_name, el);
     } else {
       return el;
     }
@@ -8212,7 +8465,7 @@ pi.resources.Base = (function(_super) {
     if (typeof this["on_" + name + "_update"] === 'function') {
       this["on_" + name + "_update"].call(this, type, data);
     }
-    return this.trigger(pi.ResourceEvent.Update, utils.wrap(name, true));
+    return this.trigger(pi.ResourceEvent.Update, utils.obj.wrap(name, true));
   };
 
   return Base;
@@ -8241,7 +8494,7 @@ pi.resources.create = function(name, parent) {
 
 
 
-},{"../core":34,"./events":65}],65:[function(require,module,exports){
+},{"../core":34,"./events":69}],69:[function(require,module,exports){
 'use strict';
 var pi;
 
@@ -8256,7 +8509,7 @@ pi.ResourceEvent = {
 
 
 
-},{"../core":34}],66:[function(require,module,exports){
+},{"../core":34}],70:[function(require,module,exports){
 'use strict';
 require('./base');
 
@@ -8270,7 +8523,7 @@ require('./modules');
 
 
 
-},{"./association":63,"./base":64,"./modules":69,"./rest":71,"./view":72}],67:[function(require,module,exports){
+},{"./association":67,"./base":68,"./modules":73,"./rest":75,"./view":76}],71:[function(require,module,exports){
 'use strict';
 var pi, utils, _false, _true;
 
@@ -8323,7 +8576,7 @@ pi.resources.HasMany = (function() {
             options.copy = false;
           }
           options._scope = params.scope;
-          default_scope = utils.wrap(options.key, this.id);
+          default_scope = utils.obj.wrap(options.key, this.id);
           if (params.scope == null) {
             options.scope = this._persisted ? default_scope : false;
           } else {
@@ -8403,7 +8656,7 @@ pi.resources.HasMany = (function() {
 
 
 
-},{"../../core":34,"../rest":71}],68:[function(require,module,exports){
+},{"../../core":34,"../rest":75}],72:[function(require,module,exports){
 'use strict';
 var pi, utils, _false, _true;
 
@@ -8472,7 +8725,7 @@ pi.resources.HasOne = (function() {
               target[bind_fun](el, true);
             }
             if (_update_filter(e, el)) {
-              return target.trigger_assoc_event(name, e.type, utils.wrap(name, _this[name]));
+              return target.trigger_assoc_event(name, e.type, utils.obj.wrap(name, _this[name]));
             }
           }
         }
@@ -8490,12 +8743,12 @@ pi.resources.HasOne = (function() {
         this[name][params.foreign_key] = this.id;
       }
       if (!(silent || !_update_filter(null, el))) {
-        return this.trigger_assoc_event(name, pi.ResourceEvent.Create, utils.wrap(name, this[name]));
+        return this.trigger_assoc_event(name, pi.ResourceEvent.Create, utils.obj.wrap(name, this[name]));
       }
     };
     this.after_initialize(function() {
       var el;
-      if (this._persisted && (el = params.source.get_by(utils.wrap(params.foreign_key, this.id)))) {
+      if (this._persisted && (el = params.source.get_by(utils.obj.wrap(params.foreign_key, this.id)))) {
         return this[bind_fun](el, true);
       }
     });
@@ -8504,7 +8757,7 @@ pi.resources.HasOne = (function() {
       if (data instanceof pi.resources.Base) {
         return;
       }
-      if (this._persisted && !this[name] && (el = params.source.get_by(utils.wrap(params.foreign_key, this.id)))) {
+      if (this._persisted && !this[name] && (el = params.source.get_by(utils.obj.wrap(params.foreign_key, this.id)))) {
         this[bind_fun](el, true);
       }
       if (data[name]) {
@@ -8538,7 +8791,7 @@ pi.resources.HasOne = (function() {
 
 
 
-},{"../../core":34,"../rest":71}],69:[function(require,module,exports){
+},{"../../core":34,"../rest":75}],73:[function(require,module,exports){
 'use strict';
 require('./query');
 
@@ -8548,7 +8801,7 @@ require('./has_one');
 
 
 
-},{"./has_many":67,"./has_one":68,"./query":70}],70:[function(require,module,exports){
+},{"./has_many":71,"./has_one":72,"./query":74}],74:[function(require,module,exports){
 'use strict';
 var pi, utils;
 
@@ -8579,7 +8832,7 @@ pi.resources.Query = (function() {
 
 
 
-},{"../../core":34,"../rest":71}],71:[function(require,module,exports){
+},{"../../core":34,"../rest":75}],75:[function(require,module,exports){
 'use strict';
 var pi, utils, _double_slashes_reg, _path_reg, _tailing_slash_reg,
   __hasProp = {}.hasOwnProperty,
@@ -8809,7 +9062,7 @@ pi.resources.REST = (function(_super) {
     var el;
     el = this.get(id);
     if (el != null) {
-      return utils.resolved_promise(el);
+      return utils.promise.resolved_promise(el);
     } else {
       return this.show({
         id: id
@@ -8821,7 +9074,7 @@ pi.resources.REST = (function(_super) {
     var el;
     el = this.get_by(params);
     if (el != null) {
-      return utils.resolved_promise(el);
+      return utils.promise.resolved_promise(el);
     } else {
       return this.show(params);
     }
@@ -8842,7 +9095,7 @@ pi.resources.REST = (function(_super) {
     if (this._persisted) {
       return this.__destroy();
     } else {
-      return utils.as_promise((function(_this) {
+      return utils.promise.as_promise((function(_this) {
         return function() {
           return _this.remove();
         };
@@ -8881,7 +9134,7 @@ pi.resources.REST = (function(_super) {
   REST.prototype.attributes = function() {
     if (this.__attributes__changed__) {
       if (this.__filter_params__) {
-        this.__attributes__ = utils.extract({}, this, this.__filter_params__);
+        this.__attributes__ = utils.extract(this, this.__filter_params__);
       } else {
         this.__attributes__ = REST.__super__.attributes.apply(this, arguments);
       }
@@ -8944,7 +9197,7 @@ pi.resources.REST = (function(_super) {
 
 
 
-},{"../core":34,"./base":64}],72:[function(require,module,exports){
+},{"../core":34,"./base":68}],76:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -8987,7 +9240,7 @@ pi.resources.ViewItem = (function(_super) {
   ViewItem.prototype.attributes = function() {
     var data;
     if (this.options.params != null) {
-      data = utils.extract({}, this, this.options.params);
+      data = utils.extract(this, this.options.params);
       if (this.options.id_alias != null) {
         if (this.options.id_alias) {
           data[this.options.id_alias] = data.id;
@@ -9111,9 +9364,9 @@ pi.resources.View = (function(_super) {
 
   View.prototype._wrap = function(el) {
     if (el instanceof pi.resources.ViewItem) {
-      return utils.wrap(el.view.resource_name, el);
+      return utils.obj.wrap(el.view.resource_name, el);
     } else if (el instanceof pi.resources.Base) {
-      return utils.wrap(el.constructor.resource_name, el);
+      return utils.obj.wrap(el.constructor.resource_name, el);
     } else {
       return el;
     }
@@ -9149,7 +9402,7 @@ pi.resources.View = (function(_super) {
 
 
 
-},{"../core":34,"./base":64}],73:[function(require,module,exports){
+},{"../core":34,"./base":68}],77:[function(require,module,exports){
 'use strict';
 var pi, utils,
   __hasProp = {}.hasOwnProperty,
@@ -9190,7 +9443,7 @@ pi.BaseView = (function(_super) {
     var controller_klass;
     controller_klass = null;
     if (this.options.controller) {
-      controller_klass = utils.get_class_path(pi.controllers, this.options.controller);
+      controller_klass = utils.obj.get_class_path(pi.controllers, this.options.controller);
     }
     controller_klass || (controller_klass = this.default_controller);
     if (controller_klass != null) {
@@ -9215,15 +9468,15 @@ pi.BaseView = (function(_super) {
 
 
 
-},{"../components/base":5,"../core":34}],74:[function(require,module,exports){
+},{"../components/base":5,"../core":34}],78:[function(require,module,exports){
 'use strict';
 require('./base');
 
 
 
-},{"./base":73}],75:[function(require,module,exports){
+},{"./base":77}],79:[function(require,module,exports){
 
-},{}],76:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9451,7 +9704,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":77}],77:[function(require,module,exports){
+},{"_process":81}],81:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -9516,4 +9769,4 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}]},{},[48]);
+},{}]},{},[52]);

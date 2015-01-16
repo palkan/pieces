@@ -45,11 +45,12 @@ class pi.List.Selectable extends pi.Plugin
     @is_radio = !!value.match('radio')
     @is_check = !!value.match('check')
 
-  item_click_handler: ->
-    @_item_click_handler ||= (e) =>
-      @list.toggle_select e.data.item, true
-      @_check_selected() if e.data.item.enabled
-      return      
+  item_click_handler: (e) ->
+    @list.toggle_select e.data.item, true
+    @_check_selected() if e.data.item.enabled
+    return      
+
+  @event_handler 'item_click_handler'
 
   _check_selected: ->
     if @list.selected().length then @list.trigger(pi.Events.Selected, @list.selected()) else @list.trigger(pi.Events.SelectionCleared)

@@ -50,7 +50,8 @@ describe "scroll_end list plugin", ->
       list.on 'scroll_end', spy_fun
 
       utils.after 500, =>
-        done() if spy_fun.callCount is 1
+        expect(spy_fun.callCount).to.eq 1
+        done()
 
       list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 49 
       utils.after 200, =>
@@ -64,7 +65,8 @@ describe "scroll_end list plugin", ->
       list.on 'scroll_end', spy_fun
 
       utils.after 1200, =>
-       done() if spy_fun.callCount is 2
+        expect(spy_fun.callCount).to.eq 2
+        done()
 
       list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 40 
 

@@ -50,6 +50,20 @@ class pi.Core
 
     (@callbacked||=[]).push method
 
+  ## Event handler generator
+
+  _before = (name) ->
+    if @["__h__#{name}"]?
+      return @["__h__#{name}"]
+
+  _after = (name, res) ->
+    @["__h__#{name}"] = res
+
+  @event_handler: (name, options={}) ->
+    return utils.error("undefined handler", @, name) unless typeof @::[name] is 'function'
+    @::[name] = utils.func.unwrap(@::[name], options)
+    @::[name] = utils.func.wrap(@::[name], utils.curry(_before, name), utils.curry(_after, name), break_if_value: true)
+
   constructor: ->
     # apply callbacks to methods
     for method in (@constructor.callbacked||[])

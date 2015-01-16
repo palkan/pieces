@@ -29,7 +29,6 @@ class TestHelpers
     select
   
   @mouseEventElement: (el,type, x=0, y=0) ->
-    pi.utils.info "Trigger: #{type}"
     ev = document.createEvent "MouseEvent"
     ev.initEvent(
       type,

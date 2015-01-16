@@ -13,7 +13,7 @@ class pi.ComponentInitializer
     else
       # here we store component class name (snake_case) in Component class itself
       component.class_name = component_name
-      utils.debug "Component created: #{component_name}"
+      utils.debug_verbose "Component created: #{component_name}"
       component
 
   @gather_options: (el, component_name = "base") ->

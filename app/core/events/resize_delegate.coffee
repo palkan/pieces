@@ -18,7 +18,7 @@ class pi.NodEvent.ResizeListener extends pi.EventListener
         false
     super 'resize', @handler, @nod, false, _filter
     
-class pi.NodEvent.ResizeDelegate
+class pi.NodEvent.ResizeDelegate extends pi.Core
   constructor: ->
     @listeners = []
 
@@ -42,10 +42,11 @@ class pi.NodEvent.ResizeDelegate
   off: ->
     pi.NodEvent.remove pi.Nod.win.node, 'resize', @resize_listener()
 
-  resize_listener: ->
-    @_resize_listener ||= utils.throttle 300, (e) =>
-      for listener in @listeners
-        listener.dispatch @_create_event(listener)
+  resize_listener: (e) ->
+    for listener in @listeners
+      listener.dispatch @_create_event(listener)
+
+  @event_handler 'resize_listener', throttle: 300
 
   _create_event: (listener) ->
     nod = listener.nod

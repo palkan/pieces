@@ -14,6 +14,7 @@ class pi.Base.Restful extends pi.Plugin
   id: 'restful'
   initialize: (@target) ->
     super
+    @_uid = utils.uid('r')
     unless @target.has_renderable
       @target.attach_plugin pi.Base.Renderable
 
@@ -44,10 +45,11 @@ class pi.Base.Restful extends pi.Plugin
     @resource.on [pi.ResourceEvent.Update,pi.ResourceEvent.Create], @resource_update()
     @target.render(resource) if render
 
-  resource_update: () ->
-    @_resource_update ||= (e) =>
-      utils.debug 'Restful component event'
-      @on_update e.currentTarget
+  resource_update: (e) ->
+    utils.debug_verbose 'Restful component event', e
+    @on_update e.currentTarget
+
+  @event_handler 'resource_update'
 
   on_update: (data) ->
     @target.render data

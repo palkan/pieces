@@ -127,7 +127,7 @@ class pi.Base extends pi.Nod
       
   attach_plugin: (plugin) ->
     if plugin?
-      utils.debug "plugin attached #{plugin::id}"
+      utils.debug_verbose "plugin attached #{plugin::id}"
       @__plugins__.push plugin.attached(@)
 
   find_plugin: (name) ->

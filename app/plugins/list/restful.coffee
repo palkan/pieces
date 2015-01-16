@@ -55,10 +55,11 @@ class pi.List.Restful extends pi.Plugin
       @items_by_id[item.id] = @list.add_item(item, true) unless @items_by_id[item.id] and @listen_load
     @list.update()
 
-  resource_update: () ->
-    @_resource_update ||= (e) =>
-      utils.debug 'Restful list event', e.data.type
-      @["on_#{e.data.type}"]?.call(@, e.data[@resources.resource_name])
+  resource_update: (e) ->
+    utils.debug_verbose 'Restful list event', e
+    @["on_#{e.data.type}"]?.call(@, e.data[@resources.resource_name])
+
+  @event_handler 'resource_update'
 
   on_load: ->
     return unless @listen_load
