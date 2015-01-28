@@ -274,7 +274,7 @@ Nod.root.ready ->
     'a', 
     'click', 
     (e) ->
-      if e.target.attr("href")[0] == "@"
+      if e.target.attr("href")?[0] == "@"
         e.cancel()
         utils.debug "handle pi click: #{e.target.attr("href")}"
         e.target.pi_call e.target, e.target.attr("href")
