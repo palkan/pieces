@@ -77,7 +77,8 @@ class pi.List.Searchable extends pi.Plugin
     @searching = false
     @list.removeClass 'is-searching'
     items = @all_items()
-    @clear_highlight items
+    @clear_highlight(items) in @__highlighted__
+    @__highlighted__ = false
     @list.data_provider(items, false, false) if rollback
     @_all_items = null
     @matcher = null
@@ -100,6 +101,7 @@ class pi.List.Searchable extends pi.Plugin
 
   highlight: (q) ->
     @_prevq = q
+    @__highlighted__ = true
     @highlight_item(q,item) for item in @list.items
     return
 
