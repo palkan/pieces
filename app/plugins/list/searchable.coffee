@@ -77,7 +77,7 @@ class pi.List.Searchable extends pi.Plugin
     @searching = false
     @list.removeClass 'is-searching'
     items = @all_items()
-    @clear_highlight(items) in @__highlighted__
+    @clear_highlight(items) if @__highlighted__
     @__highlighted__ = false
     @list.data_provider(items, false, false) if rollback
     @_all_items = null
