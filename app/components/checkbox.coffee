@@ -54,7 +54,7 @@ class pi.Checkbox extends pi.BaseInput
       super
 
   clear: (silent=false) ->
-    @value false
+    @value `this.options.default_value == this._true_val`
     @trigger pi.InputEvent.Clear unless silent
 
 pi.Guesser.rules_for 'checkbox', ['pi-checkbox-wrap'], null
