@@ -79,6 +79,9 @@ class pi.Net
     )
 
   @use_json: true
+  
+  @method_override: false
+
   @headers: []
   
   @request: (method, url, data, options={}, xhr) ->
@@ -100,6 +103,12 @@ class pi.Net
             url+="#{ q }"
           data = null
         else
+          # override methods see Rack::MethodOverride
+          if @method_override is true
+            data._method = method 
+            _headers['X-HTTP-Method-Override'] = method         
+            method = 'POST'
+
           if use_json  
             _headers['Content-Type'] = 'application/json'
             data = JSON.stringify(data) if data?
