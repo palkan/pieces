@@ -1,7 +1,5 @@
 'use strict'
-pi = require '../pi'
-require './base'
-utils = pi.utils
+utils = require './base'
 
 _reg = /%([a-zA-Z])/g
 
@@ -108,3 +106,5 @@ utils.time =
     if ms? and show_milliseconds
       res+=".#{_pad(ms,2)}"
     res
+
+module.exports = utils.time

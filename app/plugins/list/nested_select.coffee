@@ -124,3 +124,5 @@ class pi.List.NestedSelect extends pi.List.Selectable
       else if (sublist = item.find(".#{@nested_klass}"))
         _selected = _selected.concat (sublist.selected?()||[])
     _selected
+
+module.exports = pi.List.NestedSelect

@@ -66,3 +66,5 @@ class pi.List.Sortable extends pi.Plugin
     @_prevs = sort_params
     @_compare_fun = (a,b) -> utils.keys_compare a.record, b.record, sort_params
     @list.trigger pi.ListEvent.Sorted, sort_params
+
+module.exports = pi.List.Sortable

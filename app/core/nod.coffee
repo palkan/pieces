@@ -1,8 +1,7 @@
 'use strict'
 pi = require './pi'
-require './utils'
+utils = require './utils'
 require './events'
-utils = pi.utils
 
 _prop_hash = (method, callback) ->
   pi.Nod::[method] = (prop, val) ->
@@ -556,8 +555,6 @@ class pi.NodRoot extends pi.Nod
   width: ->
     window.innerWidth || @node.clientWidth
 
-pi.Nod.root = new pi.NodRoot()
-
 class pi.NodWin extends pi.Nod
   @instance: null
 
@@ -587,34 +584,4 @@ class pi.NodWin extends pi.Nod
   y: ->
     0
 
-pi.Nod.win = new pi.NodWin()
-pi.Nod.body = new pi.Nod document.body
-
-pi.$ = (q) ->
-  if utils.is_html q
-    pi.Nod.create q
-  else
-    pi.Nod.root.find q
-
-pi.export(pi.$, '$')
-
-info = utils.browser.info()
-klasses = []
-
-if info.msie is true
-  klasses.push 'ie'
-  versions = info.version.split(".")
-  version = if versions.length then versions[0] else version
-  klasses.push "ie#{version}"
-
-if info.mobile is true
-  klasses.push 'mobile'
-
-if info.tablet is true
-  klasses.push 'tablet'
-
-if klasses.length
-  pi.Nod.root.addClass.apply pi.Nod.root, klasses
-
-pi.Nod.root.initialize()
-
+module.exports = pi.Nod

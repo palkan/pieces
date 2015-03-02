@@ -6,3 +6,5 @@ pi.ResourceEvent =
   Create: 'create'
   Destroy: 'destroy'
   Load: 'load'
+
+module.exports = pi.ResourceEvent

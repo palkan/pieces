@@ -85,3 +85,5 @@ class pi.resources.HasMany
         data = _old.call(@)
         data[name] = @[name]().serialize()
         data
+
+module.exports = pi.resources.HasMany

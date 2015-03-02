@@ -39,3 +39,5 @@ class pi.Base.Renderable extends pi.Plugin
       if klass?
         return new klass(param)
     new pi.Renderers.Base()
+
+module.exports = pi.Base.Renderable

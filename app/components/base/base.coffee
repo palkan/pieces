@@ -190,3 +190,5 @@ class pi.Base extends pi.Nod
       @remove_component child
       child.remove()
     super
+
+module.exports = pi.Base

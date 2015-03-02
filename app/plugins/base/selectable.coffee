@@ -37,3 +37,5 @@ class pi.Base.Selectable extends pi.Plugin
       @target.removeClass pi.klass.SELECTED
       @target.trigger pi.Events.Selected, false
     @
+
+module.exports = pi.Base.Selectable

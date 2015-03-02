@@ -245,3 +245,5 @@ class pi.List extends pi.Base
     if item and item.host is @
       @trigger pi.ListEvent.ItemClick, {item: item}
       true
+
+module.exports = pi.List

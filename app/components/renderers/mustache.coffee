@@ -2,9 +2,9 @@
 pi = require '../../core'
 require './base'
 utils = pi.utils
+
 # [Renderer]
 # Mustache based renderer
-
 class pi.Renderers.Mustache extends pi.Renderers.Base
   constructor: (template) ->
     throw Error('Mustache not found') unless window.Mustache?
@@ -20,3 +20,5 @@ class pi.Renderers.Mustache extends pi.Renderers.Base
     else
       nod = pi.Nod.create window.Mustache.render(@template,data)
       @_render nod, data, piecified, host
+
+module.exports = pi.Renderers.Mustache

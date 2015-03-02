@@ -122,3 +122,5 @@ _view_context_mdf = (str) ->
 
 pi.Compiler.modifiers.push _view_context_mdf
 pi.call = pi.Compiler.call
+
+module.exports = pi.Compiler

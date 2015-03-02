@@ -1,6 +1,6 @@
 'use strict'
 pi = require '../pi'
-utils = pi.utils
+utils = require '../utils'
 
 class pi.Former
   constructor: (@nod, @options={}) ->
@@ -207,3 +207,5 @@ class pi.Former
 
   _rails_name_transform: (name) ->
     name.replace(/\[([^\]])/ig, ".$1").replace(/([^\[])([\]]+)/ig,"$1")
+
+module.exports = pi.Former

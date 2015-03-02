@@ -1,7 +1,5 @@
 'use strict'
-pi = require '../pi'
-require './base'
-utils = pi.utils
+utils = require './base'
 
 # Object utils
 class utils.obj
@@ -49,3 +47,5 @@ class utils.obj
     for _,i in arr by 2
       data[arr[i]] = arr[i+1]
     data
+
+module.exports = utils.obj

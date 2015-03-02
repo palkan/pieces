@@ -1,11 +1,7 @@
 'use strict'
 pi = require '../pi'
-require '../utils'
+utils = require '../utils'
 require './events'
-
-utils = pi.utils
-
-#Events = pi.Events || {}
 
 class pi.NodEvent extends pi.Event
 
@@ -178,3 +174,5 @@ class pi.NodEventDispatcher extends pi.EventDispatcher
         @remove_native_listener type
         @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
     super
+
+module.exports = pi.NodEventDispatcher

@@ -98,3 +98,5 @@ pi.Compiler.modifiers.push (str) ->
   if str[0..1] is '@@'
     str = "@app.page.context." + str[2..]
   str
+
+module.exports = pi.controllers.Page

@@ -1,7 +1,6 @@
 'use strict'
 pi = require './pi'
-require './utils'
-utils = pi.utils
+utils = require './utils'
 
 class pi.Core
   # extend class prototype with mixin methods
@@ -83,3 +82,5 @@ class pi.Core
         @[method] = (args...) ->
           to[method].apply(to, args)
     return
+
+module.exports = pi.Core

@@ -1,7 +1,5 @@
 'use strict'
-pi = require '../pi'
-require './base'
-utils = pi.utils
+utils = require './base'
 
 # function modification utils
 class utils.func
@@ -67,3 +65,5 @@ class utils.func
         return utils.throttle options.throttle, fun, ths||@
       
       fun.bind(ths||@)
+
+module.exports = utils.func

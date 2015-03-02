@@ -47,3 +47,5 @@ class pi.List.ScrollEnd extends pi.Plugin
 
   dispose: ->
     @disable()
+
+module.exports = pi.List.ScrollEnd

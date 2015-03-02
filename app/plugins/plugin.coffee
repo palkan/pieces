@@ -22,3 +22,5 @@ class pi.Plugin extends pi.Core
 
   dispose: ->
     true
+
+module.exports = pi.Plugin

@@ -1,5 +1,5 @@
 'use strict'
-require './base'
+utils = require './base'
 require './arr'
 require './obj'
 require './promise'
@@ -8,3 +8,4 @@ require './browser'
 require './time'
 require './logger'
 require './matchers'
+module.exports = utils

@@ -1,10 +1,9 @@
 'use strict'
 pi = require '../pi'
-require '../utils/index'
+utils = require '../utils'
 require '../core'
-utils = pi.utils
 
-# Extend Nod 
+# Base event class
 class pi.Event extends pi.Core
   constructor: (event, @target, bubbles = true) ->
     if event? and typeof event is "object"
@@ -174,3 +173,5 @@ class pi.EventDispatcher extends pi.Core
   remove_all: ->
     @listeners = {}
     @listeners_by_key = {} 
+
+module.exports = pi.EventDispatcher

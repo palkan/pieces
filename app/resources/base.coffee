@@ -3,8 +3,6 @@ pi = require '../core'
 require './events'
 utils = pi.utils
 
-pi.resources = {}
-
 #shortcut
 pi.export(pi.resources,"$r")
 
@@ -242,3 +240,5 @@ pi.resources.create = (name, parent = $r.Base) ->
   else
     klass.set_resource "unknown"
   klass
+
+module.export = pi.resources.Base

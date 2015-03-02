@@ -15,3 +15,5 @@ pi.klass =
   FILTERED: 'is-filtered'
   SEARCHING: 'is-searching'
   EMPTY: 'is-empty'
+
+module.exports = pi.klass

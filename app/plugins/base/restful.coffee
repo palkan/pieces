@@ -56,3 +56,5 @@ class pi.Base.Restful extends pi.Plugin
 
   dispose: ->
     @bind null
+
+module.exports = pi.Base.Restful

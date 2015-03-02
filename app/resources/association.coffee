@@ -87,3 +87,5 @@ class pi.resources.Association extends pi.resources.View
     if @options.scope
       @load @resources.where(@options.scope)
       @trigger pi.ResourceEvent.Load,{}
+
+module.exports = pi.resources.Association

@@ -1,7 +1,6 @@
 'use strict'
 pi = require '../core'
 utils = pi.utils
-pi.controllers = {}
 
 app = pi.app
 
@@ -36,3 +35,5 @@ class pi.controllers.Base extends pi.Core
 
   switch: (to, data) ->
     app.page.switch_context @id, to, data
+
+module.exports = pi.controllers.Base

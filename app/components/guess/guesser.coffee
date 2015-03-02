@@ -3,7 +3,6 @@ pi = require '../../core'
 utils = pi.utils
 
 # Class helps to infere component class from Nod
-
 class pi.Guesser
   @klasses: []
   @klass_reg: null
@@ -72,3 +71,5 @@ class pi.Guesser
           return match
 
     return 'base'
+
+module.exports = pi.Guesser

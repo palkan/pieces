@@ -30,3 +30,5 @@ class pi.TextInput extends pi.BaseInput
       @blur()
       @trigger pi.InputEvent.Editable, false
     @
+
+module.exports = pi.TextInput

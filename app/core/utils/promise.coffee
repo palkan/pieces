@@ -1,7 +1,5 @@
 'use strict'
-pi = require '../pi'
-require './base'
-utils = pi.utils
+utils = require './base'
 
 # Object utils
 class utils.promise
@@ -18,3 +16,5 @@ class utils.promise
 
   @rejected_promise: (error) ->
     new Promise((_,reject) -> reject(error))
+
+module.exports = utils.promise

@@ -247,3 +247,5 @@ pi.export pi.utils.delayed, 'delayed'
 pi.export pi.utils.after, 'after'
 pi.export pi.utils.debounce, 'debounce'
 pi.export pi.utils.throttle, 'throttle'
+
+module.exports = pi.utils

@@ -139,3 +139,5 @@ class pi.Form extends pi.Base
     
     utils.obj.set_path @_value, name, val
     @trigger pi.FormEvent.Update, @_value unless silent
+
+module.exports = pi.Form

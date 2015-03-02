@@ -1,7 +1,5 @@
 'use strict'
-pi = require '../pi'
-require './base'
-utils = pi.utils
+utils = require './base'
 
 class utils.arr
   # sort array by many keys provided as hash: {key: order}
@@ -36,3 +34,5 @@ class utils.arr
     if (size is 1)
       return arr[utils.random(len-1)]
     @shuffle(arr)[0..(size-1)]
+
+module.exports = utils.arr

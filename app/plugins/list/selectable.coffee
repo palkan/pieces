@@ -105,3 +105,5 @@ class pi.List.Selectable extends pi.Plugin
 
   selected_size: ->
     @list.selected().length
+
+module.exports = pi.List.Selectable

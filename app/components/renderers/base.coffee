@@ -2,8 +2,6 @@
 pi = require '../../core'
 utils = pi.utils
 
-pi.Renderers = {}
-
 class pi.Renderers.Base
   render: (nod, piecified, host) ->
     return unless nod instanceof pi.Nod
@@ -14,3 +12,5 @@ class pi.Renderers.Base
       nod = nod.piecify(host) if piecified
     nod.record = data
     nod
+
+module.exports = pi.Renderers.Base

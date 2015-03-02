@@ -35,6 +35,15 @@ pi.piecify = (nod,host) ->
 # Global Event Dispatcher
 pi.event = new pi.EventDispatcher()
 
+# Main components
+# Window
+pi.Nod.win = new pi.NodWin()
+# Body
+pi.Nod.body = new pi.Nod document.body
+# Document
+pi.Nod.root = new pi.NodRoot()
+pi.Nod.root.initialize()
+
 # return component by its path (relative to app.view)
 # find('a.b.c') -> app.view.a.b.c
 pi.find = (pid_path, from) ->
@@ -56,7 +65,7 @@ pi.Nod.root.ready ->
     'a', 
     'click', 
     (e) ->
-      if e.target.attr("href")[0] == "@"
+      if (href = e.target.attr("href")) and href[0] is "@"
         e.cancel()
         utils.debug "handle pi click: #{e.target.attr("href")}"
         e.target.pi_call e.target, e.target.attr("href")

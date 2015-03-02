@@ -113,3 +113,5 @@ class pi.resources.View extends pi.EventDispatcher
 
   off: (callback) ->
     super "update", callback
+
+module.exports = pi.resources.View

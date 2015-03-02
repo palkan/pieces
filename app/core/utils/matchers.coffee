@@ -1,8 +1,5 @@
 'use strict'
-pi = require '../pi'
-require './base'
-
-utils = pi.utils
+utils = require './base'
 
 _operands = 
   "?":(values) ->
@@ -29,7 +26,7 @@ _operands =
 _key_operand = /^([\w\d_]+)(\?&|>|<|~|\?)$/
 
 # Filter functions generators
-class pi.utils.matchers
+class utils.matchers
   # object matcher
   # if 'all' is true then matching objects must include passed object
   # @example matchers.object(type: 1, kind: 2) returns 'true' on {type: 1, kind:2, ...}
@@ -91,3 +88,5 @@ class pi.utils.matchers
         else
           matchers[key] = val
     @object matchers, all
+
+module.exports = utils.matchers

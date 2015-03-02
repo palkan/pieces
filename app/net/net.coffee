@@ -186,4 +186,6 @@ pi.Net.XHR_UPLOAD = !!window.FormData
 # backward compatibility
 pi.net = pi.Net
   
-pi.net[method] = utils.curry(pi.net.request, [method.toUpperCase()], pi.net) for method in ['get', 'post', 'patch', 'delete']
+pi.Net[method] = utils.curry(pi.Net.request, [method.toUpperCase()], pi.Net) for method in ['get', 'post', 'patch', 'put', 'delete']
+
+module.exports = pi.Net

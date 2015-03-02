@@ -39,3 +39,5 @@ class pi.ComponentInitializer
       return nod 
     else
       new component(nod.node,host,@gather_options(nod, component.class_name))
+
+module.exports = pi.ComponentInitializer

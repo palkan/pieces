@@ -233,3 +233,5 @@ class pi.resources.REST extends pi.resources.Base
     data = {}
     data[@constructor.resource_name] = attributes
     data
+
+module.exports = pi.resources.REST

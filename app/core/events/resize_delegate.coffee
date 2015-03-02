@@ -1,8 +1,7 @@
 'use strict'
 pi = require '../pi'
-require '../utils'
+utils = require '../utils'
 require './nod_events'
-utils = pi.utils
 
 class pi.NodEvent.ResizeListener extends pi.EventListener
   constructor: (@nod, @handler) ->

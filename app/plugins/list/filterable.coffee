@@ -77,3 +77,5 @@ class pi.List.Filterable extends pi.Plugin
     @list.data_provider(_buffer, false, false)
 
     @list.trigger pi.ListEvent.Filtered, true
+
+module.exports = pi.List.Filterable

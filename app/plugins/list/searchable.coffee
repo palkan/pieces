@@ -126,3 +126,5 @@ class pi.List.Searchable extends pi.Plugin
     if highlight
       @highlight(q)
     @list.trigger pi.ListEvent.Searched, true
+
+module.exports = pi.List.Searchable

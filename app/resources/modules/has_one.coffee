@@ -86,3 +86,5 @@ class pi.resources.HasOne
         data = _old.call(@)
         data[name] = @[name].attributes()
         data
+
+module.exports = pi.resources.HasOne

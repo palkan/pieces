@@ -39,3 +39,5 @@ class pi.BaseInput.Validator
     unless conf_nod?
       return false
     return conf_nod.value() is val 
+
+module.exports = pi.BaseInput.Validator

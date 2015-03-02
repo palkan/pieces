@@ -41,20 +41,27 @@ describe "Pieces RVC", ->
 
     describe "initialization", ->
 
-      it "should set contexts (without main)", ->
-        pi.app.initialize()
-        expect(page.context).to.be.undefined
-        expect(page._contexts['test']).to.be.instanceof Controller
-        expect(page._contexts['test_preload']).to.be.instanceof Controller
+      xit "should set contexts (without main)", (done) ->
+        pi.app.initialize().then(
+          (->
+            expect(page.context).to.be.undefined
+            expect(page._contexts['test']).to.be.instanceof Controller
+            expect(page._contexts['test_preload']).to.be.instanceof Controller
+            done()
+          ),
+          done
+        )
 
       it "should set contexts with main", (done) ->
         cont = test_div.find('.pi')
         cont.data('main',true)
         pi.app.initialize().then(
-          =>
+          (->
             expect(page.context).to.be.instanceof Controller
             expect(page._contexts['test']).to.be.instanceof Controller
             done()
+          ),
+          done
         )
 
 

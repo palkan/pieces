@@ -3,7 +3,7 @@ pi = require '../core'
 require './net'
 utils = pi.utils
 
-class pi.net.IframeUpload
+class pi.Net.IframeUpload
   @_build_iframe = (id) ->
     iframe = pi.Nod.create 'iframe'
     iframe.attrs id: id, name: id, width: 0, height: 0, border: 0
@@ -41,3 +41,5 @@ class pi.net.IframeUpload
 
         form.node.submit()
     )
+
+module.exports = pi.Net.IframeUpload

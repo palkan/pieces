@@ -88,3 +88,5 @@ class pi.List.Restful extends pi.Plugin
   dispose: ->
     @items_by_id = {}
     @resources.off(@resource_update()) if @resources?
+
+module.exports = pi.List.Restful

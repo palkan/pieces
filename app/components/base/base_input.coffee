@@ -31,3 +31,5 @@ class pi.BaseInput extends pi.Base
     else
       @value ''
     @trigger(pi.InputEvent.Clear) unless silent
+
+module.exports = pi.BaseInput

@@ -1,7 +1,7 @@
 'use strict'
 pi = require '../core'
+utils = require '../core/utils'
 require '../components/base'
-utils = pi.utils
 
 utils.extend pi.Base::,
   view: ->
@@ -39,3 +39,5 @@ class pi.BaseView extends pi.Base
 
   unloaded: ->
     return
+
+module.exports = pi.BaseView

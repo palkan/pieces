@@ -15,3 +15,5 @@ class pi.resources.Query
       (response) =>
         @on_all response
       ) 
+
+module.exports = pi.resources.Query
