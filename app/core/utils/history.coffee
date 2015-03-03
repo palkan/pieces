@@ -10,7 +10,7 @@ class History
   # if queue length is greater than limit, drop the past
   push: (item) ->
     if @_position < -1
-      @_storage.splice (@_storage.length+@_position),(-@_position)
+      @_storage.splice (@_storage.length+@_position+1),(-@_position+1)
       @_position = -1
     @_storage.push item
     # check limit

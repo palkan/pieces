@@ -1,29 +1,25 @@
 'use strict'
 pi = require '../core'
+Context = require './context'
 utils = pi.utils
 
-app = pi.app
-
-class pi.controllers.Base extends pi.Core
+class pi.controllers.Base extends Context
   id: 'base'
 
-  constructor: (@view) ->
-    @_initialized = false
+  constructor: (options, @view) ->
+    super(options)
 
-  initialize: ->
-    @_initialized = true
+  load: (data={}) ->
+    promise = super
+    @view.loaded(data.params)
+    promise
 
-  load: (context_data) ->
-    @initialize() unless @_initialized
-    @view.loaded context_data.data
+  activate: (data={}) ->
+    @view.activated data.params
     return
 
-  reload: (context_data) ->
-    @view.reloaded context_data.data
-    return
-
-  switched: ->
-    @view.switched()
+  deactivated: ->
+    @view.deactivated()
     return
 
   unload: ->
@@ -31,9 +27,9 @@ class pi.controllers.Base extends pi.Core
     return
 
   exit: (data) ->
-    app.page.switch_back data
+    @host_context.switch_back data
 
   switch: (to, data) ->
-    app.page.switch_context @id, to, data
+    @host_context.switch_context @id, to, data
 
 module.exports = pi.controllers.Base

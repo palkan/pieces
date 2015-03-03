@@ -66,6 +66,8 @@ class Context extends pi.Core
 
   dispose: ->
     @_contexts = {}
+    @strategy?.dispose(@)
+
 
 class Strategy
   @storage: {}
@@ -107,6 +109,13 @@ class Strategy.OneForAll
       =>
         @context.context?.unload()
     )
+
+  # cleanup context state
+  @dispose: (@context) ->
+    @context._history = new History()
+    delete @context.context
+    delete @context.context_id
+    delete @context.__loading_promise
 
   # Switch between subcontexts
   # 
@@ -200,6 +209,9 @@ class Strategy.AllForOne
   # Unload all subcontexts
   @unload: (@context) ->
     ctx.unload() for own _, ctx of @context._contexts
+
+  # cleanup context state
+  @dispose: (@context) ->
 
   # return context by id
   context: (id) ->

@@ -6,7 +6,7 @@ utils = pi.utils
 class pi.App
   initialize: (nod) ->
     @view = pi.piecify(nod || pi.Nod.root)
-    @page?.initialize()
+    @page?.load()
 
 pi.app = new pi.App()
 module.exports = pi.app
