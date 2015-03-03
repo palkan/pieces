@@ -1,5 +1,5 @@
 'use strict'
-TestHelpers = require '../rvc/helpers'
+h = require 'pi/test/helpers'
 
 describe "Net utils base", ->
   net = pi.net

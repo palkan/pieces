@@ -33,7 +33,9 @@ class pi.Core
   # register before and after callbacks for method
   @register_callback: (method, options={}) ->
     callback_name = options.as || method
-    for _when in ["before","after"]
+    types = options.only || ["before", "after"]
+    types = utils.to_a(types)
+    for _when in types
       do(_when) =>
         @["#{_when}_#{callback_name}"] = (callback) ->
           if @::["_#{_when}_#{callback_name}"] and not @::hasOwnProperty("_#{_when}_#{callback_name}")

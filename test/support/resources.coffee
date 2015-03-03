@@ -1,7 +1,5 @@
 'use strict'
 pi = require 'pi'
-TestHelpers = require '../helpers'
-pi.log_level = "debug"
 
 class pi.Testo extends pi.resources.Base
   @set_resource 'testos'
@@ -83,41 +81,3 @@ class pi.resources.User extends pi.resources.REST
   on_profile_update: ->
     @profile_updated=0 unless @profile_updated?
     @profile_updated++
-
-class pi.controllers.Test extends pi.controllers.Base
-  id: 'test'
-
-class pi.controllers.Test2 extends pi.controllers.Base
-  id: 'test2'
-
-  submit: (data) ->
-    @exit title: data
-
-class pi.controllers.TestPreload extends pi.controllers.Base
-  id: 'test_preload'
-
-  preload: ->
-    new Promise((resolve, reject) =>
-      @preloaded = true
-      pi.utils.after 200, resolve
-    )
-
-
-class pi.TestView extends pi.BaseView
-  default_controller: pi.controllers.Test 
-
-  reloaded: (data) ->
-    if data?.title?
-      @title.text data.title 
-
-class pi.Test2View extends pi.BaseView
-  default_controller: pi.controllers.Test2 
-
-  reloaded: (data) ->
-    if data?.title?
-      @input_txt.value data.title 
-
-  unloaded: ->
-    @input_txt?.clear()
-
-module.exports = TestHelpers

@@ -147,7 +147,7 @@ class pi.resources.REST extends pi.resources.Base
   @find: (id) ->
     el = @get(id)
     if el?
-      utils.promise.resolved_promise(el)
+      utils.promise.resolved(el)
     else
       @show(id: id)
 
@@ -155,7 +155,7 @@ class pi.resources.REST extends pi.resources.Base
   @find_by: (params) -> 
     el = @get_by params
     if el?
-      utils.promise.resolved_promise(el)
+      utils.promise.resolved(el)
     else
       @show params
 
@@ -171,7 +171,7 @@ class pi.resources.REST extends pi.resources.Base
     if @_persisted
       @__destroy()
     else
-      utils.promise.as_promise( => @remove())
+      utils.promise.resolved(@remove())
 
 
   on_destroy: (data) ->

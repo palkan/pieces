@@ -1,5 +1,5 @@
 'use strict'
-h = require '../../rvc/helpers'
+h = require 'pi/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 Testo= pi.resources.Testo

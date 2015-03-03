@@ -1,4 +1,5 @@
-h = require './helpers'
+'use strict'
+h = require 'pi/test/helpers'
 
 describe "former test", ->
   root = h.test_cont(pi.Nod.body)

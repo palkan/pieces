@@ -1,5 +1,5 @@
 'use strict'
-h = require '../helpers'
+h = require 'pi/test/helpers'
 
 describe "text input component", ->
   root = h.test_cont(pi.Nod.body)

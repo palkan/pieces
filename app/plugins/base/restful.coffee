@@ -24,7 +24,7 @@ class pi.Base.Restful extends pi.Plugin
       promise = f.call(@)
       
       unless promise instanceof Promise
-        promise = if promise then utils.promise.resolved_promise(promise) else utils.promise.rejected_promise()
+        promise = if promise then utils.promise.resolved(promise) else utils.promise.rejected()
 
       promise.then(
         (resource) =>

@@ -1,7 +1,5 @@
 'use strict'
 pi = require 'pi'
-TestHelpers = require '../helpers'
-pi.log_level = "debug"
 
 class pi.TestComponent extends pi.Base
   @after_initialize () -> @id = @options.id
@@ -21,4 +19,4 @@ class pi.TestComponent extends pi.Base
     @trigger "value", val
 
 pi.Guesser.rules_for 'test_component', ['test']
-module.exports = TestHelpers
+module.exports = pi.TestComponent

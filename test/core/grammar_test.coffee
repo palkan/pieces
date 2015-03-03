@@ -1,5 +1,5 @@
 'use strict'
-h = require './helpers'
+h = require 'pi/test/helpers'
 
 describe "pieces grammar and compiler", ->
   Compiler = pi.Compiler

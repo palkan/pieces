@@ -1,5 +1,5 @@
 'use strict'
-TestHelpers = require '../rvc/helpers'
+h = require 'pi/test/helpers'
 
 describe "Pieces REST", ->
   
@@ -11,13 +11,13 @@ describe "Pieces REST", ->
     R = $r.REST
 
     beforeEach ->
-      TestHelpers.mock_net()
+      h.mock_net()
 
     afterEach ->
       Testo.clear_all()
       Testo.off()
       Salt.clear_all()
-      TestHelpers.unmock_net()
+      h.unmock_net()
 
     describe "path interpolation", ->
       it "should interpolate without scope", ->

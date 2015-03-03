@@ -1,5 +1,5 @@
 'use strict'
-TestHelpers = require '../rvc/helpers'
+h = require 'pi/test/helpers'
 
 describe "Pieces REST base", ->
   describe "resources association test", ->

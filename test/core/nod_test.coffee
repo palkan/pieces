@@ -1,5 +1,5 @@
 'use strict'
-h = require './helpers'
+h = require 'pi/test/helpers'
 
 describe "pieces nod", ->
   root = h.test_cont(pi.Nod.body)

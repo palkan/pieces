@@ -1,7 +1,5 @@
 'use strict'
 pi = require 'pi'
-TestHelpers = require '../helpers'
-pi.log_level = "debug"
 
 class pi.Nod.Renameable
   @included: ->
@@ -37,5 +35,3 @@ class pi.Test2 extends pi.Test
 
 class pi.Test3 extends pi.Test
   @include pi.Nod.Renameable, pi.Core.Helloable
-
-module.exports = TestHelpers

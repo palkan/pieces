@@ -15,9 +15,7 @@
     <script src="../js/pieces.js"></script>
     <script src="js/test.js"></script>
     <script>
-      window.require.list().filter(function (name) {return /test\/core/.test(name);}).forEach(require);
-      window.require.list().filter(function (name) {return /test\/components/.test(name);}).forEach(require);
-      window.require.list().filter(function (name) {return /test\/(net|resources|rvc)/.test(name);}).forEach(require);
+      window.require.list().filter(function (name) {return /test\//.test(name);}).forEach(require);
       pi.app.initialize();
       if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
       else { mocha.run(); }

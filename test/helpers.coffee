@@ -1,5 +1,11 @@
 'use strict'
+require 'pi'
 pi.noconflict()
+require './support/core'
+require './support/components'
+require './support/resources'
+require './support/context'
+
 class TestHelpers
   @test_cont: (cont, html = 'div') ->
     nod = pi.Nod.create html

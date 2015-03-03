@@ -1,5 +1,5 @@
 'use strict'
-TestHelpers = require './helpers'
+h = require 'pi/test/helpers'
 utils = pi.utils
 
 describe "pieces matchers", ->

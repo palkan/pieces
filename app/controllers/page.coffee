@@ -43,13 +43,13 @@ class pi.controllers.Page extends pi.Core
   switch_context: (from,to,data={}, exit = false) ->
     if from and from != @context_id
       utils.warning "trying to switch from non-active context"
-      return utils.promise.rejected_promise()
+      return utils.promise.rejected()
 
     return if (!to || (@context_id is to))
 
     if !@_contexts[to]
       utils.warning "undefined context: #{to}"
-      return utils.promise.rejected_promise()
+      return utils.promise.rejected()
 
     utils.info "context switch: #{from} -> #{to}"
     
@@ -59,7 +59,7 @@ class pi.controllers.Page extends pi.Core
       if !exit and new_context.preload? and (typeof new_context.preload is 'function')
         new_context.preload()
       else
-        utils.promise.resolved_promise()
+        utils.promise.resolved()
 
     promise.then( 
       =>
@@ -83,7 +83,7 @@ class pi.controllers.Page extends pi.Core
     if @context?
       @switch_context @context_id, @_history.pop(), data, true
     else
-      utils.promise.rejected_promise()
+      utils.promise.rejected()
   
   dispose: ->
     @context = undefined
