@@ -64,7 +64,7 @@ class pi.Form extends pi.Base
     _name_values = []
     @former.traverse_nodes @node, 
       (node) =>
-        if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
+        if ((nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput) && nod.name()
           @_cache[nod.name()] = nod unless _array_name(name)
           _name_values.push name: nod.name(), value: nod.value()
         else if utils.is_input(node) && node.name
@@ -81,7 +81,7 @@ class pi.Form extends pi.Base
       return (@_cache[name] = nod)
 
   fill_value: (node, val) ->
-    if ((nod = node._nod) instanceof pi.BaseInput) && nod.name()
+    if ((nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput) && nod.name()
       val = @former._nod_data_value(nod.name(), val)
       return unless val?
       nod.value val
@@ -97,7 +97,7 @@ class pi.Form extends pi.Base
       true
 
   validate_value: (node) ->
-    if (nod = node._nod) instanceof pi.BaseInput
+    if (nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput
       @validate_nod nod
 
   validate_nod: (nod) ->
@@ -124,7 +124,7 @@ class pi.Form extends pi.Base
       true
 
   clear_value: (node) ->
-    if (nod = node._nod) instanceof pi.BaseInput
+    if (nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput
       nod.clear()
     else if utils.is_input(node)
       @former._clear_nod node

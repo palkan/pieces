@@ -102,7 +102,7 @@ class pi.Base extends pi.Nod
 
   # define instance vars here and other props
   preinitialize: ->
-    @node._nod = @
+    pi.Nod.store(@, true)
     @__components__ = []
     @__plugins__ = []
     @pid = @data('pid') || @attr('pid') || @node.id

@@ -16,7 +16,7 @@ describe "pieces nod", ->
     it "should create element", ->
       nod = Nod.create 'div'
       expect(nod.node.nodeName.toLowerCase()).to.equal 'div'
-      expect(nod.node._nod).to.equal nod
+      expect(pi.Nod.fetch(nod.node._nod)).to.equal nod
 
     it "should create element only once", ->
       nod = Nod.create 'div'

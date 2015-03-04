@@ -84,24 +84,31 @@ _caf =
   else
     utils.pass
 
+# used to store references to nodes and components
+_store = {}
+
 class pi.Nod extends pi.NodEventDispatcher
-  constructor: (@node) ->
-    super
-    throw Error("Node is undefined!") unless @node?
+  # Add _nod attribute to node with uniq
+  # Nod id and store reference
+  @store: (nod, overwrite = false) ->
+    node = nod.node
+    return if node._nod && _store[node._nod] && !overwrite
+    node._nod = utils.uid("nod")
+    _store[node._nod] = nod
 
-    @_disposed = false
-    # virtual data element
-    @_data = _dataset(node)
+  # Fetch Nod by id
+  @fetch: (id) ->
+    id && _store[id]
 
-    @node._nod = @ unless @node._nod?
+  @delete: (nod) ->
+    delete _store[nod.node?._nod]
 
   # create new Nod from HTMLElement, HTML string, tag name or even another Nod (just returns it)
-
   @create: (node) ->
     switch 
       when !node then null
       when node instanceof @ then node
-      when (typeof node["_nod"] isnt "undefined") then node._nod
+      when (typeof node["_nod"] isnt "undefined") then pi.Nod.fetch(node._nod)
       when utils.is_html(node) then @_create_html(node)
       when typeof node is "string" then new @(document.createElement node)
       else new @(node)
@@ -111,6 +118,17 @@ class pi.Nod extends pi.NodEventDispatcher
     node = temp.firstChild
     temp.removeChild node
     new @(node)
+
+  constructor: (@node) ->
+    super
+    throw Error("Node is undefined!") unless @node?
+
+    @_disposed = false
+
+    # virtual data element
+    @_data = _dataset(node)
+
+    pi.Nod.store(@)
 
   # return first matching element as Nod
 
@@ -250,8 +268,8 @@ class pi.Nod extends pi.NodEventDispatcher
 
   remove_children: ->
     while(@node.firstChild)
-      if @node.firstChild._nod
-        @node.firstChild._nod.remove()
+      if (nod = pi.Nod.fetch(@node.firstChild._nod))
+        nod.remove()
       else
         @node.removeChild @node.firstChild
     @
@@ -277,12 +295,10 @@ class pi.Nod extends pi.NodEventDispatcher
     utils.extend nod, @, true, ['listeners', 'listeners_by_type', '__components__', 'native_event_listener', 'node']
 
   # remove event listeners and internal links
-  # GC should collect thid Nod if there is no external links
-
   dispose: ->
     return if @_disposed
     @off()
-    delete @node._nod
+    pi.Nod.delete(@)
     for own key,val of @
       delete @[key]
     @_disposed = true
