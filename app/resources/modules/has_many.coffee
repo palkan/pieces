@@ -3,9 +3,6 @@ pi = require '../../core'
 require '../rest'
 utils = pi.utils
 
-_true = -> true
-_false = -> false
-
 # add has_many to resource
 # @example
 # 
@@ -13,10 +10,7 @@ _false = -> false
 # 
 # generates method 'load_users' which creates 'users' field as View with provided params 
 
-class pi.resources.HasMany
-  @extended: (klass) ->
-    true
-
+class pi.resources.HasMany extends pi.Core
   @has_many: (name, params) ->
     unless params?
       throw Error("Has many require at least 'source' param")
@@ -29,7 +23,7 @@ class pi.resources.HasMany
     if typeof params.update_if is 'function'
       _update_filter = params.update_if
     else if params.update_if is true
-      _update_filter = _true
+      _update_filter = utils.truthy
 
     # add assoc method
     @::[name] = ->

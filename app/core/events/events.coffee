@@ -18,10 +18,6 @@ class pi.Event extends pi.Core
   cancel: ->
     @canceled = true
 
-
-
-_true = -> true
-
 # Event listener class
 # @private
 
@@ -32,7 +28,7 @@ class pi.EventListener extends pi.Core
     @uid = "#{@type}:#{@handler._uid}"
 
     unless typeof @conditions is 'function'
-      @conditions = _true
+      @conditions = utils.truthy
 
     if @context?
       @context._uid = "obj"+utils.uid() if not @context._uid?

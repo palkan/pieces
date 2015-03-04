@@ -241,6 +241,13 @@ class pi.utils
   @after: (delay, fun, ths) ->
     pi.utils.delayed(delay, fun, [], ths)()
   
+
+# generate constant functions
+for method in [['truthy', true], ['falsey', false], ['null', null], ['pass', undefined]]
+  do (method) ->
+    [name, val] = method
+    pi.utils[name] = -> val 
+
 # export functions 
 pi.export pi.utils.curry, 'curry'
 pi.export pi.utils.delayed, 'delayed'

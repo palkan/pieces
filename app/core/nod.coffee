@@ -82,7 +82,7 @@ _caf =
   if window.cancelAnimationFrame?
     window.cancelAnimationFrame
   else
-    -> true
+    utils.pass
 
 class pi.Nod extends pi.NodEventDispatcher
   constructor: (@node) ->

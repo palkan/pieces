@@ -41,7 +41,7 @@ class pi.resources.View extends pi.EventDispatcher
     @resources_name = @resources.resources_name
     @resource_name = @resources.resource_name
     
-    @_filter = if (scope? and scope != false) then utils.matchers.object_ext(scope) else -> true
+    @_filter = if (scope? and scope != false) then utils.matchers.object_ext(scope) else utils.truthy
 
     @resources.listen (e) =>
       el = e.data[@resource_name]

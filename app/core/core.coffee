@@ -12,7 +12,7 @@ class pi.Core
   # extend class with mixin class methods
   @extend: (mixins...) ->
     for mixin in mixins
-      utils.extend @, mixin, true
+      utils.extend @, mixin, true, ['__super__']
       mixin.extended @
 
   @alias: (from, to) ->
@@ -24,11 +24,11 @@ class pi.Core
     @[from] = @[to]
     return
 
-  @included: ->
-    true
+  @included: utils.truthy
 
-  @extended: ->
-    true
+  @extended: utils.truthy
+
+  @mixedin: utils.truthy
 
   # register before and after callbacks for method
   @register_callback: (method, options={}) ->
@@ -51,8 +51,13 @@ class pi.Core
 
     (@callbacked||=[]).push method
 
-  ## Event handler generator
+  # extend instance with mixins
+  mixin: (mixins...) ->
+    for mixin in mixins
+      utils.extend @, mixin::, true, ['constructor']
+      mixin.mixedin @
 
+  # Event handler generator  
   _before = (name) ->
     if @["__h__#{name}"]?
       return @["__h__#{name}"]

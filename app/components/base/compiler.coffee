@@ -3,8 +3,6 @@ pi = require '../../core'
 parser = require('../../grammar/pi_grammar').parser
 utils = pi.utils
 
-_true = -> true
-_null = ->
 _error = (fun_str) ->
   utils.error "Function [#{fun_str}] was compiled with error"
   false

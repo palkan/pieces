@@ -20,7 +20,6 @@ class pi.Plugin extends pi.Core
     instance.addClass "has-#{@id}"
     @
 
-  dispose: ->
-    true
+  dispose: utils.truthy
 
 module.exports = pi.Plugin

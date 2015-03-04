@@ -3,18 +3,12 @@ pi = require '../../core'
 require '../rest'
 utils = pi.utils
 
-_true = -> true
-_false = -> false
-
 # add has_one to resource
 # @example
 # 
 # ```@has_one 'user', source: $r.User, foreign_key: 'resource_id'```
 
-class pi.resources.HasOne
-  @extended: (klass) ->
-    true
-
+class pi.resources.HasOne extends pi.Core
   @has_one: (name, params) ->
     unless params?
       throw Error("Has one require at least 'source' param")
@@ -30,9 +24,9 @@ class pi.resources.HasOne
     if typeof params.update_if is 'function'
       _update_filter = params.update_if
     else if params.update_if is true
-      _update_filter = _true
+      _update_filter = utils.truthy
     else
-      _update_filter = _false
+      _update_filter = utils.falsey
 
     params.source.listen (e) => 
       return unless @all().length

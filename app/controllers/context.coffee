@@ -27,7 +27,7 @@ class Context extends pi.Core
     super
     if @options.strategy
       @strategy = Strategy.get(@options.strategy)
-      @strategy.initialize(@)
+      @mixin @strategy
     @preinitialize()
 
   # initialize instance vars here
@@ -78,9 +78,9 @@ class Strategy
   @get: (id) ->
     @storage[id]
 
-class Strategy.OneForAll
+class Strategy.OneForAll extends pi.Core
   # Add history to context
-  @initialize: (owner) ->
+  @mixedin: (owner) ->
     owner._history = new History()
     utils.extend(owner, @::)
 
@@ -198,8 +198,8 @@ class Strategy.OneByOne extends Strategy.OneForAll
     inverted_to = utils.merge(to, up: !to.up)
     @switch_to inverted_to, data, true
 
-class Strategy.AllForOne
-  @initialize: (owner) ->
+class Strategy.AllForOne extends pi.Core
+  @mixedin: (owner) ->
     utils.extend(owner, @::)
 
   # Load all subcontexts
