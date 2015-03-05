@@ -8,9 +8,7 @@ History = require '../core/utils/history'
 # You can overwrite strategy in config (config.page.strategy)
 class pi.controllers.Page extends Context
   constructor: ->
-    super(strategy: (pi.config.page?.strategy ? 'one_by_one'))
-
-pi.app.page = new pi.controllers.Page()
+    super(utils.merge({strategy: 'one_for_all', default: 'main'}, pi.config.page))
 
 pi.Compiler.modifiers.push (str) -> 
   if str[0..1] is '@@'

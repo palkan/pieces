@@ -1,7 +1,7 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "base input component", ->
+describe "Base Input", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -26,21 +26,20 @@ describe "base input component", ->
   afterEach ->
     test_div.remove()
 
-  describe "base input", ->
-
-    it "should init inputs", ->
+  describe "default", ->
+    it "init inputs", ->
       expect(test1.input.node.value).to.eq "1"
       expect(test1.value()).to.eq "1"
       expect(test2.input).to.eq test2
       expect(test2.value()).to.eq "2" 
 
-    it "should update value", ->
+    it "update value", ->
       test1.value '123'
       expect(test1.input.node.value).to.eq '123'
       test2.value '234'
       expect(test2.node.value).to.eq '234'
 
-  describe "base input with serialize and default value", ->
+  describe "with serialize and default value", ->
     test3 = null
     beforeEach ->
       test_div.append """
@@ -49,11 +48,12 @@ describe "base input component", ->
       pi.app.view.piecify()
       test3 = test_div.find('.test3')
 
-    it "should init with default value", ->
+    it "init with default value", ->
       expect(test3.input.node.value).to.eq "100"
       expect(test3.value()).to.eq 100
 
-    it "should update value", ->
+    it "update value", ->
       test3.value '123'
       expect(test3.input.node.value).to.eq '123'
       expect(test3.value()).to.eq 123
+      

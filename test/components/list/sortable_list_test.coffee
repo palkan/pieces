@@ -3,7 +3,7 @@ h = require 'pi/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 
-describe "sortable list plugin", ->
+describe "List.Sortable", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -30,64 +30,63 @@ describe "sortable list plugin", ->
   afterEach ->
     test_div.remove()
 
-  describe "sortable list", ->
 
-    it "should sort by key", ->  
-      list.sort {val: 'asc'}
-      expect(test_div.find('.pi').first('.item').text()).to.equal 'Two'
+  it "sort by key", ->  
+    list.sort {val: 'asc'}
+    expect(test_div.find('.pi').first('.item').text()).to.equal 'Two'
 
-    it "should sort by many keys", ->
-      list.sort [{key:'desc'},{val:'desc'}], [false, false]
-      expect(test_div.find('.pi').first('.item').text()).to.equal 'One'
+  it "sort by many keys", ->
+    list.sort [{key:'desc'},{val:'desc'}], [false, false]
+    expect(test_div.find('.pi').first('.item').text()).to.equal 'One'
 
-    it "should dispatch sort event", (done)->
-      list.on 'sorted', (event) =>
-        expect(event.data[0]).to.eql {key:'asc'}
-        expect(event.data[1]).to.eql {val:'asc'}
-        done()
-      list.sort [{key:'asc'},{val:'asc'}]
+  it "dispatch sort event", (done)->
+    list.on 'sorted', (event) =>
+      expect(event.data[0]).to.eql {key:'asc'}
+      expect(event.data[1]).to.eql {val:'asc'}
+      done()
+    list.sort [{key:'asc'},{val:'asc'}]
 
-    it "should resort items if item updated", (done)->
-      list.sort {val: 'asc'}
-      list.on 'update', (event) =>
-        return unless event.data.type is 'item_updated'
-        expect(test_div.find('.pi').first('.item').text()).to.eq 'Tre'
-        done()
-      item = list.where(record: key: 'anyone')[0]
-      item.record.val = 2
-      list.trigger 'update', type: 'item_updated', item: item
+  it "resort items if item updated", (done)->
+    list.sort {val: 'asc'}
+    list.on 'update', (event) =>
+      return unless event.data.type is 'item_updated'
+      expect(test_div.find('.pi').first('.item').text()).to.eq 'Tre'
+      done()
+    item = list.where(record: key: 'anyone')[0]
+    item.record.val = 2
+    list.trigger 'update', type: 'item_updated', item: item
 
-    it "should resort items if item updated in the middle", (done)->
-      list.sort {val: 'asc'}
-      list.on 'update', (event) =>
-        return unless event.data.type is 'item_updated'
-        expect(test_div.find('.pi').first('.item').text()).to.eq 'Two'
-        done()
-      item = list.where(record: key: 'noone')[0]
-      item.record.val = 2
-      list.trigger 'update', type: 'item_updated', item: item
+  it "resort items if item updated in the middle", (done)->
+    list.sort {val: 'asc'}
+    list.on 'update', (event) =>
+      return unless event.data.type is 'item_updated'
+      expect(test_div.find('.pi').first('.item').text()).to.eq 'Two'
+      done()
+    item = list.where(record: key: 'noone')[0]
+    item.record.val = 2
+    list.trigger 'update', type: 'item_updated', item: item
 
-    it "should resort items if item added", (done)->
-      list.sort {val: 'asc'}
-      list.on 'update', (event) =>
-        return unless event.data.type is 'item_added'
-        expect(test_div.find('.pi').first('.item').text()).to.eq 'Zero'
-        done()
-      list.add_item pi.Nod.create('''<li class="item" data-val="2" data-key="some">Zero</li>''')
+  it "resort items if item added", (done)->
+    list.sort {val: 'asc'}
+    list.on 'update', (event) =>
+      return unless event.data.type is 'item_added'
+      expect(test_div.find('.pi').first('.item').text()).to.eq 'Zero'
+      done()
+    list.add_item pi.Nod.create('''<li class="item" data-val="2" data-key="some">Zero</li>''')
 
-    it "should resort items if item added to the end", (done)->
-      list.sort {val: 'asc'}
-      list.on 'update', (event) =>
-        return unless event.data.type is 'item_added'
-        expect(test_div.find('.pi').nth('.item',4).text()).to.eq 'Zero'
-        done()
+  it "resort items if item added to the end", (done)->
+    list.sort {val: 'asc'}
+    list.on 'update', (event) =>
+      return unless event.data.type is 'item_added'
+      expect(test_div.find('.pi').nth('.item',4).text()).to.eq 'Zero'
+      done()
 
-      list.add_item pi.Nod.create('''<li class="item" data-val="20" data-key="some">Zero</li>''')
+    list.add_item pi.Nod.create('''<li class="item" data-val="20" data-key="some">Zero</li>''')
 
-    it "should resort items if item added in the middle", (done)->
-      list.sort {val: 'asc'}
-      list.on 'update', (event) =>
-        return unless event.data.type is 'item_added'
-        expect(test_div.find('.pi').nth('.item',3).text()).to.eq 'Zero'
-        done()
-      list.add_item pi.Nod.create('''<li class="item" data-val="11" data-key="some">Zero</li>''')
+  it "resort items if item added in the middle", (done)->
+    list.sort {val: 'asc'}
+    list.on 'update', (event) =>
+      return unless event.data.type is 'item_added'
+      expect(test_div.find('.pi').nth('.item',3).text()).to.eq 'Zero'
+      done()
+    list.add_item pi.Nod.create('''<li class="item" data-val="11" data-key="some">Zero</li>''')

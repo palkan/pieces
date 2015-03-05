@@ -3,9 +3,6 @@ pi = require '../core'
 require './events'
 utils = pi.utils
 
-#shortcut
-pi.export(pi.resources,"$r")
-
 _singular = (str) ->
   str.replace /s$/,''
 
@@ -228,15 +225,15 @@ class pi.resources.Base extends pi.EventDispatcher
     @trigger pi.ResourceEvent.Update, utils.obj.wrap(name, true)
 
 # Create new resource by name and superclass (optional)
-pi.resources.create = (name, parent = $r.Base) ->
+pi.resources.create = (name, parent = $r.Base, options={}) ->
   klass=utils.subclass(parent)
   if name?
-    if typeof name is 'string'
-      klass.set_resource name
-      pi.resources[utils.capitalize(utils.camelCase(name))] = klass
-    else if Array.isArray(name)
-      klass.set_resource name[0], name[1]
-      pi.resources[utils.capitalize(utils.camelCase(name[0]))] = klass
+    # name can be nested
+    name_parts = name.split(".")
+    rname = name_parts[name_parts.length-1]
+    
+    klass.set_resource rname, options.plural
+    utils.obj.set_class_path(pi.resources, name, klass)
   else
     klass.set_resource "unknown"
   klass

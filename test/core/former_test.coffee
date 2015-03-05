@@ -1,14 +1,14 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "former test", ->
+describe "Former", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
     root.remove()
 
-  describe "parse name values", ->
-    it "should correctly parse simple name values (without nested objects)", ->
+  describe "parse", ->
+    it "parse simple name values (without nested objects)", ->
       f = new pi.Former()
 
       name_values = [
@@ -19,7 +19,7 @@ describe "former test", ->
 
       expect(f.process_name_values(name_values)).to.include({a:"1",b:"2",c:"3"})
 
-    it "should correctly parse name values on object (without arrays)", ->
+    it "parse name values on object (without arrays)", ->
       f = new pi.Former()
 
       name_values = [
@@ -30,7 +30,7 @@ describe "former test", ->
 
       expect(f.process_name_values(name_values)["obj"]).to.include({a:"1",b:"2",c:"3"})
 
-    it "should correctly parse complex name values on objects (without arrays)", ->
+    it "parse complex name values on objects (without arrays)", ->
       f = new pi.Former()
 
       name_values = [
@@ -49,7 +49,7 @@ describe "former test", ->
       expect(data["obj"]["n1"]["n2"]["n3"]).to.include({id:"6"})
 
 
-    it "should correctly parse name values with arrays", ->
+    it "parse name values with arrays", ->
       f = new pi.Former()
 
       name_values = [
@@ -66,7 +66,7 @@ describe "former test", ->
       expect(data["obj"]["a"]).to.eql(['1','2','6'])
 
 
-    it "should correctly parse name values with nested arrays", ->
+    it "parse name values with nested arrays", ->
       f = new pi.Former()
 
       name_values = [
@@ -86,7 +86,7 @@ describe "former test", ->
 
 
 
-    it "should correctly parse name values very complex", ->
+    it "parse name values very complex", ->
       f = new pi.Former()
 
       name_values = [
@@ -118,7 +118,7 @@ describe "former test", ->
       expect(data["obj"]["a"][2]['comments'][0]['likes']).to.eql(['10','12'])
 
     ## Bug from teachbase
-    it "should correctly parse arrays of nested objects (rails)", ->
+    it "parse arrays of nested objects (rails)", ->
       f = new pi.Former(null, {rails: true})
       data = f.process_name_values([{name: 'users[][labels[12]]',value: 1},{name:'users[][labels[15]]',value:2}])
 
@@ -126,9 +126,7 @@ describe "former test", ->
       expect(data["users"][0]["labels"]["12"]).to.eql(1)
       expect(data["users"][0]["labels"]["15"]).to.eql(2)
 
-
-  describe "parse names and values", ->
-    it "should correctly parse rails names and serialize data", ->
+    it "parse rails names and serialize data", ->
       f = new pi.Former(null, serialize: true, rails: true)
 
       name_values = [
@@ -149,7 +147,7 @@ describe "former test", ->
       expect(data["model"]["a"][1]['id']).to.eql(2)
       expect(data["model"]["flag"]).to.eql(true)
 
-    it "should correctly parse rails datetime names", ->
+    it "parse rails datetime names", ->
       f = new pi.Former(null, rails: true)
 
       name_values = [
@@ -164,7 +162,7 @@ describe "former test", ->
       expect(data["model"]["created_at(2i)"]).to.equal '7'
       expect(data["model"]["created_at(3i)"]).to.equal '1'
 
-     it "should correctly parse nested rails names", ->
+     it "parse nested rails names", ->
       f = new pi.Former(null, rails: true)
 
       name_values = [
@@ -179,9 +177,7 @@ describe "former test", ->
       expect(data["model"]["created_at"]["month"]).to.equal '7'
       expect(data["model"]["created_at"]["day"]).to.equal '1'
 
-
-
-  describe "manipulate with form", ->
+  describe "fill and clear", ->
     test_form = null
     beforeEach ->
       test_form = document.createElement('form')
@@ -204,7 +200,7 @@ describe "former test", ->
 
       root.append(test_form)
 
-    it "should correctly collect form data", ->
+    it "collect form data", ->
       data = pi.Former.parse(test_form, serialize: true)
       expect(data["post"]["is_private"]).to.eql(1)
       expect(data["post"]["is_draft"]).to.be.undefined
@@ -212,7 +208,7 @@ describe "former test", ->
       expect(data["post"]["tags"]).to.eql(['football','uefa'])
       expect(data["post"]["lang"]).to.eql(['ru','de'])
 
-    it "should correctly fill form data", ->
+    it "fill form data", ->
       f = new pi.Former(test_form, serialize: true, fill_prefix: 'post.')
       f.fill name: 'Zeit', is_draft: true, is_private: false, category: 'politics', lang: 'es'
 
@@ -224,7 +220,7 @@ describe "former test", ->
       expect(data["post"]["tags"]).to.eql(['football','uefa'])
       expect(data["post"]["lang"]).to.eql(['es'])
 
-    it "should clear form", ->
+    it "clear form", ->
       pi.Former.clear(test_form)
 
       data = pi.Former.parse(test_form)
@@ -233,7 +229,7 @@ describe "former test", ->
       expect(data.post.lang).to.be.empty
       expect(data.post.parent_id).to.equal('123')
 
-    it "should clear hidden elements when 'clear_hidden' is true", ->
+    it "clear hidden elements when 'clear_hidden' is true", ->
       pi.Former.clear(test_form, clear_hidden: true)
 
       data = pi.Former.parse(test_form)
@@ -241,4 +237,3 @@ describe "former test", ->
       expect(data.post.name).to.be.empty
       expect(data.post.lang).to.be.empty
       expect(data.post.parent_id).to.be.empty
-

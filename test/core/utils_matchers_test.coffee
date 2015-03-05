@@ -2,15 +2,15 @@
 h = require 'pi/test/helpers'
 utils = pi.utils
 
-describe "pieces matchers", ->
-  describe "object matcher", ->
-    it "should work when match by subkey with unexsistent key", ->
+describe "Utils", ->
+  describe "Matchers", ->
+    it "match by subkey with unexsistent key", ->
       matcher = utils.matchers.object({data: {item: {id: 1}}})
       expect(matcher({})).to.be.false
       expect(matcher({data: {}})).to.be.false
       expect(matcher({data: {item: {id: 1}}})).to.be.true
 
-    it "should match many keys any", ->
+    it "match many keys any", ->
       matcher = utils.matchers.object({data: {item: {id: 1}, flag: true}}, false)
       expect(matcher({})).to.be.false
       expect(matcher({data: {}})).to.be.false
@@ -18,7 +18,7 @@ describe "pieces matchers", ->
       expect(matcher({data: {flag: true}})).to.be.true
 
 
-    it "should match null value", ->
+    it "match null value", ->
       matcher = utils.matchers.object({data: {item: {parent_id: null}}})
       expect(matcher({})).to.be.false
       expect(matcher({data: {}})).to.be.false

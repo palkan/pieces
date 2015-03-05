@@ -1,5 +1,9 @@
 'use strict'
 pi.resources = {}
+
+#shortcut
+pi.export(pi.resources,"$r")
+
 require './base'
 require './view'
 require './association'

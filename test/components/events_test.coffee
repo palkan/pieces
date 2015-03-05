@@ -1,13 +1,13 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "event dispatcher", ->
+describe "EventDispatcher", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
     root.remove()
 
-  it "should parse dom and add event handlers", ->
+  it "parse dom and add event handlers", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn' data-on-click='@test.hide' data-on-custom='@test.show'>Button</button>
@@ -16,7 +16,7 @@ describe "event dispatcher", ->
     test_div=test_div.piecify()
     expect(test_div.btn.listeners).to.have.keys(['click','custom'])
 
-  it "should add native events and call handlers", ->
+  it "add native events and call handlers", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -37,7 +37,7 @@ describe "event dispatcher", ->
     h.clickElement el.node
     expect(spy.callCount).to.equal 2
 
-  it "should add custom events and call handlers", ->
+  it "add custom events and call handlers", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -62,7 +62,7 @@ describe "event dispatcher", ->
     expect(spy.callCount).to.equal 1
     expect(spy2.callCount).to.equal 1
 
-  it "should remove all events on off", ->
+  it "remove all events on off", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-on-click='@test.hide' data-on-custom='@test.show' data-pid='btn'>Button</button>
@@ -73,7 +73,7 @@ describe "event dispatcher", ->
     el.off()
     expect(el.listeners).to.eql({})
 
-  it "should not call removed events", ->
+  it "don't call removed events", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-on-click='@test.hide' data-on-custom='@test.show' data-pid='btn'>Button</button>
@@ -95,7 +95,7 @@ describe "event dispatcher", ->
     el.enable()
     expect(spy.callCount).to.eq 0
 
-  it "should remove native listener on off()", ->
+  it "remove native listener on off()", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -124,7 +124,7 @@ describe "event dispatcher", ->
     expect(el.listeners).to.eql {}
     expect(spy.callCount).to.equal(1)
 
-  it "should remove native listener on off(event)", ->
+  it "remove native listener on off(event)", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -153,7 +153,7 @@ describe "event dispatcher", ->
     expect(spy.callCount).to.equal(1)
 
 
-  it "should remove native listener on off(event,callback,context)", ->
+  it "remove native listener on off(event,callback,context)", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -178,7 +178,7 @@ describe "event dispatcher", ->
     expect(el.listeners.click).to.be.undefined
     expect(spy.callCount).to.equal(1)
 
-  it "should call once if one(event)", ->
+  it "call once if one(event)", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -201,7 +201,7 @@ describe "event dispatcher", ->
 
     expect(spy.callCount).to.equal(1)
 
-  it "should handle multiple events", ->
+  it "handle multiple events", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -223,7 +223,7 @@ describe "event dispatcher", ->
 
     expect(spy.callCount).to.equal(3)
 
-  it "should remove native listener after event if one(event)", ->
+  it "remove native listener after event if one(event)", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>
@@ -246,7 +246,7 @@ describe "event dispatcher", ->
     expect(el.listeners.click).to.be.undefined
     expect(spy.callCount).to.equal(1)
 
-  it "should work with several native events", ->
+  it "work with several native events", ->
     test_div = h.test_cont root, """
       <div id='cont'>
         <button class='pi' data-component='base' data-pid='btn'>Button</button>

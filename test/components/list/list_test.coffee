@@ -3,7 +3,7 @@ h = require 'pi/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 
-describe "list component", ->
+describe "List", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -31,18 +31,18 @@ describe "list component", ->
   afterEach ->
     test_div.remove_children()
 
-  describe "list basics", ->
-    it "should parse list items", ->
+  describe "basics", ->
+    it "parse list items", ->
       expect(list.size()).to.eq 3
 
-    it "should add item", ->
+    it "add item", ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       el = list.add_item item
       expect(el.record.__list_index__).to.eq 3
       expect(list.size()).to.eq 4
       expect(test_div.find('.test').last('.item').text()).to.eq 'New'
 
-    it "should add item at index", ->
+    it "add item at index", ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       el = list.add_item_at item, 0
       expect(el.record.__list_index__).to.eq 0
@@ -50,7 +50,7 @@ describe "list component", ->
       expect(list.size()).to.eq 4
       expect(test_div.find('.test').first('.item').text()).to.eq 'New'
 
-    it "should trigger update event on add", (done) ->
+    it "trigger update event on add", (done) ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       
       list.on 'update', (event) =>
@@ -59,18 +59,18 @@ describe "list component", ->
 
       list.add_item_at item, 0
 
-    it "should remove element at", ->
+    it "remove element at", ->
       list.remove_item_at 0
       expect(list.size()).to.eq 2
       expect(list.items[1].record.__list_index__).to.eq 1
       expect(test_div.find('.test').first('.item').data('id')).to.eq 2
 
-    it "should remove many items", ->
+    it "remove many items", ->
       list.remove_items [list.items[0],list.items[2]]
       expect(list.size()).to.eq 1
       expect(test_div.find('.test').first('.item').data('id')).to.eq 2
 
-    it "should update element and trigger item's events", (done) ->
+    it "update element and trigger item's events", (done) ->
       item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
       
       old_item = list.items[0]
@@ -92,84 +92,14 @@ describe "list component", ->
 
       list.update_item old_item, item
 
-    it "should clear all", ->
+    it "clear all", ->
       list.clear()
       expect(test_div.find('.test').find('.item')).to.be.null
 
-  describe "working with renderers", ->
-    beforeEach ->
-      list._renderer = 
-        render: (data) ->
-            nod = Nod.create("<div>#{ data.name }</div>")
-            nod.addClass 'item'
-            nod.append "<span class='author'>#{ data.author }</span>"
-            nod.record = data
-            nod
-      return
-
-    it "should set data provider with new rendered elements", ->
-      list.data_provider [ 
-        {id:1, name: 'Element 1', author: 'John'},
-        {id:2, name: 'Element 2', author: 'Bob'},
-        {id:3, name: 'Element 3', author: 'John'} 
-      ]
-      expect(list.all('.item').length).to.eq 3
-      expect(list.first('.author').text()).to.eq 'John'
-
-  describe "item click and operations", ->
-    it "should trigger correct item after list modification", (done) ->
-      list.remove_item_at 0
-
-      list.on 'item_click', (e) =>
-        expect(e.data.item.record.id).to.eq 2
-        done()
-
-      h.clickElement test_div.find(".test").first(".item").node
-
-    it "should trigger correct item when click on child element", (done) ->
-
-      list.on 'item_click', (e) =>
-        expect(e.data.item.record.id).to.eq 2
-        done()
-
-      h.clickElement test_div.find(".test").find(".item:nth-child(2) .tags").node
-
-    it "should not trigger on clickable child element", (done) ->
-      list.add_item Nod.create "<div class='item'>hi<a href='#' class='linko'>click</a></div>"
-
-      list.on 'item_click', (e) =>
-        expect(true).to.be.false
-        done()
-
-      utils.after 500, ->
-        done()
-
-      h.clickElement test_div.find(".test").find(".item .linko").node
-
-  describe "list queries", ->
-    it "should find by simple one-key object", ->
-      item = list.where(record:{id:1})[0]
-      expect(item.record.key).to.eq 'one'
-
-    it "should find by object with string matcher", ->
-      [item] = list.where(record:{key:'one'})
-      expect(item.record.id).to.eq 1 
-
-    it "should find by simple string query", ->
-      item = list.where('Tre')[0]
-      expect(item.record.key).to.eq 'anyone'
-
-    it "should find by nested string query", ->
-      [item1,item2] = list.where('.tags:\\bpuppy\\b')
-      expect(item1.record.key).to.eq 'one'
-      expect(item2.record.key).to.eq 'someone'
-
-  describe "list with components", ->
-
-    it "should create items nods as components", ->
+    it "create items nods as components", ->
       expect(list.items[0]).to.be.an.instanceof pi.Base
 
-    it "should peicify items nods", ->
+    it "peicify items nods", ->
       list._renderer = 
         render: (data, _, host) ->
           nod = Nod.create("<div>#{ data.title }</div>")
@@ -186,3 +116,71 @@ describe "list component", ->
       expect(item).to.be.an.instanceof pi.Base
       expect(item.host).to.eq list      
       expect(item.find('.author')).to.be.an.instanceof pi.Base
+
+  describe "renderers", ->
+    beforeEach ->
+      list._renderer = 
+        render: (data) ->
+            nod = Nod.create("<div>#{ data.name }</div>")
+            nod.addClass 'item'
+            nod.append "<span class='author'>#{ data.author }</span>"
+            nod.record = data
+            nod
+      return
+
+    it "render items", ->
+      list.data_provider [ 
+        {id:1, name: 'Element 1', author: 'John'},
+        {id:2, name: 'Element 2', author: 'Bob'},
+        {id:3, name: 'Element 3', author: 'John'} 
+      ]
+      expect(list.all('.item').length).to.eq 3
+      expect(list.first('.author').text()).to.eq 'John'
+
+  describe "item_click", ->
+    it "item after list modification", (done) ->
+      list.remove_item_at 0
+
+      list.on 'item_click', (e) =>
+        expect(e.data.item.record.id).to.eq 2
+        done()
+
+      h.clickElement test_div.find(".test").first(".item").node
+
+    it "item when click on child element", (done) ->
+
+      list.on 'item_click', (e) =>
+        expect(e.data.item.record.id).to.eq 2
+        done()
+
+      h.clickElement test_div.find(".test").find(".item:nth-child(2) .tags").node
+
+    it "don't trigger on clickable element", (done) ->
+      list.add_item Nod.create "<div class='item'>hi<a href='#' class='linko'>click</a></div>"
+
+      list.on 'item_click', (e) =>
+        expect(true).to.be.false
+        done()
+
+      utils.after 500, ->
+        done()
+
+      h.clickElement test_div.find(".test").find(".item .linko").node
+
+  describe "where", ->
+    it "find by simple one-key object", ->
+      item = list.where(record:{id:1})[0]
+      expect(item.record.key).to.eq 'one'
+
+    it "find by object with string matcher", ->
+      [item] = list.where(record:{key:'one'})
+      expect(item.record.id).to.eq 1 
+
+    it "find by simple string query", ->
+      item = list.where('Tre')[0]
+      expect(item.record.key).to.eq 'anyone'
+
+    it "find by nested string query", ->
+      [item1,item2] = list.where('.tags:\\bpuppy\\b')
+      expect(item1.record.key).to.eq 'one'
+      expect(item2.record.key).to.eq 'someone'

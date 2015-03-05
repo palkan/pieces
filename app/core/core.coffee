@@ -51,9 +51,48 @@ class pi.Core
 
     (@callbacked||=[]).push method
 
+  # Search ancestors for module.
+  # 
+  # Example
+  #   class User
+  #   class User.WithPermissions
+  #     admin: -> false
+  #   
+  #   class Admin extends User
+  #   class Admin.WithPermissions
+  #     admin: -> true
+  #  
+  #   class Guest extends User
+  # 
+  #   And we have @user object which can be any of the above
+  #   and we want to mixin 'with_permissions' module to it.
+  #   
+  #   @user.mixin 'with_persmissions' 
+  #   
+  #   # if @user is a User
+  #   @user.admin() # => false
+  #   
+  #   # if @user is an Admin
+  #   @user.admin() # => true
+  #   
+  #   # if @user is a Guest
+  #   @user.admin() # => false
+  @lookup_module: (name) -> 
+    name = utils.camelCase name
+    klass = @
+    while(klass?)
+      if klass[name]?
+        return klass[name]
+      klass = klass.__super__?.constructor
+    utils.debug "module not found: #{name}"
+    return null
+
   # extend instance with mixins
   mixin: (mixins...) ->
     for mixin in mixins
+      if typeof mixin is 'string' 
+        mixin = @constructor.lookup_module(mixin)
+      continue unless mixin
       utils.extend @, mixin::, true, ['constructor']
       mixin.mixedin @
 

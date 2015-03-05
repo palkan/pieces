@@ -3,7 +3,7 @@ h = require 'pi/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 
-describe "jst renderer list plugin", ->
+describe "List.JST", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -38,14 +38,14 @@ describe "jst renderer list plugin", ->
   afterEach ->
     test_div.remove()
 
-  describe "render template", ->
-    
-    it "should render elements with jst template", ->
-      list.data_provider [ 
-        {id:1, name: 'Element 1', author: 'John'},
-        {id:2, name: 'Element 2', author: 'Bob'},
-        {id:3, name: 'Element 3', author: 'John'} 
-      ]
-      expect(list.all('.item').length).to.equal 3
-      expect(list.first('.author').text()).to.equal 'John'
-      expect(list.items[2].html()).to.equal 'Element 3<span class="author">John</span>'
+  
+  it "render elements", ->
+    list.data_provider [ 
+      {id:1, name: 'Element 1', author: 'John'},
+      {id:2, name: 'Element 2', author: 'Bob'},
+      {id:3, name: 'Element 3', author: 'John'} 
+    ]
+    expect(list.all('.item').length).to.equal 3
+    expect(list.first('.author').text()).to.equal 'John'
+    expect(list.items[2].html()).to.equal 'Element 3<span class="author">John</span>'
+      

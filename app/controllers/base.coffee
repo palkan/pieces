@@ -6,8 +6,16 @@ utils = pi.utils
 class pi.controllers.Base extends Context
   id: 'base'
 
-  constructor: (options, @view) ->
+  constructor: (options) ->
     super(options)
+    @init_modules()
+
+  set_view: (@view) ->
+    @view.controller = @
+    @
+
+  init_modules: (modules) ->
+    @mixin(@constructor.lookup_module(mod)) for mod, _ of @options.modules
 
   load: (data={}) ->
     promise = super

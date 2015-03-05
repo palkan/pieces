@@ -3,7 +3,7 @@ h = require 'pi/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 
-describe "selectable list plugin", ->
+describe "List.Selectable", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -31,96 +31,95 @@ describe "selectable list plugin", ->
   afterEach ->
     test_div.remove()
 
-  describe "selectable list", ->
 
-    it "should select one item when radio", (done)->
-      
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+  it "select one item when radio", (done)->
+    
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
 
-      list.on 'item_click', (event) =>
-        expect(list.selected()[0].record.key).to.equal "anyone"
-        done()
+    list.on 'item_click', (event) =>
+      expect(list.selected()[0].record.key).to.equal "anyone"
+      done()
 
-      h.clickElement test_div.find('.pi').find('[data-id="3"]').node
+    h.clickElement test_div.find('.pi').find('[data-id="3"]').node
 
-    it "should select several items when check", (done)->
-      list.selectable.type 'check'
+  it "select several items when check", (done)->
+    list.selectable.type 'check'
 
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
 
-      list.on 'selected', (event) =>
-        expect(list.selected().length).to.equal 2
-        expect(event.data.length).to.equal 2
-        done()
+    list.on 'selected', (event) =>
+      expect(list.selected().length).to.equal 2
+      expect(event.data.length).to.equal 2
+      done()
 
-      h.clickElement test_div.find('.pi').find('[data-id="3"]').node
+    h.clickElement test_div.find('.pi').find('[data-id="3"]').node
 
 
-    it "should select new item", (done)->
-      item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
-      list.add_item item
+  it "select new item", (done)->
+    item = Nod.create('<li class="item" data-id="4" data-key="new">New</li>')
+    list.add_item item
 
-      list.on 'selected', (event) =>
-        expect(list.selected()[0].record.key).to.equal 'new'
-        expect(event.data[0].record.key).to.equal 'new'
-        done()
+    list.on 'selected', (event) =>
+      expect(list.selected()[0].record.key).to.equal 'new'
+      expect(event.data[0].record.key).to.equal 'new'
+      done()
 
-      h.clickElement test_div.find('.pi').find('[data-id="4"]').node
-      
-    it "should send cleared event when all items are deselected", (done)->
-      list.selectable.type 'check'
+    h.clickElement test_div.find('.pi').find('[data-id="4"]').node
+    
+  it "send cleared event when all items are deselected", (done)->
+    list.selectable.type 'check'
 
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
 
-      list.on 'selection_cleared', (event) =>
-        expect(list.selected().length).to.equal 0
-        done()
+    list.on 'selection_cleared', (event) =>
+      expect(list.selected().length).to.equal 0
+      done()
 
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
 
-    it "should send cleared when selected item is removed", (done) ->
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+  it "send cleared when selected item is removed", (done) ->
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
 
-      list.on 'selection_cleared', (event) =>
-        expect(list.selected().length).to.equal 0
-        done()
+    list.on 'selection_cleared', (event) =>
+      expect(list.selected().length).to.equal 0
+      done()
 
-      list.remove_item_at 0
+    list.remove_item_at 0
 
-    it "should send cleared when selected item is removed after _selected was cached", (done) ->
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
-      list.selected()
-      
-      list.on 'selection_cleared', (event) =>
-        expect(list.selected().length).to.equal 0
-        done()
+  it "send cleared when selected item is removed after _selected was cached", (done) ->
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+    list.selected()
+    
+    list.on 'selection_cleared', (event) =>
+      expect(list.selected().length).to.equal 0
+      done()
 
-      list.remove_item_at 0
+    list.remove_item_at 0
 
-    it "should send cleared when list completely cleared", (done) ->
-      h.clickElement test_div.find('.pi').find('[data-id="1"]').node
+  it "send cleared when list completely cleared", (done) ->
+    h.clickElement test_div.find('.pi').find('[data-id="1"]').node
 
-      list.on 'selection_cleared', (event) =>
-        expect(list.selected().length).to.equal 0
-        done()
+    list.on 'selection_cleared', (event) =>
+      expect(list.selected().length).to.equal 0
+      done()
 
-      list.clear()
+    list.clear()
 
-    it "should not send cleared on item added", (done) ->
+  it "not send cleared on item added", (done) ->
 
-      list.item_renderer = 
-        render: (data) ->
-          nod = Nod.create ("<div>#{ data.name }</div>")
-          nod.addClass 'item'
-          nod.append "<span class='author'>#{ data.author }</span>"
-          pi.utils.extend nod,data
-          nod
+    list.item_renderer = 
+      render: (data) ->
+        nod = Nod.create ("<div>#{ data.name }</div>")
+        nod.addClass 'item'
+        nod.append "<span class='author'>#{ data.author }</span>"
+        pi.utils.extend nod,data
+        nod
 
-      list.on 'selection_cleared', (event) =>
-        expect(false).to.equal true
-        done()
+    list.on 'selection_cleared', (event) =>
+      expect(false).to.equal true
+      done()
 
-      utils.after 1000, -> 
-        done()
+    utils.after 1000, -> 
+      done()
 
-      list.add_item {id:13, name: 'Element 3', author: 'John'} 
+    list.add_item {id:13, name: 'Element 3', author: 'John'} 

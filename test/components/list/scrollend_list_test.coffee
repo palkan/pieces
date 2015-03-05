@@ -3,7 +3,7 @@ h = require 'pi/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 
-describe "scroll_end list plugin", ->
+describe "List.ScrollEnd", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -30,51 +30,49 @@ describe "scroll_end list plugin", ->
   afterEach ->
     test_div.remove()
 
-  describe "scroll_end plugin", ->
+  it "send scroll_end event", (done)->  
+    list.on 'scroll_end', (event) =>
+      done()  
 
-    it "should send scroll_end event", (done)->  
-      list.on 'scroll_end', (event) =>
-        done()  
+    list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 49
 
-      list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 49
+  it "not send scroll_end event", ->  
 
-    it "should not send scroll_end event", ->  
-
-      list.on 'scroll_end', (spy = sinon.spy())
-      list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 100 
-      expect(spy.callCount).to.eq 0
+    list.on 'scroll_end', (spy = sinon.spy())
+    list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 100 
+    expect(spy.callCount).to.eq 0
 
 
-    it "should send scroll_end event once per 500ms", (done)->        
-      spy_fun = sinon.spy()
-      list.on 'scroll_end', spy_fun
+  it "send scroll_end event once per 500ms", (done)->        
+    spy_fun = sinon.spy()
+    list.on 'scroll_end', spy_fun
 
-      utils.after 500, =>
-        expect(spy_fun.callCount).to.eq 1
-        done()
+    utils.after 500, =>
+      expect(spy_fun.callCount).to.eq 1
+      done()
 
-      list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 49 
-      utils.after 200, =>
-         list.items_cont.node.scrollTop += 5
-         
+    list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 49 
+    utils.after 200, =>
+       list.items_cont.node.scrollTop += 5
+       
 
-    it "should send scroll_end event twice per 1000ms", (done)->  
-      
-      spy_fun = sinon.spy()
+  it "send scroll_end event twice per 1000ms", (done)->  
+    
+    spy_fun = sinon.spy()
 
-      list.on 'scroll_end', spy_fun
+    list.on 'scroll_end', spy_fun
 
-      utils.after 1200, =>
-        expect(spy_fun.callCount).to.eq 2
-        done()
+    utils.after 1200, =>
+      expect(spy_fun.callCount).to.eq 2
+      done()
 
-      list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 40 
+    list.items_cont.node.scrollTop = list.items_cont.node.scrollHeight - list.items_cont.node.clientHeight - 40 
 
-      utils.after 200, =>
-         list.items_cont.node.scrollTop += 5
+    utils.after 200, =>
+       list.items_cont.node.scrollTop += 5
 
-      utils.after 350, =>
-         list.items_cont.node.scrollTop += 5
+    utils.after 350, =>
+       list.items_cont.node.scrollTop += 5
 
-      utils.after 450, =>
-         list.items_cont.node.scrollTop += 5
+    utils.after 450, =>
+       list.items_cont.node.scrollTop += 5

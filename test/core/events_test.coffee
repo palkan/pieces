@@ -1,7 +1,7 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "event dispatcher", ->
+describe "EventDispatcher", ->
   root_e = h.test_cont(pi.Nod.body)
 
   before ->
@@ -11,7 +11,7 @@ describe "event dispatcher", ->
     h.unmock_raf()
     root_e.remove()
 
-  it "should add native events and call handlers", ->
+  it "add native events and call handlers", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -27,7 +27,7 @@ describe "event dispatcher", ->
     h.clickElement el.node
     expect(spy.callCount).to.eq 2
 
-  it "should remove all events on off", ->
+  it "remove all events on off", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -43,7 +43,7 @@ describe "event dispatcher", ->
     el.off()
     expect(el.listeners).to.eql({})
 
-  it "should not call removed events", ->
+  it "not call removed events", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -61,7 +61,7 @@ describe "event dispatcher", ->
     h.clickElement el.node
     expect(spy_fun.callCount).to.eq 1
 
-  it "should remove native listener on off()", ->
+  it "remove native listener on off()", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -89,7 +89,7 @@ describe "event dispatcher", ->
     expect(spy_fun.callCount).to.eq(1)
 
 
-  it "should remove native listener on off(event)", ->
+  it "remove native listener on off(event)", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -117,7 +117,7 @@ describe "event dispatcher", ->
     expect(spy_fun.callCount).to.eq(1)
 
 
-  it "should remove native listener on off(event,callback,context)", ->
+  it "remove native listener on off(event,callback,context)", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -142,7 +142,7 @@ describe "event dispatcher", ->
     expect(spy_native.callCount).to.eq(1)
     expect(dummy.spy.callCount).to.eq(1)
 
-  it "should call once if one(event)", ->
+  it "call once if one(event)", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -161,7 +161,7 @@ describe "event dispatcher", ->
 
     expect(dummy.spy.callCount).to.eq(1)
 
-  it "should remove native listener after event if one(event)", ->
+  it "remove native listener after event if one(event)", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -185,7 +185,7 @@ describe "event dispatcher", ->
     expect(dummy.spy.callCount).to.eq(1)
 
 
-  it "should work with several native events", ->
+  it "work with several native events", ->
     test_div = h.test_cont root_e, """
       <div id='cont'>
         <button class='pi'>Button</button>
@@ -215,7 +215,7 @@ describe "event dispatcher", ->
       delete pi.NodEvent.aliases.clicko
       delete pi.NodEvent.reversed_aliases.click
 
-    it "should work with alias", ->
+    it "work with alias", ->
       pi.NodEvent.register_alias 'clicko', 'click' 
       test_div = h.test_cont root_e, """
         <div id='cont'>
@@ -232,11 +232,11 @@ describe "event dispatcher", ->
       expect(spy_fun.callCount).to.eq(1)
 
 
-  describe "resize delegate", ->
+  describe "Resize Delegate", ->
     afterEach ->
       pi.Nod.body.styles({height: null, width: null})
 
-    it "should trigger resize event if size changed", (done) ->
+    it "trigger resize event if size changed", (done) ->
       example = h.test_cont root_e, """
           <div style="height: 50%; width: 200px;">
             <button class='pi'>Button</button>
@@ -253,7 +253,7 @@ describe "event dispatcher", ->
         expect(spy_fun.callCount).to.eq 1
         done()
 
-    it "should not trigger resize event if size haven't changed",  ->
+    it "not trigger resize event if size haven't changed",  ->
       example = h.test_cont root_e, """
           <div style="height: 50%; width: 200px;">
             <button class='pi'>Button</button>
@@ -264,7 +264,7 @@ describe "event dispatcher", ->
       h.resizeEvent()
       expect(spy_fun.callCount).to.eq 0
 
-    it "should work with 'one'", (done) ->
+    it "work with 'one'", (done) ->
       example = h.test_cont root_e, """
           <div style="height: 50%; width: 200px;">
             <button class='pi'>Button</button>

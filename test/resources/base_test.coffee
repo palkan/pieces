@@ -1,10 +1,9 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "Pieces REST base", ->
+describe "Resources", ->
   utils = pi.utils
-  
-  describe "base resources test", ->
+  describe "Base", ->
     Salt = pi.Salt
     Testo = pi.Testo
 
@@ -19,33 +18,33 @@ describe "Pieces REST base", ->
       Salt.off()
 
     describe "class functions", ->
-      it "should return all resources", ->
+      it "return all resources", ->
         expect(Testo.all()).to.have.length 2
         expect(Salt.all()).to.have.length 2
         expect(Salt.get(2).name).to.eq 'gunsalt'
 
-      it "should find item", ->
+      it "find item", ->
         expect(Salt.get(1).name).to.eq 'seasalt'
         expect(Salt.get(4)).to.be.undefined
 
-      it "should find many items (where)", ->
+      it "find many items (where)", ->
         expect(Salt.where({name: 'seasalt'})).to.have.length 1
         expect(Salt.where({'id>':2})).to.have.length 1
         expect(Salt.where({'name~':'salt'})).to.have.length 2
 
-      it "should destroy item", ->
+      it "destroy item", ->
         res = Salt.remove_by_id(1)
         expect(res.id).to.be.undefined
         expect(Salt.get(1)).to.be.undefined
 
     describe "instance functions", ->
-      it "should update item", ->
+      it "update item", ->
         s = Salt.get(2)
         s.set salinity: 'high'
         s = Salt.get(2)
         expect(s.salinity).to.eq 'high'
 
-      it "should bind events to item", ->
+      it "bind events to item", ->
         s = Salt.get(1)
         s2 = Salt.get(2)
 
@@ -58,7 +57,7 @@ describe "Pieces REST base", ->
 
         expect(spy.callCount).to.eq 1
 
-      it "should unbind events from item", ->
+      it "unbind events from item", ->
         s = Salt.get(1)
 
         spy = sinon.spy()
@@ -69,16 +68,15 @@ describe "Pieces REST base", ->
         s.set({sugar: 'brown'})
         expect(spy.callCount).to.eq 1
 
-
     describe "update events", ->
-      it "should send update event on create",(done) ->
+      it "send update event on create",(done) ->
         Testo.listen (e) ->
           expect(e.data.type).to.eq 'create'
           expect(e.data.testo.type).to.eq 'puff'
           done()
         Testo.build {type: 'puff', id: 3}
 
-      it "should not send update event on build (without id)", (done) ->
+      it "not send update event on build (without id)", (done) ->
         Testo.listen (e) ->
          throw Error('udpate received!')
         
@@ -86,7 +84,7 @@ describe "Pieces REST base", ->
 
         Testo.build {type: 'puff'}
 
-      it "should send update event on update",(done) ->
+      it "send update event on update",(done) ->
         t = Testo.all()[0]
         Testo.listen (e) ->
           expect(e.data.type).to.eq 'update'
@@ -97,8 +95,7 @@ describe "Pieces REST base", ->
 
         t.set {type: 'yeast'}
 
-
-      it "should not send update event if no changes",(done) ->
+      it "not send update event if no changes",(done) ->
         t = Testo.all()[1]
         Testo.listen (e) ->
           if e.data.type is 'update'
@@ -108,19 +105,17 @@ describe "Pieces REST base", ->
 
         t.set {type: 'blinno'}
 
-      it "should send update event on destroy event if element is not stored",(done) ->
+      it "send update event on destroy event if element is not stored",(done) ->
         t = new Testo({type: 'hoho', id: 123})
         Testo.listen (e) ->
           expect(e.data.type).to.eq 'destroy'
           expect(e.data.testo.id).to.eq 123
           expect(e.data.testo.type).to.eq 'hoho'
           done()
-
         Testo.remove t
 
-
     describe "working with temp_id", ->
-      it "should send create event on set with id and remove __temp__ prop",(done) ->
+      it "send create event on set with id and remove __temp__ prop",(done) ->
         Testo.listen (e) ->
           expect(e.data.type).to.eq 'create'
           expect(e.data.testo.__temp__).to.be.undefined

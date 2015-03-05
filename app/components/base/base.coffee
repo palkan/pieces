@@ -121,7 +121,7 @@ class pi.Base extends pi.Nod
 
   init_plugins: ->
     if @options.plugins?
-      @attach_plugin @find_plugin(name) for name in @options.plugins
+      @attach_plugin @constructor.lookup_module(name) for name in @options.plugins
       delete @options.plugins
     return
       
@@ -129,16 +129,6 @@ class pi.Base extends pi.Nod
     if plugin?
       utils.debug_verbose "plugin attached #{plugin::id}"
       @__plugins__.push plugin.attached(@)
-
-  find_plugin: (name) ->
-    name = utils.camelCase name
-    klass = @constructor
-    while(klass?)
-      if klass[name]?
-        return klass[name]
-      klass = klass.__super__?.constructor
-    utils.warning "plugin not found: #{name}"
-    return null
 
   init_children: ->
     for node in @find_cut(".#{pi.klass.PI}")

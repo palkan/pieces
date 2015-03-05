@@ -8,7 +8,7 @@ class utils.promise
     new Promise( (resolve) -> resolve(data))  
 
   # return data as rejected promise
-  @rejected: (data) ->
+  @rejected: (error) ->
     new Promise((_,reject) -> reject(error))
 
   # return data with delay as promise

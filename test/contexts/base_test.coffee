@@ -17,14 +17,14 @@ describe "Context", ->
       ctx.add_context a, as: 'a'
       ctx.add_context b, as: 'b'
       
-    it "should load default context", (done) ->
+    it "load default context", (done) ->
       ctx.load().then(
         ->
           expect(ctx.context).to.eq a
           done()
       ).catch(done)
 
-    it "should switch another context", (done) ->
+    it "switch another context", (done) ->
       ctx.load().then(
         ->
           ctx.switch_to('b', 'test')
@@ -32,12 +32,12 @@ describe "Context", ->
         ->
           expect(ctx.context).to.eq b
           expect(b.state).to.eq 'loaded'
-          expect(b.data).to.eq 'test'
+          expect(b.data.params).to.eq 'test'
           expect(a.state).to.eq 'unloaded'
           done()
       ).catch(done)
 
-     it "should switch back and forth", (done) ->
+     it "switch back and forth", (done) ->
       ctx.load().then(
         ->
           ctx.switch_to('b', 'test')
@@ -79,14 +79,14 @@ describe "Context", ->
       ctx.add_context b, as: 'b'
       ctx.add_context c, as: 'c'
       
-    it "should load default context", (done) ->
+    it "load default context", (done) ->
       ctx.load().then(
         ->
           expect(ctx.context).to.eq a
           done()
       ).catch(done)
 
-    it "should switch up and down, back and forth", (done) ->
+    it "switch up and down, back and forth", (done) ->
       ctx.load().then(
         ->
           ctx.switch_up('b', 'test')
@@ -94,14 +94,14 @@ describe "Context", ->
         ->
           expect(ctx.context).to.eq b
           expect(b.state).to.eq 'loaded'
-          expect(b.data).to.eq 'test'
+          expect(b.data.params).to.eq 'test'
           expect(a.state).to.eq 'deactivated'
           ctx.switch_up('c', 'cest')
       ).then(
         ->
           expect(ctx.context).to.eq c
           expect(b.state).to.eq 'deactivated'
-          expect(c.data).to.eq 'cest'
+          expect(c.data.params).to.eq 'cest'
           expect(c.state).to.eq 'loaded'
           ctx.switch_back()
       ).then(
@@ -136,7 +136,7 @@ describe "Context", ->
       ctx.add_context b, as: 'b'
       ctx.add_context c, as: 'c'
 
-    it "should load all contexts", (done) ->
+    it "load all contexts", (done) ->
       ctx.load().then(
         ->
           expect(ctx.context('a')).to.eq a
@@ -146,7 +146,7 @@ describe "Context", ->
           done()
       ).catch(done)
 
-    it "should unload all contexts", (done) ->
+    it "unload all contexts", (done) ->
       ctx.load().then(
         ->
           expect(ctx.context('a')).to.eq a

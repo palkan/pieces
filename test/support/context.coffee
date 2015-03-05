@@ -31,38 +31,42 @@ class pi.controllers.SlowContext extends pi.controllers.TestContext
       utils.promise.delayed(Math.random()*500)
 
 class pi.controllers.Test extends pi.controllers.Base
-  id: 'test'
 
 class pi.controllers.Test2 extends pi.controllers.Base
-  id: 'test2'
-
   submit: (data) ->
     @exit title: data
 
 class pi.controllers.TestPreload extends pi.controllers.Base
-  id: 'test_preload'
-
   preload: ->
     new Promise((resolve, reject) =>
       @preloaded = true
       pi.utils.after 200, resolve
     )
 
+class pi.controllers.Base.HasResource extends pi.Core
+  @mixedin: (owner) ->
+    res_name = owner.options.modules.has_resource
+    throw Error("Undefined resource: #{res_name}") if !res_name || !(res = utils.obj.get_class_path(pi.resources, res_name))
+    owner.resource = res
 
-class pi.TestView extends pi.BaseView
+class pi.views.Test extends pi.views.Base
   default_controller: pi.controllers.Test 
 
-  reloaded: (data) ->
+  activated: (data) ->
     if data?.title?
       @title.text data.title 
 
-class pi.Test2View extends pi.BaseView
+class pi.views.TestPreload extends pi.views.Base
   default_controller: pi.controllers.Test2 
 
-  reloaded: (data) ->
+  activated: (data) ->
     if data?.title?
       @input_txt.value data.title 
 
   unloaded: ->
     @input_txt?.clear()
+
+class pi.views.Base.Loadable extends pi.Core
+  load: (flag = true) ->
+    @loader.text (if flag then 'loading' else '')
     

@@ -1,7 +1,7 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "form component", ->
+describe "Form", ->
   root = h.test_cont(pi.Nod.body)
 
   after ->
@@ -17,7 +17,7 @@ describe "form component", ->
   afterEach ->
     test_div.remove()
 
-  describe "initialize", ->
+  describe "initialization", ->
     example = null
     beforeEach ->
       test_div.append """
@@ -37,24 +37,24 @@ describe "form component", ->
       pi.app.view.piecify()
       example = test_div.find('.test')
 
-    it "should be Form", ->
+    it "is Form", ->
       expect(example).to.be.an.instanceof pi.Form
 
-    it "should init value", ->
+    it "init value", ->
       expect(example.value().desc).to.eq '1'
       expect(example.value().is_active).to.eq null
       expect(example.value().type).to.eq '2'
       expect(example.value().title).to.eq 'Title'
 
-    it "should cache inputs by name", ->
+    it "cache inputs by name", ->
       expect(example.find_by_name('desc').value()).to.eq '1'
       expect(example.find_by_name('is_active').node.checked).to.be.false
 
-    it "should find new inputs by name", ->
+    it "find new inputs by name", ->
       example.append '''<textarea type="text" name="comment">Good news everyone!</textarea>'''
       expect(example.find_by_name('comment').value()).to.eq 'Good news everyone!'
 
-  describe "inputs update", ->
+  describe "working with inputs", ->
     example = null
     beforeEach ->
       test_div.append """
@@ -76,7 +76,7 @@ describe "form component", ->
       pi.app.view.piecify()
       example = test_div.find('.test')
     
-    it "should handle native inputs updates", (done) ->
+    it "handle native inputs updates", (done) ->
       example.on pi.FormEvent.Update, (e) =>
         expect(example.value().title).to.eq 'any'
         expect(e.data.title).to.eq 'any'
@@ -84,7 +84,7 @@ describe "form component", ->
       test_div.find("#title").value 'any'
       h.changeElement test_div.find("#title").node
 
-    it "should handle BaseInputs updates", (done) ->
+    it "handle BaseInputs updates", (done) ->
       example.on pi.FormEvent.Update, (e) =>
         expect(example.value().desc).to.eq 'long description'
         expect(e.data.desc).to.eq 'long description'
@@ -93,7 +93,7 @@ describe "form component", ->
       test_div.find("#desc input").value 'long description'
       h.changeElement test_div.find("#desc input").node
 
-    it "should set inputs values", ->
+    it "set values", ->
       example.value desc: 'Song', title: 'EA', is_active: true, type: 3, bull: 'shit' 
       
       expect(test_div.find("#desc").value()).to.eq 'Song'
@@ -108,7 +108,7 @@ describe "form component", ->
       expect(val.type).to.eq '3'
       expect(val).to.have.keys ['desc', 'title', 'is_active', 'type']
 
-    it "should clear inputs values", ->
+    it "clear", ->
       example.clear()
       
       expect(test_div.find("#desc").value()).to.eq ''
@@ -117,3 +117,4 @@ describe "form component", ->
       expect(test_div.find("#type option:nth-child(3)").node.selected).to.be.false
       expect(test_div.find("#type option:nth-child(2)").node.selected).to.be.false
       expect(test_div.find("#type option:nth-child(1)").node.selected).to.be.true # by default select element select first option
+      

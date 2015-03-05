@@ -35,6 +35,11 @@ class utils.obj
     path = path.split('.').map((p) => utils.camelCase(p)).join('.')
     @get_path pckg, path
 
+  # convert path parts to camelCase and then set_path
+  @set_class_path: (pckg, path, val) ->
+    path = path.split('.').map((p) => utils.camelCase(p)).join('.')
+    @set_path pckg, path, val
+
   # generate new object containing as key provided object
   @wrap: (key, obj) ->
     data = {}

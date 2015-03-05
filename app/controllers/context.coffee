@@ -65,6 +65,7 @@ class Context extends pi.Core
     !!@_contexts[id]
 
   dispose: ->
+    @_initialized = false
     @_contexts = {}
     @strategy?.dispose(@)
 
@@ -82,12 +83,11 @@ class Strategy.OneForAll extends pi.Core
   # Add history to context
   @mixedin: (owner) ->
     owner._history = new History()
-    utils.extend(owner, @::)
 
   # Load default subcontext if exists and not loaded yet
   @load: (@context) ->
     return if @context.context or @__loading
-    if (id = @context.options.default) and @context.has_context(id)
+    if (id = (@context.options.default||"main")) and @context.has_context(id)
       @context.__loading_promise = 
         @context.switch_to(id).then(
           ( =>
@@ -135,7 +135,7 @@ class Strategy.OneForAll extends pi.Core
     preloader.then(
       =>
         @context?.unload()
-        target.load(params)
+        target.load(data)
         @_history.push(to) unless history
         @context = target
         @context_id = to
@@ -172,10 +172,10 @@ class Strategy.OneByOne extends Strategy.OneForAll
       =>
         if up 
           @context?.deactivate()
-          target.load(params)
+          target.load(data)
         else
           @context?.unload()
-          target.activate(params)
+          target.activate(data)
         @_history.push(id: to, up: up) unless history
         @context = target
         @context_id = to
@@ -199,9 +199,6 @@ class Strategy.OneByOne extends Strategy.OneForAll
     @switch_to inverted_to, data, true
 
 class Strategy.AllForOne extends pi.Core
-  @mixedin: (owner) ->
-    utils.extend(owner, @::)
-
   # Load all subcontexts
   @load: (@context) ->
     ctx.load() for own _, ctx of @context._contexts

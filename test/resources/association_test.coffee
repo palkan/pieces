@@ -1,8 +1,8 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "Pieces REST base", ->
-  describe "resources association test", ->
+describe "Resources", ->
+  describe "Association", ->
     Chef = pi.resources.Chef
     Testo = pi.Testo2
     Eater = pi.Eater
@@ -22,7 +22,7 @@ describe "Pieces REST base", ->
       Eater.off()
 
     describe "initialization", ->
-      it "should respond to base methods", ->
+      it "base methods", ->
         chef = Chef.get(1)
         expect(chef.load_testos).to.be.a('function')
         expect(chef.testos).to.be.a('function')
@@ -31,7 +31,7 @@ describe "Pieces REST base", ->
         expect(chef.eaters()).to.be.an.instanceof(Assoc)
 
 
-      it "should handle resources events", ->
+      it "resources events", ->
         chef = Chef.get(1)
         testos = chef.testos()
         spy = sinon.spy(testos, 'on_update')
@@ -45,7 +45,7 @@ describe "Pieces REST base", ->
         expect(spy.callCount).to.eq 1
         expect(spy2.callCount).to.eq 1
 
-      it "should handle resources events with belongs_to scope", ->
+      it "resources events with belongs_to scope", ->
         chef = Chef.get(1)
         testos = chef.testos()
         spy = sinon.spy(testos, 'on_update')
@@ -62,7 +62,7 @@ describe "Pieces REST base", ->
         Testo.remove_by_id 10
         expect(spy2.callCount).to.eq 1
 
-       it "should trigger resources events with belongs_to scope", ->
+       it "trigger resources events with belongs_to scope", ->
         chef = Chef.get(1)
         testos = chef.testos()
         spy = sinon.spy()
@@ -75,14 +75,14 @@ describe "Pieces REST base", ->
 
         expect(spy.callCount).to.eq 2
 
-      it "should init association on build", ->
+      it "init association on build", ->
         chef = Chef.build({id:3, name: 'Juan', eaters: [{id:3, kg_eaten: 12, name: 'Julio'}], testos: [{id:4, type: 'puff'}]})
         expect(chef.eaters().all()).to.have.length 1
         expect(chef.eaters().get(3).kg_eaten).to.eq 12
         expect(chef.testos().all()).to.have.length 1
         expect(chef.testos().get(4).chef_id).to.eq 3
 
-      it "should update association on update", ->
+      it "update association on update", ->
         chef = Chef.build({id: 4, name: 'Juan'})
         chef.set eaters: [{id:3, kg_eaten: 12, name: 'Julio'}], testos: [{id:4, type: 'puff'}]
         expect(chef.eaters().all()).to.have.length 1
@@ -90,17 +90,17 @@ describe "Pieces REST base", ->
         expect(chef.testos().all()).to.have.length 1
         expect(chef.testos().get(4).chef_id).to.eq 4
 
-      it "should add resources already created", ->
+      it "add resources already created", ->
         Testo.build id:90, type:'60s', chef_id:5
         chef = Chef.build id: 5, name: 'DelayedChef'
         expect(chef.testos().all()).to.have.length 1
 
-      it "should add resources created outside with load", ->
+      it "add resources created outside with load", ->
         chef = Chef.build id: 6, name: 'Cheffo'
         Testo.load [{id:90, type:'70s', chef_id:6}]
         expect(chef.testos().all()).to.have.length 1
 
-      it "should not add resources on update if not persisted", ->
+      it "not add resources on update if not persisted", ->
         chef = Chef.build name: 'Cheffo'
         Eater.get(1).set(name: 'Romario')
         expect(chef.eaters().all()).to.have.length 0
@@ -109,7 +109,7 @@ describe "Pieces REST base", ->
       beforeEach ->
         @chef = Chef.get(1)
 
-      it "should add elements and handle updates", ->
+      it "add elements and handle updates", ->
         
         @chef.on 'update', (spy1 = sinon.spy())
 
@@ -124,7 +124,7 @@ describe "Pieces REST base", ->
         expect(@chef.eaters().get(1).age).to.eq 101
         expect(spy1.callCount).to.eq 2
 
-      it "should add elements, set owner_id and not copy", ->
+      it "add elements, set owner_id and not copy", ->
         spy = sinon.spy()
         @chef.testos().listen spy
         @chef.testos().build {id:13, type:'none'}
@@ -136,7 +136,7 @@ describe "Pieces REST base", ->
         expect(@chef.testos().get(13)).to.be.an.instanceof Testo
 
 
-      it "should add elements created outside with belongs_to", ->
+      it "add elements created outside with belongs_to", ->
         @chef.on 'update', (spy1 = sinon.spy())
         spy = sinon.spy()
         @chef.testos().listen spy
@@ -148,7 +148,7 @@ describe "Pieces REST base", ->
         expect(spy1.callCount).to.eq 0
         expect(@chef.testos_updated).to.be.undefined
 
-      it "should add elements and handle remove", ->
+      it "add elements and handle remove", ->
         @chef.on 'update', (spy1 = sinon.spy())
         spy = sinon.spy()
         @chef.eaters().listen spy
@@ -162,7 +162,7 @@ describe "Pieces REST base", ->
         expect(@chef.eaters().all()).to.have.length 0
         expect(spy1.callCount).to.eq 2
 
-      it "should handle remove of belongs_to", ->
+      it "handle remove of belongs_to", ->
         @chef.on 'update', (spy1 = sinon.spy())
         expect(@chef.testos().all()).to.have.length 1
         tid = @chef.testos().all()[0].id
@@ -175,7 +175,7 @@ describe "Pieces REST base", ->
       beforeEach ->
         @chef = Chef.get(1)
 
-      it "should destroy dependant elements", ->
+      it "destroy dependant elements", ->
         expect(@chef.testos().all()).to.have.length 1
 
         tid = @chef.testos().all()[0].id
@@ -188,7 +188,7 @@ describe "Pieces REST base", ->
         @chef = Chef.build({id:3, name: 'Juan', eaters: [Eater.get(1), Eater.get(2)], testos: [{id:4, type: 'puff'}]})
         @chef.eaters().get(1).set(kg_eaten:22)
 
-      it "should serialize data correctly", ->
+      it "serialize data correctly", ->
         data = @chef.attributes()
 
         expect(data.testos).to.have.length 1
@@ -197,7 +197,7 @@ describe "Pieces REST base", ->
         expect(data.testos[0]).to.have.keys ['id','chef_id','type']
 
     describe "reload after persist", ->
-      it "should reload created associations", ->
+      it "reload created associations", ->
         chef = Chef.build({name: 'Juan', eaters: [Eater.get(1), Eater.get(2)], testos: [{id: 4, type: 'puff'}]})
         expect(chef.testos().all()).to.have.length 1
         expect(chef.eaters().all()).to.have.length 2
@@ -207,7 +207,7 @@ describe "Pieces REST base", ->
         expect(chef.eaters().all()).to.have.length 2
         expect(chef.testos().all()).to.have.length 1
 
-      it "should update cache after item created and updated", ->
+      it "update cache after item created and updated", ->
         chef = Chef.build({id: 10, name: 'Juan', testos: [{type: 'puff'}]})
         expect(chef.testos().all()).to.have.length 1
 
@@ -215,7 +215,7 @@ describe "Pieces REST base", ->
 
         t.set id: 14
         expect(chef.testos().all()).to.have.length 1
-  
+
         t.set rate: 95
         expect(chef.testos().all()).to.have.length 1
 
@@ -227,7 +227,7 @@ describe "Pieces REST base", ->
         @m1 = M.build name: 'first', age: 22
         @m2 = M.build name: 'second', age: 33
 
-      it "should load association", (done) ->
+      it "load association", (done) ->
         @m1.load_users().then(
           =>
             expect(@m1.users_loaded).to.be.true
@@ -247,5 +247,3 @@ describe "Pieces REST base", ->
           (e) => done(e)
         )
         
-
-

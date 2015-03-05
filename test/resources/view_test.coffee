@@ -1,8 +1,8 @@
 'use strict'
 h = require 'pi/test/helpers'
 
-describe "Pieces REST base", ->
-  describe "resources view test", ->
+describe "Resources", ->
+  describe "View", ->
     Salt = pi.Salt
     Testo = pi.Testo
     View = pi.resources.View
@@ -18,7 +18,7 @@ describe "Pieces REST base", ->
       Salt.off()
 
     describe "initialization", ->
-      it "should respond to base methods", ->
+      it "base methods", ->
         view = new View(Testo)
         expect(view.load).to.be.a('function')
         expect(view.get).to.be.a('function')
@@ -27,7 +27,7 @@ describe "Pieces REST base", ->
         expect(view.where).to.be.a('function')
         expect(view.all).to.be.a('function')  
 
-      it "should handle resources events", ->
+      it "resources events", ->
         view = new View(Testo)
         spy = sinon.spy(view, 'on_update')
         spy2 = sinon.spy(view, 'on_destroy')
@@ -40,7 +40,7 @@ describe "Pieces REST base", ->
         expect(spy.callCount).to.eq 1
         expect(spy2.callCount).to.eq 1
 
-      it "should handle resources events with scope", ->
+      it "resources events with scope", ->
         view = new View(Testo, type: 'blinno')
         spy = sinon.spy(view, 'on_update')
         spy2 = sinon.spy(view, 'on_destroy')
@@ -63,7 +63,7 @@ describe "Pieces REST base", ->
         @view.clear_all()
         @view.off()
 
-      it "should add elements and handle updates", ->
+      it "add elements and handle updates", ->
         spy = sinon.spy()
         @view.listen spy
         @view.build Testo.get(10)
@@ -74,7 +74,7 @@ describe "Pieces REST base", ->
         Testo.get(10).set({type: 'blabla'})
         expect(@view.get(10).type).to.eq 'blabla'
 
-      it "should add elements and handle remove", ->
+      it "add elements and handle remove", ->
         spy = sinon.spy()
         @view.listen spy
         @view.build Testo.get(10)
@@ -93,7 +93,7 @@ describe "Pieces REST base", ->
         @view.clear_all()
         @view.off()
 
-      it "should serialize data correctly", ->
+      it "serialize data correctly", ->
         el = @view.build type: 'sugar', id: '12'
         el.changed = true
 

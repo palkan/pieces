@@ -13,33 +13,24 @@ utils.extend pi.Base::,
     (@__controller__ ||= @view()?.controller)
 
   _find_view: ->
-    comp = @host
+    comp = @
     while(comp)
       if comp.is_view is true
         return comp
       comp = comp.host
 
-class pi.BaseView extends pi.Base
+class pi.views.Base extends pi.Base
   is_view: true
   
   initialize: ->
     super
-    controller_klass = null
-    if @options.controller
-      controller_klass = utils.obj.get_class_path pi.controllers, @options.controller
-
-    controller_klass ||= @default_controller
-
-    if controller_klass?
-      @controller = new controller_klass({}, @)
-    else
-      utils.warning "controller not found", controller_klass
 
   postinitialize: ->
+    @init_modules()
     super
-    if @controller?
-      host_controller = if (_view = @view()) then _view.controller else pi.app.page
-      host_controller.add_context @controller, @options
+
+  init_modules: ->
+    @mixin(@constructor.lookup_module(mod)) for mod, _ of @options.modules
 
   loaded: (data) ->
     return
@@ -53,4 +44,4 @@ class pi.BaseView extends pi.Base
   unloaded: ->
     return
 
-module.exports = pi.BaseView
+module.exports = pi.views.Base

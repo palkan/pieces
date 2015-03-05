@@ -5,6 +5,7 @@ utils = pi.utils
 event_re = /^on_(.+)/i
 
 class pi.ComponentInitializer
+  # return component class for nod
   @guess_component: (nod) ->
     component_name = nod.data('component') || pi.Guesser.find(nod)
     component = utils.obj.get_class_path(pi, component_name)
@@ -16,6 +17,7 @@ class pi.ComponentInitializer
       utils.debug_verbose "Component created: #{component_name}"
       component
 
+  # parse DOM options for component
   @gather_options: (el, component_name = "base") ->
     opts = utils.clone(el.data())
 
@@ -28,11 +30,14 @@ class pi.ComponentInitializer
     # merge options with defaults
     utils.merge((pi.config[component_name]||{}), opts)
 
-
+  # initialize component from node (or Nod)
   @init: (nod, host) ->
     nod = if nod instanceof pi.Nod then nod else pi.Nod.create(nod)
-    component = @guess_component nod
     
+    return pi.ControllerInitializer.build_controller(nod, host) if nod.data('controller')
+
+    component = @guess_component(nod)   
+
     return unless component?
 
     if nod instanceof component
