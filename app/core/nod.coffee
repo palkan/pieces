@@ -299,8 +299,6 @@ class pi.Nod extends pi.NodEventDispatcher
     return if @_disposed
     @off()
     pi.Nod.delete(@)
-    for own key,val of @
-      delete @[key]
     @_disposed = true
     return
 

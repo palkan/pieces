@@ -14,21 +14,18 @@ class pi.TextInput extends pi.BaseInput
       e.cancel()
       @trigger pi.InputEvent.Change, @value()
 
-  edit: () ->
-    unless @editable
-      @input.attr 'readonly', null 
-      @removeClass pi.klass.READONLY
-      @editable = true
-      @trigger pi.InputEvent.Editable, true
-    @
+  @active_property 'editable',
+    type: 'bool',
+    default: true,
+    event: pi.InputEvent.Editable
+    class:
+      name: pi.klass.READONLY
+      on: false
+    node_attr: 
+      name: 'readonly'
+      on: false
 
-  readonly: () ->
-    if @editable
-      @input.attr('readonly', 'readonly')
-      @addClass pi.klass.READONLY
-      @editable = false
-      @blur()
-      @trigger pi.InputEvent.Editable, false
-    @
+  readonly: (val = true) ->
+    @editable = !val
 
 module.exports = pi.TextInput

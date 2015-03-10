@@ -45,5 +45,5 @@ describe "TextInput", ->
         expect(test2.editable).to.be.true
         done()
 
-      test2.edit()
+      test2.readonly(false)
       

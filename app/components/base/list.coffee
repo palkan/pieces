@@ -6,7 +6,6 @@ require '../../plugins/base/renderable'
 utils = pi.utils
 
 # Basic list component
-
 class pi.List extends pi.Base
   @include_plugins pi.Base.Renderable
 
