@@ -225,12 +225,13 @@ describe "EventDispatcher", ->
       el = test_div.find '.pi'
       
       spy_fun = sinon.spy()
-      
+      spy_native = sinon.spy(el,"add_native_listener")
+
       el.on "clicko", spy_fun
 
       h.clickElement el.node
       expect(spy_fun.callCount).to.eq(1)
-
+      expect(spy_native.callCount).to.eq(1)
 
   describe "Resize Delegate", ->
     afterEach ->

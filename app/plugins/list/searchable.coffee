@@ -76,7 +76,7 @@ class pi.List.Searchable extends pi.Plugin
     @searching = false
     @list.removeClass pi.klass.SEARCHING
     items = @all_items()
-    @clear_highlight(items) in @__highlighted__
+    @clear_highlight(items) if @__highlighted__
     @__highlighted__ = false
     @list.data_provider(items, false, false) if rollback
     @_all_items = null
@@ -109,8 +109,7 @@ class pi.List.Searchable extends pi.Plugin
   # @param [Boolean] highlight defines whether to highlight matches with <mark> tag. Default is false.
 
   search: (q = '', highlight) ->
-    if q is ''
-      return @stop_search()
+    return @stop_search() if !q
 
     highlight = @list.options.highlight unless highlight?
 

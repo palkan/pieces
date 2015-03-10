@@ -159,20 +159,26 @@ class pi.NodEventDispatcher extends pi.EventDispatcher
 
   add_listener: (listener) ->
     if !@listeners[listener.type]
-      @add_native_listener listener.type
-      @add_native_listener NodEvent.aliases[listener.type] if NodEvent.has_alias(listener.type)
+      if NodEvent.has_alias(listener.type)
+        @add_native_listener NodEvent.aliases[listener.type] 
+      else
+        @add_native_listener listener.type
     super
 
   remove_type: (type) ->
-    @remove_native_listener type
-    @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
+    if NodEvent.has_alias(type)
+      @remove_native_listener NodEvent.aliases[type] 
+    else
+      @remove_native_listener type  
     super
 
   remove_all: ->
     for own type,list of @listeners
       do =>
-        @remove_native_listener type
-        @remove_native_listener NodEvent.aliases[type] if NodEvent.has_alias(type)
+        if NodEvent.has_alias(type)
+          @remove_native_listener NodEvent.aliases[type]
+        else
+          @remove_native_listener type
     super
 
 module.exports = pi.NodEventDispatcher
