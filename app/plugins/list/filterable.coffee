@@ -4,16 +4,16 @@ require '../../components/base/list'
 require '../plugin'
 utils = pi.utils
 
-# [Plugin]
-#
-# Add 'filter' method to list
-# Filter items detaching (not hiding!) DOM elements.
 _is_continuation = (prev, params) ->
   for own key,val of prev
     if params[key] != val
       return false
   return true
 
+# [Plugin]
+#
+# Add 'filter' method to list
+# Filter items detaching (not hiding!) DOM elements.
 class pi.List.Filterable extends pi.Plugin
   id: 'filterable'
 

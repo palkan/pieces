@@ -24,6 +24,7 @@ class pi.List.Sortable extends pi.Plugin
 
     @list.delegate_to @, 'sort'
     @list.on pi.ListEvent.Update, ((e) => @item_updated(e.data.item)), @, (e) => ((e.data.type is pi.ListEvent.ItemAdded or e.data.type is pi.ListEvent.ItemUpdated) and e.data.item.host is @list) 
+    @list.on pi.ListEvent.Update, ((e) => @resort()), @, (e) => ((e.data.type is pi.ListEvent.Load) and e.target is @list) 
     @
 
   item_updated: (item) ->
@@ -47,6 +48,17 @@ class pi.List.Sortable extends pi.Plugin
       right = i
     @_bisect_sort item, left, right 
 
+  # clear compare_fun
+  clear: ->
+    @_compare_fun = null
+
+
+  # sort list with current compare_fun
+  resort: ->
+    return false unless @_compare_fun
+
+    @list.items.sort @_compare_fun
+    @list.data_provider(@list.items.slice(),true,false)
 
   sort: (sort_params) ->
     return unless sort_params?
@@ -57,7 +69,7 @@ class pi.List.Sortable extends pi.Plugin
 
     @list.items.sort @_compare_fun
 
-    @list.data_provider(@list.items.slice(),false,false)
+    @list.data_provider(@list.items.slice(),true,false)
     @list.trigger pi.ListEvent.Sorted, sort_params
 
   sorted: (sort_params) ->

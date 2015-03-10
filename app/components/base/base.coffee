@@ -12,10 +12,12 @@ Init = pi.ComponentInitializer
 _array_rxp = /\[\]$/
 
 class pi.Base extends pi.Nod
-
   @include_plugins: (plugins...) ->
     plugin.included(@) for plugin in plugins
 
+  # Add list of required subcomponents
+  # If after initialization some required components
+  # are missing an error is thrown
   @requires: (components...) ->
     @before_create ->
       while(components.length)
@@ -26,19 +28,92 @@ class pi.Base extends pi.Nod
   constructor: (@node, @host, @options = {}) ->
     super
 
+    # 6-step initialization
     @preinitialize()
-    
     @initialize()
-    
     @init_plugins()
     @init_children()
     @setup_events()
-
     @postinitialize()
+
+  # Define instance vars here
+  preinitialize: ->
+    pi.Nod.store(@, true)
+    @__components__ = []
+    @__plugins__ = []
+    @pid = @data('pid') || @attr('pid') || @node.id
+    @visible = @enabled = true
+    @active = false
+
+  # Setup instance initial state (but not children)
+  initialize: ->       
+    @disable() if (@options.disabled || @hasClass(pi.klass.DISABLED))
+    @hide() if (@options.hidden || @hasClass(pi.klass.HIDDEN))
+    @activate() if (@options.active || @hasClass(pi.klass.ACTIVE))
+    @_initialized = true
+    @trigger pi.Events.Initialized, true, false
+
+  @register_callback 'initialize'
+
+  # Extend instance functionality with plugins
+  # (from options)
+  init_plugins: ->
+    if @options.plugins?
+      @attach_plugin @constructor.lookup_module(name) for name in @options.plugins
+      delete @options.plugins
+    return
+
+  attach_plugin: (plugin) ->
+    if plugin?
+      utils.debug_verbose "plugin attached #{plugin::id}"
+      @__plugins__.push plugin.attached(@)
+
+  # Find all top-level children components (elements with class pi.klass.PI)
+  # and initialize them
+  # 
+  # If a child has pid then it would be stored as this[pid]
+  # 
+  # @example
+  #   div.pi id="example"
+  #     div.pi data-pid="a"
+  #     ul
+  #       li.pi data-pid="b"
+  #         div.pi data-pid="c"
+  #   
+  #   # find example as pi.Base
+  #   example = pi.find("#example")
+  #   example.a # => pi.Base
+  #   example.b # => pi.Base
+  #   example.b.c #=> pi.Base
+  init_children: ->
+    for node in @find_cut(".#{pi.klass.PI}")
+      do (node) =>
+        child = Init.init node, @
+        if child?.pid
+          if _array_rxp.test(child.pid)
+            arr = (@[child.pid[..-3]]||=[])
+            arr.push(child) unless arr.indexOf(child)>-1
+          else
+            @[child.pid] = child
+          @__components__.push child
+    return
+
+  # Add event handlers from options
+  setup_events: ->
+    for event, handlers of @options.events
+      for handler in handlers.split(/;\s*/)
+        @on event, pi.Compiler.str_to_event_handler(handler, this)
+    delete @options.events
+    return
+
+  # Finish initialiation and trigger 'created' event.
+  postinitialize: ->
+    @trigger pi.Events.Created, true, false
+
+  @register_callback 'postinitialize', as: 'create' 
 
   # re-init children (grandchildren and so on)
   # = init_children() + __components__.all -> piecify()
-
   piecify: ->
     @__components__.length = 0
     @init_children()
@@ -98,63 +173,6 @@ class pi.Base extends pi.Nod
       @trigger pi.Events.Active, false
     @
 
-  ## internal ##
-
-  # define instance vars here and other props
-  preinitialize: ->
-    pi.Nod.store(@, true)
-    @__components__ = []
-    @__plugins__ = []
-    @pid = @data('pid') || @attr('pid') || @node.id
-    @visible = @enabled = true
-    @active = false
-
-  # setup instance initial state (but not children)
-  initialize: ->       
-    @disable() if (@options.disabled || @hasClass(pi.klass.DISABLED))
-    @hide() if (@options.hidden || @hasClass(pi.klass.HIDDEN))
-    @activate() if (@options.active || @hasClass(pi.klass.ACTIVE))
-    @_initialized = true
-    @trigger pi.Events.Initialized, true, false
-
-  @register_callback 'initialize'
-
-  init_plugins: ->
-    if @options.plugins?
-      @attach_plugin @constructor.lookup_module(name) for name in @options.plugins
-      delete @options.plugins
-    return
-      
-  attach_plugin: (plugin) ->
-    if plugin?
-      utils.debug_verbose "plugin attached #{plugin::id}"
-      @__plugins__.push plugin.attached(@)
-
-  init_children: ->
-    for node in @find_cut(".#{pi.klass.PI}")
-      do (node) =>
-        child = Init.init node, @
-        if child?.pid
-          if _array_rxp.test(child.pid)
-            arr = (@[child.pid[..-3]]||=[])
-            arr.push(child) unless arr.indexOf(child)>-1
-          else
-            @[child.pid] = child
-          @__components__.push child
-    return
-
-  setup_events: ->
-    for event, handlers of @options.events
-      for handler in handlers.split(/;\s*/)
-        @on event, pi.Compiler.str_to_event_handler(handler, this)
-    delete @options.events
-    return
-
-  postinitialize: ->
-    @trigger pi.Events.Created, true, false
-
-  @register_callback 'postinitialize', as: 'create' 
-
   dispose: ->
     return if @_disposed
     if @host?
@@ -166,6 +184,7 @@ class pi.Base extends pi.Nod
     @trigger pi.Events.Destroyed, true, false
     return
 
+  # Remove all references to child (called when child is disposed)
   remove_component: (child) ->
     return unless child.pid
     if _array_rxp.test(child.pid)
@@ -174,6 +193,7 @@ class pi.Base extends pi.Nod
       delete @[child.pid]
     @__components__.splice(@__components__.indexOf(child),1)
 
+  # Override Nod#remove_children to handle components first
   remove_children: ->
     list = @__components__.slice()
     for child in list

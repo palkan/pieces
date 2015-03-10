@@ -80,6 +80,7 @@ class pi.Net
 
   @use_json: true
   @headers: []
+  @method_override: false
   
   @request: (method, url, data, options={}, xhr) ->
     new Promise( 
@@ -100,6 +101,12 @@ class pi.Net
             url+="#{ q }"
           data = null
         else
+          # override methods
+          if @method_override is true
+            data._method = method 
+            _headers['X-HTTP-Method-Override'] = method         
+            method = 'POST'
+
           if use_json  
             _headers['Content-Type'] = 'application/json'
             data = JSON.stringify(data) if data?
