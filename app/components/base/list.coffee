@@ -34,8 +34,9 @@ class pi.List extends pi.Base
             e.cancel()
   
   parse_html_items: () ->
-    @items_cont.each ".#{ @item_klass }", (node) =>   
-      @add_item pi.Nod.create(node), true
+    for node in @items_cont.find_cut(".#{ @item_klass }") 
+      do (node) =>   
+        @add_item pi.Nod.create(node), true
     @_flush_buffer()
 
   # Set list elements

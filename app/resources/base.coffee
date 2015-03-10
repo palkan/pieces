@@ -28,7 +28,6 @@ class pi.resources.Base extends pi.EventDispatcher
     @::__associations__.push name
 
   # fill resources with data
-
   @load: (data,silent=false) ->
     if data?
       elements = (@build(el,true) for el in data)

@@ -276,7 +276,7 @@ describe "List.NestedSelect (but not Selectable)", ->
     list = test_div.find('.test')
 
   afterEach ->
-    test_div.remove_children()
+    test_div.remove()
 
   describe "selected and selected_item", ->
 
@@ -303,3 +303,85 @@ describe "List.NestedSelect (but not Selectable)", ->
 
       h.clickElement test_div.find('.click3').node
 
+describe "List.NestedSelect (several nested lists within one item)", ->
+  root = h.test_cont(pi.Nod.body)
+
+  after ->
+    root.remove()
+
+  test_div = list = null
+
+  beforeEach ->
+    test_div = Nod.create('div')
+    test_div.style position:'relative'
+    root.append test_div 
+    test_div.append """
+        <div class="pi test" data-component="list" data-nested-klass="pi-list" data-plugins="nested_select" data-pid="test" style="position:relative">
+          <ul class="list">          
+            <li class="pi item pi-list click1" data-component="list" data-group-id="1" data-id="10" data-plugins="selectable"> 
+              <span class="click1">Click1</span>
+              <ul class="list">
+                <li class="item" data-id="1" data-key="one">One<span class="tags">killer,puppy</span></li>
+                <li class="item click2" data-id="2" data-key="someone">Two<span class="tags">puppy, coward</span></li>
+                <li class="item click20" data-id="3" data-key="anyone">Tre<span class="tags">bully,zombopuppy</span></li>
+              </ul>
+            </li>
+            <div class="pi item">
+              <li class="pi pi-list" data-group-id="2" data-component="list" data-id="11" data-plugins="selectable" data-select-type="check"> 
+                <span>Click2</span>
+                <ul class="list">
+                  <li class="item click3" data-id="4">A</li>
+                  <li class="item click30" data-id="5">B</li>
+                  <li class="item" data-id="6">C</li>
+                </ul>
+              </li>
+              <li class="pi pi-list click10" data-component="list" data-group-id="3" data-id="12" data-plugins="selectable" data-select-type="check"> 
+                <span>Click3</span>
+                <ul class="list">
+                  <li class="item" data-id="7">1</li>
+                  <li class="item click4" data-id="8">2</li>
+                  <li class="item" data-id="9">3</li>
+                </ul>
+              </li>
+            </div>
+          </ul>
+        </div>
+      """
+    pi.app.view.piecify()
+    list = test_div.find('.test')
+
+  afterEach ->
+    test_div.remove()
+
+  describe "selected and selected_item", ->
+    it "select item", ->
+      spy_fun = sinon.spy()
+      list.on 'selected', spy_fun
+      h.clickElement $('.click4').node
+      expect(list.selected()).to.have.length 1
+      expect(spy_fun.callCount).to.eq 1
+
+    it "select all", ->
+      list.on 'selected', (spy_fun = sinon.spy())
+      list.select_all()
+      
+      expect(spy_fun.callCount).to.eq 1
+      expect(list.selected()).to.have.length 9
+      expect(list.selected()[8].record.id).to.eq 9
+
+  describe "selection cleared", ->
+    it "send nested selection cleared if all cleared", ->
+      h.clickElement $('.click4').node
+
+      sublist = $('.click10')
+
+      expect(list.selected()).to.have.length 1
+      expect(sublist.selected()).to.have.length 1
+
+      list.on 'selection_cleared', (spy_fun = sinon.spy())
+      
+      h.clickElement $('.click4').node
+
+      expect(sublist.selected()).to.have.length 0
+      expect(list.selected()).to.have.length 0
+      expect(spy_fun.callCount).to.eq 1

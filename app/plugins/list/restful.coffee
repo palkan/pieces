@@ -46,7 +46,7 @@ class pi.List.Restful extends pi.Plugin
   find_by_id: (id) ->
     if @listen_load
       return @items_by_id[id] if @items_by_id[id]?
-    items = @list.where(record: {id: (id|0)})
+    items = @list.where(record: {id: id})
     if items.length
       @items_by_id[id] = items[0]
 
