@@ -1,27 +1,7 @@
 'use strict'
 utils = require './base'
 
-_reg = /%([a-zA-Z])/g
-
-_splitter = ( ->
-  if "%a".split(_reg).length is 0
-    (str) ->
-      matches = str.match _reg
-      parts = str.split _reg
-      res = []
-      if str[0] is "%"
-        res.push "", matches.shift()[1]
-      len = matches.length + parts.length
-      flag = false
-      while len>0
-        res.push if flag then matches.shift()[1] else parts.shift()
-        flag = !flag
-        len--
-      res 
-  else
-    (str) ->
-      str.split _reg
-)()
+_reg = /%[a-zA-Z]/g
 
 _pad = (val, offset = 1) ->
   n = 10
@@ -117,13 +97,13 @@ utils.time =
   format:(t, fmt) ->
     t = @parse(t)
     return t unless fmt?
-    fmt_arr = _splitter fmt
-    flag = false
-    res = ""
-    for i in fmt_arr 
-      res+= (if flag then _formatter[i].call(null,t) else i)
-      flag = !flag
-    res
+    fmt.replace(_reg, (match) -> 
+      code = match[1..]
+      if _formatter[code]
+        _formatter[code](t)
+      else
+        match
+    )
 
   # return string representing given time as duration ('%H:%M:%S(.%L)')
   duration: (val, milliseconds = false, show_milliseconds = false) ->

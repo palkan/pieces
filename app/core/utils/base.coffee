@@ -28,6 +28,15 @@ class pi.utils
   @notsnake_rxp: /((?:^[^A-Z]|[A-Z])[^A-Z]*)/g
   @str_rxp: /(^'|'$)/g
 
+  @html_entities =
+    '&': '&amp;'
+    '<': '&lt;'
+    '>': '&gt;'
+    '"': '&quot;'
+    "'": '&#x27;'
+
+  @html_entities_rxp: /[&<>"']/g
+  
 
   # Generate uniq string (but int) id
   @uid: (pref) ->
@@ -41,9 +50,14 @@ class pi.utils
 
   ## String functions
 
-  #Escape regular expression characters (to use string in regexp)
+  # Escape regular expression characters (to use string in regexp)
   @escapeRegexp: (str) -> 
     str.replace(@esc_rxp, "\\$&")
+
+  # Escape special html entites: &, <, >, ', "
+  @escapeHTML: (str) ->
+    return str unless str
+    str.replace(@html_entities_rxp, (match) => @html_entities[match]) 
 
   @is_digital: (str) ->
     @digital_rxp.test str

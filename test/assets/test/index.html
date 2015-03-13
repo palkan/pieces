@@ -17,6 +17,7 @@
     <script>
       window.require.list().filter(function (name) {return /test\//.test(name);}).forEach(require);
       pi.app.initialize();
+      mocha.checkLeaks();
       if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
       else { mocha.run(); }
     </script>

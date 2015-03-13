@@ -13,6 +13,10 @@ describe "Utils", ->
       it "works", ->
         expect(utils.escapeRegexp("-{}()?*.$^\\")).to.equal("\\-\\{\\}\\(\\)\\?\\*\\.\\$\\^\\\\")
 
+    describe "escapeHTML", ->
+      it "works", ->
+        expect(utils.escapeHTML("&><\"'")).to.equal("&amp;&gt;&lt;&quot;&#x27;")
+
     describe "is_email", ->
       it "works with normal simple email", ->
         expect(utils.is_email("test@example.ru")).to.be.true

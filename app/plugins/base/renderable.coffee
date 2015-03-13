@@ -38,6 +38,10 @@ class pi.Base.Renderable extends pi.Plugin
       klass = pi.Renderers[utils.camelCase(name)]
       if klass?
         return new klass(param)
+    else if (tpl = @target.find('.pi-renderer'))
+      renderer = new pi.Renderers.Simple(tpl)
+      tpl.remove()
+      return renderer
     new pi.Renderers.Base()
 
 module.exports = pi.Base.Renderable

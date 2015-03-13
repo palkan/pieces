@@ -3,7 +3,7 @@ pi = require '../core'
 require './base'
 utils = pi.utils
 
-_path_reg = /:(\w+)\b/g
+_path_reg = /:\w+/g
 
 _double_slashes_reg = /\/\//
 
@@ -111,7 +111,6 @@ class pi.resources.REST extends pi.resources.Base
 
   @_interpolate_path: (path, params, target) ->
     path = @_rscope.replace(":path",path).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg,'')
-    path_parts = path.split _path_reg
     
     # check if attributes wrapped
     if @::wrap_attributes and params[@resource_name]? and (typeof params[@resource_name] is 'object')
@@ -119,17 +118,10 @@ class pi.resources.REST extends pi.resources.Base
     else
       vars = params
 
-    path = ""
-    flag = false
-    for part in path_parts
-      if flag
-        val = vars[part] ? target?[part] ? @_globals[part]
-        throw Error("undefined param: #{part}") unless val?
-        path+=val
-      else
-        path+=part
-      flag = !flag
-    path
+    path.replace(_path_reg, (match) =>
+      part = match[1..]
+      vars[part] ? target?[part] ? @_globals[part]
+    )
 
   @error: (action, message) ->
     pi.event.trigger "net_error", resource: @resources_name, action: action, message: message
