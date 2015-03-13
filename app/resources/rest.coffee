@@ -12,20 +12,21 @@ _tailing_slash_reg = /\/$/
 
 # REST resource
 class pi.resources.REST extends pi.resources.Base
+  # Routes namespace
   @_rscope: "/:path"
 
-  # define how to send instance params on create/update requests to server 
+  # Global vars that can be used in route interpolation
+  @_globals: {}
+
+  # Defines how to send instance params on create/update requests to server 
   # if true then wrap attributes in resource name: {model: {..attributes...}}
   # otherwise send attributes object 
   wrap_attributes: false
 
-  # accept an arbitrary number of other resources which can be created
+  # Accepts an arbitrary number of other resources which can be created
   # by this resource's actions (i.e. server response can contain other resources as well)
   @can_create = (args...) ->
     @__deps__ = (@__deps__||=[]).concat(args)
-
-  # params filter array
-  __filter_params__: false
 
   # define which attributes send to server
   # e.g. params('id','name',{tags: ['name','id']})
@@ -55,6 +56,25 @@ class pi.resources.REST extends pi.resources.Base
         ]
     @::["destroy_path"] = ":resources/:id"
 
+  # Set globals vars for path interpolation  
+  @set_globals: (data) ->
+    utils.extend(@_globals, data, true)
+
+  # Generate routes (and methods) for resource
+  # 'data' should either or both 'member' and 'collection' fields.
+  #
+  # @example
+  #   Resource.routes 
+  #     collection:
+  #       [
+  #         {action: 'show', path: ":resources/:id", method: "get"},
+  #         {action: 'fetch', path: ":resources", method: "get"}
+  #       ]
+  #       member: 
+  #       [
+  #         {action: 'update', path: ":resources/:id", method: "patch"},
+  #         {action: 'create', path: ":resources", method: "post"}
+  #       ]
   @routes: (data) ->
     if data.collection?
       for spec in data.collection
@@ -85,13 +105,11 @@ class pi.resources.REST extends pi.resources.Base
             )
           @::["#{spec.action}_path"] = spec.path            
 
-  # set common scope for all action (i.e. '/api/:path', don't forget about slash!)
-  # you can set event another domain
-
-  @routes_scope: (scope) ->
+  # Set common namespace for all action (i.e. '/api/:path', don't forget about slash!)
+  @routes_namespace: (scope) ->
     @_rscope = scope
 
-  @_interpolate_path: (path,params,target) ->
+  @_interpolate_path: (path, params, target) ->
     path = @_rscope.replace(":path",path).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg,'')
     path_parts = path.split _path_reg
     
@@ -105,7 +123,7 @@ class pi.resources.REST extends pi.resources.Base
     flag = false
     for part in path_parts
       if flag
-        val = if vars[part]? then vars[part] else target?[part]
+        val = vars[part] ? target?[part] ? @_globals[part]
         throw Error("undefined param: #{part}") unless val?
         path+=val
       else
@@ -115,7 +133,6 @@ class pi.resources.REST extends pi.resources.Base
 
   @error: (action, message) ->
     pi.event.trigger "net_error", resource: @resources_name, action: action, message: message
-
 
   @_request: (path, method, params, target) ->
     path = @_interpolate_path path, utils.merge(params,{resources: @resources_name, resource: @resource_name}), target
@@ -131,19 +148,12 @@ class pi.resources.REST extends pi.resources.Base
       data[@resources_name] = @load(data[@resources_name])
     data
 
-  # requests callbacks
   @on_show: (data) ->
     if data[@resource_name]?
       el = @build data[@resource_name]
-      el.commit()
       el
 
-  @build: ->
-    el = super
-    el
-
-  # find element by id;
-  # return Promise
+  # Find element by id
   @find: (id) ->
     el = @get(id)
     if el?
@@ -151,7 +161,7 @@ class pi.resources.REST extends pi.resources.Base
     else
       @show(id: id)
 
-  # find element by params
+  # Find element by params
   @find_by: (params) -> 
     el = @get_by params
     if el?
@@ -159,13 +169,19 @@ class pi.resources.REST extends pi.resources.Base
     else
       @show params
 
+  # Create new element
   @create: (data) ->
     el = @build data
     el.save()
 
-  constructor: (data) ->
-    super
-    @_snapshot = data
+  # Get interpolated path by name
+  # or by scheme
+  # @example
+  #   Resource.path('show', id: 1) #=> '/resources/1'
+  #   Resource.path('/:resources/kill/:id', id: 1) #=> '/resources/kill/1'
+  @path: (name, params={}, target) ->
+    path_scheme = @["#{name}_path"] || @::["#{name}_path"] || name
+    @_interpolate_path(path_scheme, params, target)
 
   destroy: ->
     if @_persisted
@@ -182,17 +198,14 @@ class pi.resources.REST extends pi.resources.Base
 
   on_all: (data) ->
     params = data[@constructor.resource_name]
-    if params? and params.id == @id
+    if params?
       @set params
-      @commit()
       @
   
   on_create: (data) ->
     params = data[@constructor.resource_name]
     if params?
-      @set params, true
-      @commit()
-      @trigger pi.ResourceEvent.Create
+      @set params
       @
 
   attributes: ->
@@ -216,18 +229,16 @@ class pi.resources.REST extends pi.resources.Base
     else
       @create attrs
 
-  commit: ->
-    for key, param in @_changes
-      @_snapshot[key] = param.val
-    @_changes = {}
-    @_snapshot
-
   rollback: ->
-    for key, param in @_changes
+    for key, param in @changes
       @[key] = @_snapshot[key]
-    return
+    @changes = {}
+    @
 
   @register_callback 'save'
+
+  path: (name, params) ->
+    @constructor.path(name, params, @)
 
   _wrap: (attributes) ->
     data = {}

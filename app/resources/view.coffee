@@ -8,7 +8,7 @@ class pi.resources.ViewItem extends pi.EventDispatcher
     super
     if @options.params? and @options.params.indexOf('id')<0
       @options.params.push 'id'
-    @_changes = {}
+    @changes = {}
     @set(data,true)
 
   utils.extend @::, pi.resources.Base::, false

@@ -27,45 +27,48 @@ class pi.resources.Base extends pi.EventDispatcher
       @::__associations__ = []
     @::__associations__.push name
 
-  # fill resources with data
+  # Build resources from array of data
   @load: (data,silent=false) ->
     if data?
       elements = (@build(el,true) for el in data)
       @trigger(pi.ResourceEvent.Load,{}) unless silent
       elements
 
-  # can create collection or item from data if resources_name key or resource_name exists 
+  # Can create collection or item from data if resources_name key or resource_name exists 
   # (replace plain objects with resources list or resource respectively)
-  # Example: 
-  # class User extends Base
-  #   @set_resource 'users'
+  # 
+  # @example 
+  #   class User extends Base
+  #     @set_resource 'users'
   #   
-  # # load 'users' from array and 'user' too 
-  # User.from_data({users: [...], user: ...})
+  #   # load 'users' from array and 'user' too 
+  #   User.from_data({users: [...], user: ...})
   @from_data: (data) ->
     if data[@resource_name]?
       data[@resource_name] = @build data[@resource_name]
     if data[@resources_name]?
       data[@resources_name] = @load(data[@resources_name])
 
+  # Remove all cached resources
   @clear_all: ->
     el.dispose() for el in @__all__
     @__all_by_id__ = {}
     @__all_by_tid__ = {}
     @__all__.length = 0
 
-  # return resource by id
+  # Return resource by id
   @get: (id) ->
     @__all_by_id__[id] || @__all_by_tid__[id]
 
-  # return first matched element by params
+  # Return first matched element by params
+  # 
+  # Note: since the order of items is arbitrarily
+  # you should use this method when only the one item matches params.
   @get_by: (params) ->
     return unless params?
-    ref = @where params
-    if ref.length
-      ref[0]
-    else
-      null
+    for el in @__all__ when utils.matchers.object_ext(params)(el)
+      return el
+    null
 
   @add: (el) ->
     return if @get(el.id)
@@ -119,11 +122,13 @@ class pi.resources.Base extends pi.EventDispatcher
     el.dispose() if disposed
     return true
 
+  # Add listener to resource
   @listen: (callback, filter) ->
     pi.event.on "#{@resources_name}_update", callback, null, filter 
 
-  @trigger: (event,data) ->
+  @trigger: (event, data, changes) ->
     data.type = event
+    data.changes = changes
     pi.event.trigger "#{@resources_name}_update", data, false
 
   @off: (callback) ->
@@ -134,6 +139,12 @@ class pi.resources.Base extends pi.EventDispatcher
 
   @all: ->
     @__all__.slice()
+
+  @first: ->
+    @__all__[0]
+
+  @second: ->
+    @__all__[1]
 
   # use utils.object_ext to retrieve cached items 
   @where: (params) ->
@@ -154,7 +165,8 @@ class pi.resources.Base extends pi.EventDispatcher
 
   constructor: (data={}) ->
     super
-    @_changes = {}
+    @_snapshot = data
+    @changes = {}
     @_persisted = true if (data.id? and not data.__temp__)
     @initialize data
 
@@ -166,8 +178,15 @@ class pi.resources.Base extends pi.EventDispatcher
   @register_callback 'initialize'
 
   created: (temp_id) ->
-    @
+    @commit()
     @constructor.created(@,temp_id)
+    @
+
+  commit: ->
+    for key, params in @changes
+      @_snapshot[key] = params[1]
+    @changes = {}
+    @_snapshot
 
   dispose: ->
     return if @disposed
@@ -181,10 +200,16 @@ class pi.resources.Base extends pi.EventDispatcher
   remove: (silent = false) ->
     @constructor.remove @, silent
 
+  # Returns objects containing all
+  # attributes that were set on construction
+  # or thru 'set' method
   attributes: ->
     res = {}
-    for key, change of @_changes
-      res[key] = change.val
+    for key, val of @_snapshot
+      unless @changes[key]
+        res[key] = val
+      else
+        res[key] = @changes[key][1]
     res
 
   association: (name) ->
@@ -197,7 +222,7 @@ class pi.resources.Base extends pi.EventDispatcher
     for own key,val of params
       if @[key]!=val and not (typeof @[key] is 'function') and not (@__associations__? and (key in @__associations__))
         _changed = true
-        @_changes[key] = old_val: @[key], val: val
+        @changes[key] = [@[key], val]
         @[key] = val
     
     if (@id|0) and not _was_id
@@ -208,14 +233,14 @@ class pi.resources.Base extends pi.EventDispatcher
       @created(_old_id)
     else
       type = pi.ResourceEvent.Update 
-    @trigger(type, (if type is pi.ResourceEvent.Create then @ else @_changes)) if (_changed && !silent)
+    @trigger(type, (if type is pi.ResourceEvent.Create then @ else @changes)) if (_changed && !silent)
     @
 
   @register_callback 'set', as: 'update'
 
   trigger: (e, data, bubbles = false) ->
     super
-    @constructor.trigger e, @constructor._wrap(@)
+    @constructor.trigger e, @constructor._wrap(@), data
 
   # trigger 'update event' and invoke special handler of type 'on_#{association_name}_update: (type,el) ->' if any
   trigger_assoc_event: (name, type, data) ->

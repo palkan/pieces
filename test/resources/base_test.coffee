@@ -44,6 +44,17 @@ describe "Resources", ->
         s = Salt.get(2)
         expect(s.salinity).to.eq 'high'
 
+      it "track changes", ->
+        s = Salt.get(2)
+        s.set salinity: 'high'
+        expect(s.salinity).to.eq 'high'
+        expect(s.changes).to.have.keys('salinity')
+        expect(s.changes.salinity[0]).to.be.undefined
+        expect(s.changes.salinity[1]).to.eq 'high'
+
+        s.commit()
+        expect(s.changes).to.be.empty
+
       it "bind events to item", ->
         s = Salt.get(1)
         s2 = Salt.get(2)
@@ -68,6 +79,16 @@ describe "Resources", ->
         s.set({sugar: 'brown'})
         expect(spy.callCount).to.eq 1
 
+      it "send update event with changes",(done) ->
+        s = Salt.get(1)
+        s.on 'update', (e) ->
+          expect(e.type).to.eq 'update'
+          expect(e.data.sugar[0]).to.be.undefined
+          expect(e.data.sugar[1]).to.eq 'brown'
+          done()
+
+        s.set({sugar: 'brown'})
+
     describe "update events", ->
       it "send update event on create",(done) ->
         Testo.listen (e) ->
@@ -78,25 +99,27 @@ describe "Resources", ->
 
       it "not send update event on build (without id)", (done) ->
         Testo.listen (e) ->
-         throw Error('udpate received!')
+         done('udpate received!')
         
         utils.after 300, done
 
         Testo.build {type: 'puff'}
 
-      it "send update event on update",(done) ->
-        t = Testo.all()[0]
+      it "send update event on update with changes",(done) ->
+        t = Testo.first()
         Testo.listen (e) ->
           expect(e.data.type).to.eq 'update'
           expect(e.data.testo.id).to.eq t.id
           expect(e.data.testo.type).to.eq 'yeast'
+          expect(e.data.changes.type[0]).to.eq 'drozhhi'
+          expect(e.data.changes.type[1]).to.eq 'yeast'
           expect(Testo.get(t.id).type).to.eq 'yeast'
           done()
 
         t.set {type: 'yeast'}
 
       it "not send update event if no changes",(done) ->
-        t = Testo.all()[1]
+        t = Testo.second()
         Testo.listen (e) ->
           if e.data.type is 'update'
             throw Error('update received!')

@@ -96,7 +96,11 @@ class pi.Base extends pi.Nod
     d = 
       get: ->
         @__properties__[name]
-      set: (val) ->
+
+    if !!options.readonly
+      d.writable = false
+    else
+      d.set = (val) ->
         if _prop_setter[options.type].call(@, name, val)
           val = @__properties__[name]
           _toggle_class.call(@, val, options.class)

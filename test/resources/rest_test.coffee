@@ -17,24 +17,29 @@ describe "Resources", ->
       Testo.off()
       Salt.clear_all()
       h.unmock_net()
+      $r.REST.set_globals({})
 
-    describe "path interpolation", ->
-      it "interpolate without scope", ->
-        expect(R._interpolate_path(":r/:id/edit", r: "rest", id: 1)).to.eq "/rest/1/edit"
-        expect(R._interpolate_path("some/:id/any/:pid.json", pid: 2, id: 1)).to.eq "/some/1/any/2.json"
+    describe "path", ->
+      it "interpolate without namespace", ->
+        expect(R.path(":r/:id/edit", r: "rest", id: 1)).to.eq "/rest/1/edit"
+        expect(R.path("some/:id/any/:pid.json", pid: 2, id: 1)).to.eq "/some/1/any/2.json"
       
-      it "interpolate with scope", ->
-        expect(Testo._interpolate_path(":resources/:id/edit", resources: "testos", id: 1)).to.eq "test/testos/1/edit.json"
+      it "interpolate with namespace", ->
+        expect(Testo.path("update", resources: "testos", id: 1)).to.eq "test/testos/1.json"
 
-      it "interpolate with scope including params", ->
-        expect(Testo2._interpolate_path(":id/edit", id: 1, type: 'yeast')).to.eq "types/yeast/test/1/edit.json"
+      it "interpolate with namespace including params", ->
+        expect(Testo2.path(":id/edit", id: 1, type: 'yeast')).to.eq "types/yeast/test/1/edit.json"
 
       it "interpolate with target params", ->
         t = Testo2.build type: 'yeast', id: 1
-        expect(Testo2._interpolate_path(":id/edit",{},t)).to.eq "types/yeast/test/1/edit.json"
+        expect(t.path(":id/edit")).to.eq "types/yeast/test/1/edit.json"
 
       it "interpolate with wrapped params", ->
-        expect(Wrap._interpolate_path(":id/:type/edit",{testo:{type: 'gut', id:12}})).to.eq "/12/gut/edit"
+        expect(Wrap.path(":id/:type/edit",{testo:{type: 'gut', id:12}})).to.eq "/12/gut/edit"
+
+      it "interpolate with globals", ->
+        $r.REST.set_globals(user: 1)
+        expect(Wrap.path("users/:user/:id/:type/edit",type: 'gut', id:12)).to.eq "/users/1/12/gut/edit"
 
     describe "class functions", ->
       it "setup class methods", ->

@@ -39,7 +39,7 @@ class pi.Salt extends pi.resources.Base
 class pi.TestoRest extends pi.resources.REST
   @set_resource 'testos'
   @can_create pi.Salt
-  @routes_scope 'test/:path.json'
+  @routes_namespace 'test/:path.json'
   @routes collection: [action: 'destroy_all', path: ':resources', method: 'delete']
   @params 'type', {flour: ['id', 'weight', {rye: ['type']} ]}, {salt: ['id', 'salinity']}
 
@@ -50,7 +50,7 @@ class pi.TestoRest extends pi.resources.REST
 
 class pi.TestoRest2 extends pi.resources.REST
   @set_resource 'testos'
-  @routes_scope 'types/:type/test/:path.json'
+  @routes_namespace 'types/:type/test/:path.json'
 
 ## RVC ##
 
