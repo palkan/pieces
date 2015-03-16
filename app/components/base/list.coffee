@@ -74,7 +74,8 @@ class pi.List extends pi.Base
     _after = @items[index+1]
     
     # save item index in DOM element
-    item.record.__list_index__ = index
+    item.record.$index = index
+    item.record.$num = index+1
     _after.insertBefore item
 
     @_need_update_indeces = true
@@ -150,7 +151,7 @@ class pi.List extends pi.Base
     item  
 
   move_item: (item, index) ->
-    return if (item.record.__list_index__ is index) || (index>@items.length-1)
+    return if (item.record.$index is index) || (index>@items.length-1)
 
     @items.splice @items.indexOf(item), 1
 
@@ -200,7 +201,8 @@ class pi.List extends pi.Base
 
   _update_indeces: ->
     for item,i in @items
-      item.record.__list_index__ = i
+      item.record.$index = i
+      item.record.$num = i+1
     @_need_update_indeces = false
 
   _check_empty: (silent = false) ->
@@ -217,14 +219,17 @@ class pi.List extends pi.Base
   _create_item: (data={},index) ->
     if data instanceof pi.Nod and data.is_list_item
       if data.host is @
-        data.__list_index__ = index
+        data.$index = index
+        data.$num = index+1
         return data
       else
         return null
     if data instanceof pi.Nod 
-      data.data('__list_index__', index)
+      data.data('$index', index)
+      data.data('$num', index+1)
     else
-      data.__list_index__ = index
+      data.$index = index
+      data.$num = index+1
     item = @_renderer.render data, true, @
     return unless item?
     item.record ||={}

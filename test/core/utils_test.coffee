@@ -64,6 +64,16 @@ describe "Utils", ->
       it "recognizes string", ->
         expect(utils.serialize("123m535.35")).to.equal("123m535.35") 
 
+    describe "squish", ->
+      it "multiline", ->
+        s = ''' Multi-line
+          string
+          '''
+        expect(utils.squish(s)).to.eq 'Multi-line string'
+
+      it "tabs and spaces", ->
+        s = '''  foo   bar    \n   \t   boo '''
+        expect(utils.squish(s)).to.eq 'foo bar boo'
 
     describe "debounce and throttle", ->
       it "is invoked on first call", ->

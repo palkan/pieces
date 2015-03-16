@@ -46,7 +46,7 @@ class CompiledFun
     @compiled().apply(@, args)
 
   compiled: ->
-    @_compiled ||= @_compile_fun() 
+    @_compiled ||= @_compile_fun()
 
   _compile_fun: ->
     =>

@@ -57,7 +57,7 @@ class pi.utils
   # Escape special html entites: &, <, >, ', "
   @escapeHTML: (str) ->
     return str unless str
-    str.replace(@html_entities_rxp, (match) => @html_entities[match]) 
+    (''+str).replace(@html_entities_rxp, (match) => @html_entities[match]) 
 
   @is_digital: (str) ->
     @digital_rxp.test str
@@ -100,6 +100,9 @@ class pi.utils
       when isNaN(Number(val)) and typeof val is 'string' then (val+"").replace(@str_rxp,'')
       when isNaN(Number(val)) then val
       else Number(val)
+
+  @squish: (str) ->
+    (''+str).replace(/(^\s+|\s+$)/g, '').replace(/\s+/g,' ')
 
   ## Sorting utils
       
