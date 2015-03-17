@@ -29,6 +29,12 @@ describe "Utils", ->
       it "works with normal email with dots and digital domain", ->
         expect(utils.is_email("some.correct.dotted@112313.com")).to.be.true
 
+      it "works with normal email with subomains", ->
+        expect(utils.is_email("some.corre@ct.dotted.112313.com")).to.be.true
+
+      it "works with normal email with long zone", ->
+        expect(utils.is_email("some.corre@ct.112313.community")).to.be.true
+
     describe "is_html", ->
       it "handles multiline html", ->
         expect(utils.is_html('<textarea>Kill\nMe!</textarea>')).to.be.true
