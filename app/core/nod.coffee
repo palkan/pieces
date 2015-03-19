@@ -598,4 +598,15 @@ class pi.NodWin extends pi.Nod
   y: ->
     0
 
+# Window and body
+_win = null
+_body = null
+Object.defineProperties(
+  pi.Nod,
+  win: 
+    get: -> _win ||= new pi.NodWin()
+  body:
+    get: -> _body ||= new pi.Nod document.body
+)
+
 module.exports = pi.Nod

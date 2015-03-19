@@ -17,6 +17,8 @@
     <script>
       window.require.list().filter(function (name) {return /test\//.test(name);}).forEach(require);
       pi.app.initialize();
+      // allow to set _nod on window
+      mocha.setup({globals:['_nod']});
       mocha.checkLeaks();
       if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
       else { mocha.run(); }
