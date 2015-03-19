@@ -1265,8 +1265,6 @@ pi.event = new pi.EventDispatcher();
 
 pi.Nod.win = new pi.NodWin();
 
-pi.Nod.body = new pi.Nod(document.body);
-
 pi.Nod.root = new pi.NodRoot();
 
 pi.Nod.root.initialize();
@@ -1289,6 +1287,7 @@ utils.extend(pi.Nod.prototype, {
 });
 
 pi.Nod.root.ready(function() {
+  pi.Nod.body = new pi.Nod(document.body);
   return pi.Nod.root.listen('a', 'click', function(e) {
     var href;
     if ((href = e.target.attr("href")) && href[0] === "@") {
@@ -4130,7 +4129,7 @@ pi.Nod = (function(superClass) {
       throw Error("Node is undefined!");
     }
     this._disposed = false;
-    this._data = _dataset(node);
+    this._data = _dataset(this.node);
     pi.Nod.store(this);
   }
 
@@ -4910,7 +4909,7 @@ _uniq_id = 100;
 pi.utils = (function() {
   function utils() {}
 
-  utils.email_rxp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}\b/i;
+  utils.email_rxp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i;
 
   utils.digital_rxp = /^[\d\s-\(\)]+$/;
 

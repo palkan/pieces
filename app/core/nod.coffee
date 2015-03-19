@@ -126,7 +126,7 @@ class pi.Nod extends pi.NodEventDispatcher
     @_disposed = false
 
     # virtual data element
-    @_data = _dataset(node)
+    @_data = _dataset(@node)
 
     pi.Nod.store(@)
 

@@ -38,8 +38,7 @@ pi.event = new pi.EventDispatcher()
 # Main components
 # Window
 pi.Nod.win = new pi.NodWin()
-# Body
-pi.Nod.body = new pi.Nod document.body
+
 # Document
 pi.Nod.root = new pi.NodRoot()
 pi.Nod.root.initialize()
@@ -61,6 +60,9 @@ utils.extend(
 
 # handle all pi clicks
 pi.Nod.root.ready ->
+  # Body
+  pi.Nod.body = new pi.Nod document.body
+
   pi.Nod.root.listen(
     'a', 
     'click', 
