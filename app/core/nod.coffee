@@ -1,10 +1,203 @@
 'use strict'
-pi = require './pi'
 utils = require './utils'
-require './events'
+EventDispatcher = require('./events').EventDispatcher
+Event = require('./events').Event
+
+# Exports NodEventDispatcher, Nod, NodEvent, MouseEvent, KeyEvent
+exports = {}
+
+# General wrapper for native events.
+# 
+# **Aliases**
+# 
+# Event aliases can be used to handle browser differences (e.g. 'mousewheel' and 'DOMMouseScroll') 
+# or in any other case when you want to substitute event type with another one.
+# 
+# Example:
+#   // Create mobile aliases
+#   NodEvent.register_alias('mousemove', 'touchmove')
+# 
+# **Delegates**
+# 
+# Delegates can be used to create custom events, such as 'resize'.
+# See ResizeDelegate.
+class NodEvent extends Event
+
+  @aliases: {}
+  @reversed_aliases: {}
+  @delegates: {}
+
+  @add: (nod, event, handler) ->
+    nod.addEventListener(event, handler)
+
+  @remove: (nod, event, handler) ->  
+    nod.removeEventListener(event, handler)
+
+  @register_delegate: (type, delegate) ->
+    @delegates[type] = delegate
+
+  @has_delegate: (type) ->
+    !!@delegates[type]
+
+  @register_alias: (from, to) ->
+    @aliases[from] = to
+    @reversed_aliases[to] = from
+
+  @has_alias: (type) ->
+    !!@aliases[type]
+
+  @is_aliased: (type) ->
+    !!@reversed_aliases[type]
+
+  constructor: (event) ->
+    @event = event || window.event  
+
+    @origTarget = @event.target || @event.srcElement
+    @target = Nod.create @origTarget
+    @type = if @constructor.is_aliased(event.type) then @constructor.reversed_aliases[event.type] else event.type
+    @ctrlKey = @event.ctrlKey
+    @shiftKey = @event.shiftKey
+    @altKey = @event.altKey
+    @metaKey = @event.metaKey
+    @detail = @event.detail
+    @bubbles = @event.bubbles
+
+  stopPropagation: ->
+    if @event.stopPropagation 
+      @event.stopPropagation()
+    else
+      @event.cancelBubble = true
+
+  stopImmediatePropagation: ->
+    if @event.stopImmediatePropagation 
+      @event.stopImmediatePropagation()
+    else
+      @event.cancelBubble = true
+      @event.cancel = true
+
+  preventDefault: ->
+    if @event.preventDefault
+      @event.preventDefault()
+    else
+      @event.returnValue = false
+
+  cancel: ->
+    @stopImmediatePropagation()
+    @preventDefault()
+    super
+
+exports.NodEvent = NodEvent
+
+_mouse_regexp = /(click|mouse|contextmenu)/i
+
+_key_regexp = /(keyup|keydown|keypress)/i
+
+class MouseEvent extends NodEvent
+  constructor: ->
+    super
+    
+    @button = @event.button
+
+    unless @pageX?
+      @pageX = @event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft 
+      @pageY = @event.clientY + document.body.scrollTop + document.documentElement.scrollTop
+
+    unless @offsetX?
+      @offsetX = @event.layerX - @origTarget.offsetLeft
+      @offsetY = @event.layerY - @origTarget.offsetTop
+
+    @wheelDelta = @event.wheelDelta
+    unless @wheelDelta?
+      @wheelDelta = -@event.detail*40
+
+exports.MouseEvent = MouseEvent
+
+class KeyEvent extends NodEvent
+  constructor: ->
+    super      
+    @keyCode = @event.keyCode || @event.which
+    @charCode = @event.charCode
+
+
+exports.KeyEvent = KeyEvent
+  
+_prepare_event = (e) ->
+  if _mouse_regexp.test e.type
+    new MouseEvent e
+  else if _key_regexp.test e.type
+    new KeyEvent e
+  else
+    new NodEvent e
+
+_selector_regexp = /^[\.#]/
+
+_selector = (s, parent) ->
+  # when selector is tag (for links default behaviour preventing)
+  unless _selector_regexp.test s
+    (e) ->
+      return e.target.node.matches(s)
+  else
+    (e) ->
+      parent ||= document
+      node = e.target.node
+      return true if node.matches(s) 
+      return false if node is parent
+      while((node = node.parentNode) and node != parent)
+        return (e.target = Nod.create(node)) if node.matches(s)
+
+
+# NodEventDispatcher extends EventDispatcher by adding/removing native listeners
+class NodEventDispatcher extends EventDispatcher
+  constructor: ->
+    super
+    @native_event_listener = (event) => 
+      @trigger _prepare_event(event)  
+
+  listen: (selector, event, callback, context) ->
+    @on event, callback, context, _selector(selector, @node)
+
+  add_native_listener: (type) ->
+    if NodEvent.has_delegate type
+      NodEvent.delegates[type].add @, @native_event_listener
+    else 
+      NodEvent.add @node, type, @native_event_listener 
+
+  remove_native_listener: (type) ->
+    if NodEvent.has_delegate type
+      NodEvent.delegates[type].remove @
+    else
+      NodEvent.remove @node, type, @native_event_listener
+
+
+  add_listener: (listener) ->
+    if !@listeners[listener.type]
+      if NodEvent.has_alias(listener.type)
+        @add_native_listener NodEvent.aliases[listener.type] 
+      else
+        @add_native_listener listener.type
+    super
+
+  remove_type: (type) ->
+    if NodEvent.has_alias(type)
+      @remove_native_listener NodEvent.aliases[type] 
+    else
+      @remove_native_listener type  
+    super
+
+  remove_all: ->
+    for own type,list of @listeners
+      do =>
+        if NodEvent.has_alias(type)
+          @remove_native_listener NodEvent.aliases[type]
+        else
+          @remove_native_listener type
+    super
+
+exports.NodEventDispatcher = NodEventDispatcher
+
 
 _prop_hash = (method, callback) ->
-  pi.Nod::[method] = (prop, val) ->
+  Nod::[method] = (prop, val) ->
     unless typeof prop is "object" 
       return callback.call @, prop, val
     for own k,p of prop
@@ -15,7 +208,7 @@ _geometry_styles = (sty) ->
   for s in sty
     do ->
       name = s
-      pi.Nod::[name] = (val) ->
+      Nod::[name] = (val) ->
         if val is undefined 
           return @node["offset#{utils.capitalize(name)}"]
         @_with_raf name, => 
@@ -25,8 +218,18 @@ _geometry_styles = (sty) ->
       return
   return
 
+
+# generate document fragment from html string
+_fragment = (html) ->
+  temp = document.createElement 'div'
+  temp.innerHTML = html
+  f = document.createDocumentFragment()
+  while(temp.firstChild)
+    f.appendChild temp.firstChild 
+  f
+
 _node = (n) ->
-  if n instanceof pi.Nod
+  if n instanceof Nod
     return n.node
   if typeof n is "string"
     return _fragment n
@@ -40,6 +243,7 @@ _from_dataCase = (str) ->
   words = str.split '-'
   words.join('_')
 
+# 'dataset' is not supported in <IE11
 _dataset = 
   (-> 
     if typeof DOMStringMap is "undefined" 
@@ -60,17 +264,6 @@ _dataset =
         dataset
   )()
 
-# generate document fragment from html string
-
-_fragment = (html) ->
-  temp = document.createElement 'div'
-  temp.innerHTML = html
-  f = document.createDocumentFragment()
-  while(temp.firstChild)
-    f.appendChild temp.firstChild 
-  f
-
-
 _raf = 
   if window.requestAnimationFrame?
     window.requestAnimationFrame
@@ -87,7 +280,8 @@ _caf =
 # used to store references to nodes and components
 _store = {}
 
-class pi.Nod extends pi.NodEventDispatcher
+# DOMElement wrapper
+class Nod extends NodEventDispatcher
   # Add _nod attribute to node with uniq
   # Nod id and store reference
   @store: (nod, overwrite = false) ->
@@ -108,7 +302,7 @@ class pi.Nod extends pi.NodEventDispatcher
     switch 
       when !node then null
       when node instanceof @ then node
-      when (typeof node["_nod"] isnt "undefined") then pi.Nod.fetch(node._nod)
+      when (typeof node["_nod"] isnt "undefined") then Nod.fetch(node._nod)
       when utils.is_html(node) then @_create_html(node)
       when typeof node is "string" then new @(document.createElement node)
       else new @(node)
@@ -128,21 +322,18 @@ class pi.Nod extends pi.NodEventDispatcher
     # virtual data element
     @_data = _dataset(@node)
 
-    pi.Nod.store(@)
+    Nod.store(@)
 
   # return first matching element as Nod
-
   find: (selector) ->
-    pi.Nod.create @node.querySelector(selector)
+    Nod.create @node.querySelector(selector)
 
   # return all matching Elements without modifying 
-
   all: (selector) ->
     @node.querySelectorAll selector
 
 
   # invoke callback on each matching Element (not Nod!)
-
   each: (selector, callback) ->
     i=0
     for node in @node.querySelectorAll selector
@@ -184,6 +375,23 @@ class pi.Nod extends pi.NodEventDispatcher
   
     acc
 
+  find_cut: (selector) ->
+    rest = []
+    acc = []
+
+    el = @node.firstChild
+
+    while(el)
+      if el.nodeType != 1
+        el = el.nextSibling || rest.shift()
+        continue
+      if el.matches(selector)
+        acc.push el
+      else        
+        el.firstChild && rest.unshift(el.firstChild)
+      el = el.nextSibling || rest.shift()        
+    acc
+
   # set multiple attributes
   attrs: (data) ->
     for own name,val of data        
@@ -196,24 +404,21 @@ class pi.Nod extends pi.NodEventDispatcher
       @style name, val
     @
 
-
   # return parent Element as Nod
-
   parent: (selector) ->
     unless selector?
       if @node.parentNode?
-        pi.Nod.create(@node.parentNode) 
+        Nod.create(@node.parentNode) 
       else
         null
     else
       p = @node
       while((p = p.parentNode) && (p != document))
         if p.matches(selector)
-          return pi.Nod.create p
+          return Nod.create p
       return null
 
   # return children Elements without modifying 
-
   children: (selector) ->
     if selector?
       n for n in @node.children when n.matches(selector)
@@ -221,23 +426,20 @@ class pi.Nod extends pi.NodEventDispatcher
       @node.children
 
   # wrap node in a DIV with klasses
-
   wrap: (klasses...) ->
-    wrapper = pi.Nod.create 'div'
+    wrapper = Nod.create 'div'
     wrapper.addClass.apply wrapper, klasses
 
     @node.parentNode.insertBefore wrapper.node, @node
     wrapper.append @node
 
   # prepend node children with HTMLElement or HTML string
-
   prepend: (node) -> 
     node = _node node
     @node.insertBefore node, @node.firstChild
     @
 
   # append HTMLElement or HTML string to node children
-  
   append: (node) ->
     node = _node node
     @node.appendChild node
@@ -254,13 +456,11 @@ class pi.Nod extends pi.NodEventDispatcher
     @
 
   # remove node from parent node
-
   detach: ->
     @node.parentNode?.removeChild @node
     @
 
   # detach all node children
-
   detach_children: ->
     while @node.children.length
       @node.removeChild @node.children[0]
@@ -268,7 +468,7 @@ class pi.Nod extends pi.NodEventDispatcher
 
   remove_children: ->
     while(@node.firstChild)
-      if (nod = pi.Nod.fetch(@node.firstChild._nod))
+      if (nod = Nod.fetch(@node.firstChild._nod))
         nod.remove()
       else
         @node.removeChild @node.firstChild
@@ -276,7 +476,6 @@ class pi.Nod extends pi.NodEventDispatcher
 
   # detach and dispose
   # return null
-
   remove: ->
     @detach()
     @remove_children()
@@ -291,14 +490,14 @@ class pi.Nod extends pi.NodEventDispatcher
   clone: ->
     c = document.createElement @node.nameNode
     c.innerHTML = @node.outerHTML
-    nod = new pi.Nod(c.firstChild)
+    nod = new Nod(c.firstChild)
     utils.extend nod, @, true, ['listeners', 'listeners_by_type', '__components__', 'native_event_listener', 'node']
 
   # remove event listeners and internal links
   dispose: ->
     return if @_disposed
     @off()
-    pi.Nod.delete(@)
+    Nod.delete(@)
     @_disposed = true
     return
 
@@ -469,22 +668,22 @@ _geometry_styles ["top", "left", "width", "height"]
 for d in ["width", "height"]
   do ->
     prop = "client#{ utils.capitalize(d) }"
-    pi.Nod::[prop] = -> @node[prop]  
+    Nod::[prop] = -> @node[prop]  
 
 for d in ["top", "left", "width", "height"]
   do ->
     prop = "scroll#{ utils.capitalize(d) }"
-    pi.Nod::[prop] = -> @node[prop]  
+    Nod::[prop] = -> @node[prop]  
 
+exports.Nod = Nod
 
-#singleton class for document.documentElement
-
-class pi.NodRoot extends pi.Nod
+# Singleton class for document.documentElement
+class Nod.Root extends Nod
   @instance: null
 
   constructor: ->
-    throw "NodRoot is already defined!" if pi.NodRoot.instance
-    pi.NodRoot.instance = @
+    throw "Nod.Root is already defined!" if Nod.Root.instance
+    Nod.Root.instance = @
     super document.documentElement
 
   initialize: ->
@@ -498,8 +697,8 @@ class pi.NodRoot extends pi.Nod
         utils.debug 'DOM loaded'
         @_loaded = true
         @fire_all()
-        pi.NodEvent.remove window, 'load', load_handler
-      pi.NodEvent.add window, 'load', load_handler
+        NodEvent.remove window, 'load', load_handler
+      NodEvent.add window, 'load', load_handler
 
     unless @_ready
       if document.addEventListener
@@ -569,13 +768,13 @@ class pi.NodRoot extends pi.Nod
   width: ->
     window.innerWidth || @node.clientWidth
 
-class pi.NodWin extends pi.Nod
+class Nod.Win extends Nod
   @instance: null
 
   constructor: ->
-    throw "NodWin is already defined!" if pi.NodWin.instance
-    pi.NodWin.instance = @
-    @delegate_to pi.Nod.root, 'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight'
+    throw "Nod.Win is already defined!" if Nod.Win.instance
+    Nod.Win.instance = @
+    @delegate_to Nod.root, 'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight'
     super window
 
   scrollY: (y) ->
@@ -602,11 +801,11 @@ class pi.NodWin extends pi.Nod
 _win = null
 _body = null
 Object.defineProperties(
-  pi.Nod,
+  Nod,
   win: 
-    get: -> _win ||= new pi.NodWin()
+    get: -> _win ||= new Nod.Win()
   body:
-    get: -> _body ||= new pi.Nod document.body
+    get: -> _body ||= new Nod(document.body)
 )
 
-module.exports = pi.Nod
+module.exports = exports

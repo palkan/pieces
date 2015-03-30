@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Resources", ->
   describe "Association", ->

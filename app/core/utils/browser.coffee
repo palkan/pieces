@@ -1,5 +1,4 @@
 'use strict'
-utils = require './base'
 
 _mac_os_version_rxp = /\bMac OS X ([\d\._]+)\b/
 _win_version_rxp = /\bWindows NT ([\d\.]+)\b/
@@ -15,7 +14,7 @@ _win_version =
   '5.1': 'XP'
 
 # browser utils (requires bowser)
-class utils.browser
+class browser
   @scrollbar_width: ->
     @_scrollbar_width ||= 
       do ->
@@ -77,4 +76,4 @@ class utils.browser
           res.version = res.version.replace(/(_|\-)/g,".")
         res
 
-module.exports = utils.browser
+module.exports = browser

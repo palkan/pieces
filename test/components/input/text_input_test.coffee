@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "TextInput", ->
   root = h.test_cont(pi.Nod.body)
@@ -29,7 +29,7 @@ describe "TextInput", ->
   describe "editable", ->
 
     it "trigger event on readonly", (done) ->
-      test1.on pi.InputEvent.Editable, (e) =>
+      test1.on 'editable', (e) =>
         expect(e.data).to.be.false
         expect(test1.editable).to.be.false
         done()
@@ -40,7 +40,7 @@ describe "TextInput", ->
       expect(test2.editable).to.be.false
 
     it "trigger event on edit", (done) ->
-      test2.on pi.InputEvent.Editable, (e) =>
+      test2.on 'editable', (e) =>
         expect(e.data).to.be.true
         expect(test2.editable).to.be.true
         done()

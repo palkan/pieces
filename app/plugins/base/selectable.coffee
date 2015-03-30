@@ -1,16 +1,22 @@
 'use strict'
-pi = require '../../core'
-require '../../components/base'
-require '../plugin'
-utils = pi.utils
+Base = require '../../components/base'
+Klass = require '../../components/utils/klass'
+Events = require '../../components/events'
+Plugin = require '../plugin'
+utils = require '../../core/utils'
 
-# [Plugin]
-# Add ability to 'select' element  - toggle pi.klass.SELECTED class and trigger 'selected' event 
-class pi.Base.Selectable extends pi.Plugin
+# Add ability to 'select' element  - toggle 'is-selected' class and trigger 'selected' event 
+class Base.Selectable extends Plugin
   id: 'selectable'
   initialize: (@target) ->
     super
-    @__selected__ = @target.hasClass pi.klass.SELECTED
+    Base.active_property @target, 'selected',
+      type: 'bool'
+      default: (@target.hasClass(Klass.SELECTED))
+      event: Events.Selected
+      class: Klass.SELECTED
+      functions: ['select', 'deselect']
+      toggle_select: 'toggle_select'
     @target.on 'click', @click_handler()
     @
 
@@ -21,21 +27,4 @@ class pi.Base.Selectable extends pi.Plugin
 
   @event_handler 'click_handler'
 
-  toggle_select: ->
-    if @__selected__ then @deselect() else @select()
-
-  select: ->
-    unless @__selected__
-      @__selected__ = true
-      @target.addClass pi.klass.SELECTED
-      @target.trigger pi.Events.Selected, true
-    @
-
-  deselect: ->
-    if @__selected__
-      @__selected__ = false
-      @target.removeClass pi.klass.SELECTED
-      @target.trigger pi.Events.Selected, false
-    @
-
-module.exports = pi.Base.Selectable
+module.exports = Base.Selectable

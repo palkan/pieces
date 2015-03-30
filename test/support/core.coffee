@@ -1,5 +1,4 @@
 'use strict'
-pi = require 'pi'
 
 class pi.Nod.Renameable
   @included: ->

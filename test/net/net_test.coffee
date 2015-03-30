@@ -1,9 +1,10 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Net", ->
-  net = pi.net
+  net = pi.Net
   utils = pi.utils
+  Former = require('../../core/former/former')
 
   describe "XHR", ->
     it "prepare params", ->
@@ -132,7 +133,7 @@ describe "Net", ->
           </form>
         """  
       form = net.IframeUpload._build_form form, '#', data, '', 'post'
-      f = new pi.Former(form.node, serialize: true, rails: true)
+      f = new Former(form.node, serialize: true, rails: true)
       form_data = f.collect_name_values()
       params = form_data.map((f)-> f.name)
       expect(params).to.include 'item[tags][]'
@@ -142,9 +143,8 @@ describe "Net", ->
 
     it "upload data", (done) ->
       net.iframe_upload(@form, '/upload',{item:{user:{id:123,name:'john'}}}).then(
-        ((data) ->
+        (data) ->
           expect(data.data.item.id).to.eq '1'
           expect(data.data.item.user.name).to.eq 'john'
-          done()),
-        (e) -> pi.utils.error(e)
-      )
+          done()
+      ).catch(done)

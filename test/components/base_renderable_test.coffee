@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Base.Renderable", ->
   Nod = pi.Nod
@@ -39,7 +39,7 @@ describe "Base.Renderable", ->
 
     expect(old_btn._disposed).to.be.true
     expect(example.find('.author').text()).to.eq 'Sparrow'
-    expect(example.some_btn).to.be.an.instanceof pi.Base
+    expect(example.some_btn).to.be.an.instanceof $c.Base
     expect(example.__components__).to.have.length 1
     expect(example.some_btn).not.to.eq old_btn
 

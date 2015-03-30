@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Base Input", ->
   root = h.test_cont(pi.Nod.body)

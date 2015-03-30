@@ -1,25 +1,8 @@
 'use strict'
-pi = require '../core'
 utils = require '../core/utils'
-require '../components/base'
+BaseComponent = require '../components/base'
 
-utils.extend pi.Base::,
-  # return view for component
-  view: ->
-    (@__view__ ||= @_find_view())
-  
-  # return context (controller) for component
-  context: ->
-    (@__controller__ ||= @view()?.controller)
-
-  _find_view: ->
-    comp = @
-    while(comp)
-      if comp.is_view is true
-        return comp
-      comp = comp.host
-
-class pi.views.Base extends pi.Base
+class Base extends BaseComponent
   is_view: true
   
   initialize: ->
@@ -44,4 +27,21 @@ class pi.views.Base extends pi.Base
   unloaded: ->
     return
 
-module.exports = pi.views.Base
+# Extend Base component
+utils.extend BaseComponent::,
+  # return view for component
+  view: ->
+    (@__view__ ||= @_find_view())
+  
+  # return context (controller) for component
+  context: ->
+    (@__controller__ ||= @view()?.controller)
+
+  _find_view: ->
+    comp = @
+    while(comp)
+      if comp.is_view is true
+        return comp
+      comp = comp.host
+
+module.exports = Base

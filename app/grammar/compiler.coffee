@@ -1,7 +1,6 @@
 'use strict'
-pi = require '../../core'
-parser = require('../../grammar/pi_grammar').parser
-utils = pi.utils
+parser = require('./pi_grammar').parser
+utils = require('../core/utils')
 
 _error = (fun_str) ->
   utils.error "Function [#{fun_str}] was compiled with error"
@@ -68,7 +67,7 @@ class CompiledFun
     _target
 
   _get_res: (data, from = {}) ->
-    from[data.name] || pi.resources[data.name]
+    from[data.name] || window.pi.resources[data.name]
 
   _get_prop: (data, from) ->
     from[data.name]
@@ -96,7 +95,7 @@ class CompiledFun
   _get_simple: (data) ->
     data.value
 
-class pi.Compiler
+class Compiler
   @modifiers: []
 
   @process_modifiers: (str) ->
@@ -118,7 +117,6 @@ class pi.Compiler
 _view_context_mdf = (str) ->
   str.replace(/@(this|app|host|view)(\b)/g, '$1$2').replace(/@@/g,'pi.app.page.context.').replace(/@/g, 'pi.app.view.')
 
-pi.Compiler.modifiers.push _view_context_mdf
-pi.call = pi.Compiler.call
+Compiler.modifiers.push _view_context_mdf
 
-module.exports = pi.Compiler
+module.exports = Compiler

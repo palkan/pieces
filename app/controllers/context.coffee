@@ -1,9 +1,9 @@
 'use strict'
-pi = require '../core'
-utils = pi.utils
+Core = require '../core/core'
+utils = require '../core/utils'
 History = require '../core/utils/history'
 
-class Context extends pi.Core
+class Context extends Core
   # Creates new Context
   # 
   #  Options:
@@ -79,7 +79,7 @@ class Strategy
   @get: (id) ->
     @storage[id]
 
-class Strategy.OneForAll extends pi.Core
+class Strategy.OneForAll extends Core
   # Add history to context
   @mixedin: (owner) ->
     owner._history = new History()
@@ -198,7 +198,7 @@ class Strategy.OneByOne extends Strategy.OneForAll
     inverted_to = utils.merge(to, up: !to.up)
     @switch_to inverted_to, data, true
 
-class Strategy.AllForOne extends pi.Core
+class Strategy.AllForOne extends Core
   # Load all subcontexts
   @load: (@context) ->
     ctx.load() for own _, ctx of @context._contexts
@@ -218,4 +218,4 @@ Strategy.register('one_for_all', Strategy.OneForAll)
 Strategy.register('one_by_one', Strategy.OneByOne)
 Strategy.register('all_for_one', Strategy.AllForOne)
 
-module.exports = (pi.controllers.Context = Context)
+module.exports = Context

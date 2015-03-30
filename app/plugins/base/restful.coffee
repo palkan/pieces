@@ -1,26 +1,27 @@
 'use strict'
-pi = require '../../core'
-require '../plugin'
-require '../../components/base/base'
-utils = pi.utils
+Base = require '../../components/base'
+Plugin = require '../plugin'
+utils = require '../../core/utils'
+Renderable = require './renderable'
+Compiler = require '../../grammar/compiler'
+ResourceEvent = require '../../resources/events'
+utils = require '../../core/utils'
 
-# [Plugin]
 # Bind resource to component:
 #  - on update re-render component
 #  - on destroy remove component   
-#  
 # Requires Renderable and 'rest' option as compilable string (e.g. 'app.some.user' or 'Resource.get(1)')
-class pi.Base.Restful extends pi.Plugin
+class Base.Restful extends Plugin
   id: 'restful'
   initialize: (@target) ->
     super
     @_uid = utils.uid('r')
     unless @target.has_renderable
-      @target.attach_plugin pi.Base.Renderable
+      @target.attach_plugin Renderable
 
     if(rest = @target.options.rest)?
       
-      f = pi.Compiler.str_to_fun(rest)
+      f = Compiler.str_to_fun(rest)
       promise = f.call(@)
       
       unless promise instanceof Promise
@@ -36,13 +37,13 @@ class pi.Base.Restful extends pi.Plugin
 
   bind: (resource, render = false) ->
     if @resource
-      @resource.off pi.ResourceEvent.Update, @resource_update()
-      @resource.off pi.ResourceEvent.Create, @resource_update()
+      @resource.off ResourceEvent.Update, @resource_update()
+      @resource.off ResourceEvent.Create, @resource_update()
     @resource = resource
     unless @resource
       @target.render(null)
       return
-    @resource.on [pi.ResourceEvent.Update,pi.ResourceEvent.Create], @resource_update()
+    @resource.on [ResourceEvent.Update,ResourceEvent.Create], @resource_update()
     @target.render(resource) if render
 
   resource_update: (e) ->
@@ -57,4 +58,4 @@ class pi.Base.Restful extends pi.Plugin
   dispose: ->
     @bind null
 
-module.exports = pi.Base.Restful
+module.exports = Base.Restful

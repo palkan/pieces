@@ -1,7 +1,6 @@
 'use strict'
-pi = require '../pi'
-require './nod_events'
+NodEvent = require('../nod').NodEvent
 Browser = require '../utils/browser' 
 
 if !!Browser.info().gecko
-  pi.NodEvent.register_alias 'mousewheel', 'DOMMouseScroll'
+  NodEvent.register_alias 'mousewheel', 'DOMMouseScroll'

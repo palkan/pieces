@@ -1,9 +1,9 @@
 {
-  "name": "pieces",
+  "name": "pieces-core",
   "version": "0.4.0",
   "author": "Vlad Dem <palkan>",
   "license": "MIT",
-  "main": "pieces.js",
+  "main": "pieces.require.js",
   "ignore": [
     "**/.*",
     "node_modules",

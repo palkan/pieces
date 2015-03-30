@@ -1,9 +1,8 @@
 'use strict'
-pi = require '../core'
 Context = require './context'
-utils = pi.utils
+utils = require '../core/utils'
 
-class pi.controllers.Base extends Context
+class Base extends Context
   id: 'base'
 
   constructor: (options) ->
@@ -40,4 +39,4 @@ class pi.controllers.Base extends Context
   switch: (to, data) ->
     @host_context.switch_context @id, to, data
 
-module.exports = pi.controllers.Base
+module.exports = Base

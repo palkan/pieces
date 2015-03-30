@@ -2,7 +2,7 @@
 utils = require './base'
 
 # Object utils
-class utils.obj
+class Obj
   # return property by path-like name
   # get_path(obj,'a.b.c') = obj.a.b.c
   @get_path: (obj, path) ->
@@ -53,4 +53,4 @@ class utils.obj
       data[arr[i]] = arr[i+1]
     data
 
-module.exports = utils.obj
+module.exports = Obj

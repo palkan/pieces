@@ -1,16 +1,15 @@
 'use strict'
-pi = require '../core/pi'
+Nod = require('./nod').Nod
+Page = require '../controllers/page'
+utils = require './utils'
 
-utils = pi.utils
-
-class pi.App
+class App
   # Create top-level context (Page)
-  # Piecify DOM root
   # Load page
   initialize: (nod) ->
     return false if @_initialized
-    @page = new pi.controllers.Page()
-    @view = pi.piecify(nod || pi.Nod.root)
+    @page = new Page()
+    @view = (nod ? Nod.root).piecify()
     @_initialized = true
     @page.load()
 
@@ -30,5 +29,4 @@ class pi.App
     @view.remove_children()
     true
 
-pi.app = new pi.App()
-module.exports = pi.app
+module.exports = App

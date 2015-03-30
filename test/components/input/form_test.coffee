@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Form", ->
   root = h.test_cont(pi.Nod.body)
@@ -38,7 +38,7 @@ describe "Form", ->
       example = test_div.find('.test')
 
     it "is Form", ->
-      expect(example).to.be.an.instanceof pi.Form
+      expect(example).to.be.an.instanceof $c.Form
 
     it "init value", ->
       expect(example.value().desc).to.eq '1'
@@ -77,7 +77,7 @@ describe "Form", ->
       example = test_div.find('.test')
     
     it "handle native inputs updates", (done) ->
-      example.on pi.FormEvent.Update, (e) =>
+      example.on 'updated', (e) =>
         expect(example.value().title).to.eq 'any'
         expect(e.data.title).to.eq 'any'
         done()
@@ -85,7 +85,7 @@ describe "Form", ->
       h.changeElement test_div.find("#title").node
 
     it "handle BaseInputs updates", (done) ->
-      example.on pi.FormEvent.Update, (e) =>
+      example.on 'updated', (e) =>
         expect(example.value().desc).to.eq 'long description'
         expect(e.data.desc).to.eq 'long description'
         done()

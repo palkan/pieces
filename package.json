@@ -1,8 +1,11 @@
 {
   "author": "Vlad Dem <palkan>",
   "name": "pieces",
-  "description": "JS library and/or framework",
-  "main": "./app/pi.js",
+  "description": "Pieces JS core library",
+  "main": "./app/index",
+  "directories": {
+    "lib": "./app"
+  },
   "version": "0.4.0",
   "license": "MIT",
   "homepage": "",
@@ -19,10 +22,15 @@
   "scripts": {
     "start": "./node_modules/.bin/brunch watch --server",
     "test": "mocha-phantomjs http://localhost:3333/test/",
-    "browserify": "cd app && browserify --extension .coffee -t coffeeify -e pieces.js -o ../pieces.js && cd .. && ./node_modules/uglify-js-brunch/node_modules/.bin/uglifyjs -m toplevel pieces.js > pieces.min.js",
+    "browserify": "cd app && browserify --extension .coffee index.js -o ../pieces.js && cd .. && ./node_modules/uglify-js-brunch/node_modules/.bin/uglifyjs -m toplevel pieces.js > pieces.min.js",
     "postinstall": "./node_modules/.bin/bower install",
     "requirify": "./node_modules/.bin/brunch build -P && cp ./public/js/pieces.js ./pieces.require.min.js && ./node_modules/.bin/brunch build && cp ./public/js/pieces.js ./pieces.require.js"
   },
+  "browserify": {
+    "transform": [
+      ["coffeeify", {"ext": ".coffee"}] 
+    ]
+  }, 
   "dependencies": {
   },
   "devDependencies": {

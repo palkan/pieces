@@ -1,8 +1,9 @@
 'use strict'
-pi = require '../core'
-utils = pi.utils
+utils = require '../core/utils'
+IframeUpload = require './iframe.upload'
+Nod = require('../core/nod').Nod
 
-class pi.Net
+class Net
   @_prepare_response: 
     (xhr) ->
       type = xhr.getResponseHeader 'Content-Type'
@@ -89,7 +90,7 @@ class pi.Net
 
         use_json = if options.json? then options.json else @use_json
         
-        _headers = utils.merge pi.net.headers, (options.headers||{})
+        _headers = utils.merge @headers, (options.headers||{})
 
         if (method is 'GET')
           q = @_data_to_query data
@@ -159,12 +160,12 @@ class pi.Net
   # Upload file using IFrame
   # Available options:
   #   method [String] request method (default to POST) 
-  #   as_json [Boolean] whether to parse response as json or not (default is equal to pi.Net.use_json)
+  #   as_json [Boolean] whether to parse response as json or not (default is equal to Net.use_json)
 
   @iframe_upload: (form, url, data={}, options={}) -> 
     as_json = if options.as_json? then options.as_json else @use_json
 
-    form = pi.Nod.create(form) unless form instanceof pi.Nod
+    form = Nod.create(form) unless form instanceof Nod
 
     throw Error('Form is undefined') unless form?
 
@@ -172,7 +173,7 @@ class pi.Net
 
     new Promise(
         (resolve, reject) =>
-          pi.net.IframeUpload.upload(form, url, @_to_params(data), method).then( 
+          IframeUpload.upload(form, url, @_to_params(data), method).then( 
             (response) => 
               reject Error('Response is empty') unless response?
 
@@ -188,11 +189,9 @@ class pi.Net
           ).catch((e) -> reject e)
       )
 
-pi.Net.XHR_UPLOAD = !!window.FormData
-
-# backward compatibility
-pi.net = pi.Net
+Net.XHR_UPLOAD = !!window.FormData
+Net.IframeUpload = IframeUpload
   
-pi.Net[method] = utils.curry(pi.Net.request, [method.toUpperCase()], pi.Net) for method in ['get', 'post', 'patch', 'put', 'delete']
+Net[method] = utils.curry(Net.request, [method.toUpperCase()], Net) for method in ['get', 'post', 'patch', 'put', 'delete']
 
-module.exports = pi.Net
+module.exports = Net

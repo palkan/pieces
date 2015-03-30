@@ -1,18 +1,20 @@
 'use strict'
-pi = require '../core'
 Context = require './context'
-utils = pi.utils
-History = require '../core/utils/history'
+utils = require '../core/utils'
+Config = require '../core/config'
+Compiler = require '../grammar/compiler'
 
 # Page is a main context with OneByOne strategy by default
 # You can overwrite strategy in config (config.page.strategy)
-class pi.controllers.Page extends Context
+class Page extends Context
+  @instance: null
   constructor: ->
-    super(utils.merge({strategy: 'one_for_all', default: 'main'}, pi.config.page))
+    @constructor.instance = @
+    super(utils.merge({strategy: 'one_for_all', default: 'main'}, Config.page))
 
-pi.Compiler.modifiers.push (str) -> 
+Compiler.modifiers.push (str) -> 
   if str[0..1] is '@@'
     str = "@app.page.context." + str[2..]
   str
 
-module.exports = pi.controllers.Page
+module.exports = Page

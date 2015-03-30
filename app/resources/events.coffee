@@ -1,10 +1,9 @@
 'use strict'
-pi = require '../core'
 
-pi.ResourceEvent =
+ResourceEvent =
   Update: 'update'
   Create: 'create'
   Destroy: 'destroy'
   Load: 'load'
 
-module.exports = pi.ResourceEvent
+module.exports = ResourceEvent

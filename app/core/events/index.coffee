@@ -1,5 +1,0 @@
-'use strict'
-require './events'
-require './nod_events'
-require './aliases'
-require './resize_delegate'

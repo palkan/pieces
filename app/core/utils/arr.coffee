@@ -1,7 +1,7 @@
 'use strict'
 utils = require './base'
 
-class utils.arr
+class Arr
   # sort array by many keys provided as hash: {key: order}
   # order is 'asc' or 'desc'
   @sort: (arr, sort_params) ->
@@ -35,4 +35,4 @@ class utils.arr
       return arr[utils.random(len-1)]
     @shuffle(arr)[0..(size-1)]
 
-module.exports = utils.arr
+module.exports = Arr

@@ -1,16 +1,17 @@
 'use strict'
-pi = require '../../core'
-require '../rest'
-utils = pi.utils
+Core = require '../../core/core'
+ResourceEvent = require '../events'
+utils = require '../../core/utils'
+Association = require '../association'
+Base = require '../base'
 
-# add has_many to resource
-# @example
+# Add has_many to resource
+# Example
 # 
-# ```@has_many 'users', source: $r.User, [params: ..., scope: ...]```
-# 
-# generates method 'load_users' which creates 'users' field as View with provided params 
+#   @has_many 'users', source: $r.User, [params: ..., scope: ...]
+#   # generates method 'load_users' which creates 'users' field as View with provided params 
 
-class pi.resources.HasMany extends pi.Core
+class HasMany extends Core
   @has_many: (name, params) ->
     unless params?
       throw Error("Has many require at least 'source' param")
@@ -41,7 +42,7 @@ class pi.resources.HasMany extends pi.Core
           if params.params?
             params.params.push "#{@constructor.resource_name}_id"
         utils.extend options, params
-        @["__#{name}__"] = new pi.resources.Association(params.source, options.scope, options)
+        @["__#{name}__"] = new Association(params.source, options.scope, options)
         @["__#{name}__"].load params.source.where(options.scope) unless options.scope is false
         @["__#{name}__"].listen(
           (e) =>
@@ -60,7 +61,7 @@ class pi.resources.HasMany extends pi.Core
 
     # add callbacks
     @after_update (data) ->
-      return if data instanceof pi.resources.Base
+      return if data instanceof Base
       if data[name]
         @["#{name}_loaded"] = true
         @[name]().load data[name]
@@ -80,4 +81,4 @@ class pi.resources.HasMany extends pi.Core
         data[name] = @[name]().serialize()
         data
 
-module.exports = pi.resources.HasMany
+module.exports = HasMany

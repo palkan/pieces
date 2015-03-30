@@ -1,4 +1,5 @@
 ## 0.4.0
+* Move components to their own namespace (`pi.components`).
 * Extract List to separate library.
 * Add Simple Templates.
 * Add global vars to REST. Add `REST.path` and `REST#path` methods.

@@ -15,7 +15,7 @@
     <script src="../js/pieces.js"></script>
     <script src="js/test.js"></script>
     <script>
-      window.pi = window.require('pi');
+      require('pieces');
       window.require.list().filter(function (name) {return /test\//.test(name);}).forEach(require);
       pi.app.initialize();
       // allow to set _nod on window

@@ -1,5 +1,4 @@
 'use strict'
-
 utils = pi.utils
 
 class pi.controllers.TestContext extends pi.controllers.Context

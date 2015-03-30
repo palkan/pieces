@@ -1,5 +1,4 @@
 'use strict'
-pi = require '../pi'
 utils = require './base'
 require './browser'
 require './time'
@@ -24,7 +23,7 @@ if !window.console || !window.console.log
   window.console =
     log: -> return
 
-pi.log_level ||= "info"
+utils.log_level ||= "info"
 
 _log_levels =
   error:
@@ -44,7 +43,7 @@ _log_levels =
     sort: 2
 
 _show_log =  (level) ->
-  _log_levels[pi.log_level].sort <= _log_levels[level].sort
+  _log_levels[utils.log_level].sort <= _log_levels[level].sort
 
 
 utils.log = (level, messages...) ->

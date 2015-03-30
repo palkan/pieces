@@ -2,7 +2,7 @@
 utils = require './base'
 
 # function modification utils
-class utils.func
+class Func
   # constant used to break execution of wrapped function
   @BREAK: "__BREAK__"
 
@@ -42,7 +42,7 @@ class utils.func
       if before?
         b = before.apply(self, args)
         return b if b and (options.break_if_value is true)
-        return options.break_with if b is utils.func.BREAK
+        return options.break_with if b is Func.BREAK
 
       res = target.apply(self, args)
       
@@ -51,10 +51,10 @@ class utils.func
       res  
 
   @append: (target, callback, options={}) ->
-    pi.utils.func.wrap target, null, callback, options
+    Func.wrap target, null, callback, options
 
   @prepend: (target, callback, options={}) ->
-    pi.utils.func.wrap target, callback, null, options
+    Func.wrap target, callback, null, options
 
   # return function to return function) optionally with new 'this'
   @unwrap: (fun, options={}, ths=null) ->
@@ -66,4 +66,4 @@ class utils.func
       
       fun.bind(ths||@)
 
-module.exports = utils.func
+module.exports = Func

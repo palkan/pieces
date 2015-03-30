@@ -1,7 +1,9 @@
 'use strict'
-pi = require '../core'
-require './base'
-utils = pi.utils
+Base = require './base'
+EventDispatcher = require('../core/events').EventDispatcher
+ResourceEvent = require './events'
+utils = require '../core/utils'
+Net = require '../net'
 
 _path_reg = /:\w+/g
 
@@ -11,7 +13,7 @@ _tailing_slash_reg = /\/$/
 
 
 # REST resource
-class pi.resources.REST extends pi.resources.Base
+class REST extends Base
   # Routes namespace
   @_rscope: "/:path"
 
@@ -124,12 +126,12 @@ class pi.resources.REST extends pi.resources.Base
     )
 
   @error: (action, message) ->
-    pi.event.trigger "net_error", resource: @resources_name, action: action, message: message
+    EventDispatcher.Global.trigger "net_error", resource: @resources_name, action: action, message: message
 
   @_request: (path, method, params, target) ->
     path = @_interpolate_path path, utils.merge(params,{resources: @resources_name, resource: @resource_name}), target
 
-    pi.net[method].call(null, path, params)
+    Net[method].call(null, path, params)
     .catch( (error) =>  
         @error error.message 
         throw error # rethrow it to the top!
@@ -237,4 +239,4 @@ class pi.resources.REST extends pi.resources.Base
     data[@constructor.resource_name] = attributes
     data
 
-module.exports = pi.resources.REST
+module.exports = REST

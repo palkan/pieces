@@ -1,9 +1,11 @@
 'use strict'
-pi = require '../pi'
 utils = require '../utils'
-require './nod_events'
+EventListener = require('./events').EventListener
+Core = require('../core')
+Nod = require('../nod').Nod
+NodEvent = require('../nod').NodEvent
 
-class pi.NodEvent.ResizeListener extends pi.EventListener
+class ResizeListener extends EventListener
   constructor: (@nod, @handler) ->
     @_w = @nod.width()
     @_h = @nod.height()
@@ -17,12 +19,12 @@ class pi.NodEvent.ResizeListener extends pi.EventListener
         false
     super 'resize', @handler, @nod, false, _filter
     
-class pi.NodEvent.ResizeDelegate extends pi.Core
+class ResizeDelegate extends Core
   constructor: ->
     @listeners = []
 
   add: (nod, callback) ->
-    @listeners.push (new pi.NodEvent.ResizeListener(nod, callback))
+    @listeners.push (new ResizeListener(nod, callback))
     if @listeners.length is 1
       @listen()
 
@@ -36,10 +38,10 @@ class pi.NodEvent.ResizeDelegate extends pi.Core
       @listeners.splice(i,1)
 
   listen: ->
-    pi.NodEvent.add pi.Nod.win.node, 'resize', @resize_listener()
+    NodEvent.add Nod.win.node, 'resize', @resize_listener()
 
   off: ->
-    pi.NodEvent.remove pi.Nod.win.node, 'resize', @resize_listener()
+    NodEvent.remove Nod.win.node, 'resize', @resize_listener()
 
   resize_listener: (e) ->
     for listener in @listeners
@@ -51,4 +53,4 @@ class pi.NodEvent.ResizeDelegate extends pi.Core
     nod = listener.nod
     {type: 'resize', target: nod, width: nod.width(), height: nod.height()}  
 
-pi.NodEvent.register_delegate('resize', new pi.NodEvent.ResizeDelegate())
+module.exports = ResizeDelegate

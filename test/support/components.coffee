@@ -1,7 +1,6 @@
 'use strict'
-pi = require 'pi'
 
-class pi.TestComponent extends pi.Base
+class pi.components.TestComponent extends pi.components.Base
   @after_initialize () -> @id = @options.id
   @before_create () -> @on 'click', => @value_trigger(13)
 
@@ -19,4 +18,4 @@ class pi.TestComponent extends pi.Base
     @trigger "value", val
 
 pi.Guesser.rules_for 'test_component', ['test']
-module.exports = pi.TestComponent
+module.exports = pi.components.TestComponent

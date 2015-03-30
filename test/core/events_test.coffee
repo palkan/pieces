@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "EventDispatcher", ->
   root_e = h.test_cont(pi.Nod.body)
@@ -212,11 +212,11 @@ describe "EventDispatcher", ->
 
   describe "aliases", ->
     afterEach ->
-      delete pi.NodEvent.aliases.clicko
-      delete pi.NodEvent.reversed_aliases.click
+      delete pi.Events.NodEvent.aliases.clicko
+      delete pi.Events.NodEvent.reversed_aliases.click
 
     it "work with alias", ->
-      pi.NodEvent.register_alias 'clicko', 'click' 
+      pi.Events.NodEvent.register_alias 'clicko', 'click' 
       test_div = h.test_cont root_e, """
         <div id='cont'>
           <button class='pi'>Button</button>

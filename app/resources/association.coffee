@@ -1,10 +1,10 @@
 'use strict'
-pi = require '../core'
-require './base'
-require './view'
-utils = pi.utils
+Base = require './base'
+View = require './view'
+ResourceEvent = require './events'
+utils = require '../core/utils'
 
-class pi.resources.Association extends pi.resources.View
+class Association extends View
   # generate new view for resource
   constructor: (@resources, scope, @options={}) ->
     super
@@ -15,7 +15,7 @@ class pi.resources.Association extends pi.resources.View
         @owner_name_id = @options.key
       else
         @_only_update = true # flag to indicate that association cannot handle create/load events, because it isn't persisted
-        @options.owner.one pi.ResourceEvent.Create, 
+        @options.owner.one ResourceEvent.Create, 
           (=>
             @_only_update = false
             @owner = @options.owner
@@ -52,14 +52,14 @@ class pi.resources.Association extends pi.resources.View
     if @options.belongs_to is true
       unless data[@owner_name_id]?
         data[@owner_name_id] = @owner.id
-      unless data instanceof pi.resources.Base
+      unless data instanceof Base
         data = @resources.build data, false
     super data, silent, params
 
   on_update: (el) ->
     if @get(el.id)
       if @options.copy is false
-        @trigger pi.ResourceEvent.Update, @_wrap(el)
+        @trigger ResourceEvent.Update, @_wrap(el)
       else
         super
     else if @_only_update is false
@@ -67,7 +67,7 @@ class pi.resources.Association extends pi.resources.View
 
   on_destroy: (el) ->
     if @options.copy is false
-      @trigger pi.ResourceEvent.Destroy, @_wrap(el)
+      @trigger ResourceEvent.Destroy, @_wrap(el)
       @remove el, true, false
     else
       super
@@ -76,7 +76,7 @@ class pi.resources.Association extends pi.resources.View
     if (view_item = (@get(el.id) || @get(el.__tid__)))
       @created(view_item, el.__tid__)
       if @options.copy is false
-        @trigger pi.ResourceEvent.Create, @_wrap(el)
+        @trigger ResourceEvent.Create, @_wrap(el)
       else
         view_item.set(el.attributes())
     else if !@_only_update
@@ -86,6 +86,14 @@ class pi.resources.Association extends pi.resources.View
     return if @_only_update
     if @options.scope
       @load @resources.where(@options.scope)
-      @trigger pi.ResourceEvent.Load,{}
+      @trigger ResourceEvent.Load,{}
 
-module.exports = pi.resources.Association
+utils.extend(Base,
+  # Generate new view for resource
+  view: (params) ->
+    view = new Association(@, params, scope: params, copy: false, source: @)
+    view.reload()
+    view
+)
+
+module.exports = Association

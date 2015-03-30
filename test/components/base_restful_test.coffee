@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 utils = pi.utils
 Nod = pi.Nod
 TestUsers = pi.resources.TestUsers

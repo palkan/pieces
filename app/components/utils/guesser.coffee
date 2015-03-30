@@ -1,9 +1,8 @@
 'use strict'
-pi = require '../../core'
-utils = pi.utils
+utils = require '../../core/utils'
 
 # Class helps to infere component class from Nod
-class pi.Guesser
+class Guesser
   @klasses: []
   @klass_reg: null
   @klass_to_component: {}
@@ -72,4 +71,4 @@ class pi.Guesser
 
     return 'base'
 
-module.exports = pi.Guesser
+module.exports = Guesser

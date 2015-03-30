@@ -1,14 +1,13 @@
 'use strict'
-pi = require '../../core'
-require '../rest'
-utils = pi.utils
+Core = require '../../core/core'
+ResourceEvent = require '../events'
+utils = require '../../core/utils'
+Base = require '../base'
 
-# add has_one to resource
-# @example
-# 
-# ```@has_one 'user', source: $r.User, foreign_key: 'resource_id'```
-
-class pi.resources.HasOne extends pi.Core
+# Add has_one to resource
+# Example
+#  @has_one 'user', source: $r.User, foreign_key: 'resource_id'
+class HasOne extends Core
   @has_one: (name, params) ->
     unless params?
       throw Error("Has one require at least 'source' param")
@@ -31,16 +30,16 @@ class pi.resources.HasOne extends pi.Core
     params.source.listen (e) => 
       return unless @all().length
       e = e.data
-      if e.type is pi.ResourceEvent.Load
+      if e.type is ResourceEvent.Load
         for el in params.source.all()
           if el[params.foreign_key] and (target = @get(el[params.foreign_key])) and target.association(name)
             target[bind_fun] el
       else
         el = e[resource_name]
         if el[params.foreign_key] and (target = @get(el[params.foreign_key])) and target.association(name)
-          if e.type is pi.ResourceEvent.Destroy
+          if e.type is ResourceEvent.Destroy
             delete @[name]
-          else if e.type is pi.ResourceEvent.Create
+          else if e.type is ResourceEvent.Create
             target[bind_fun] el, true
           target.trigger_assoc_event(name, e.type, utils.obj.wrap(name, @[name])) if _update_filter(e,el) 
 
@@ -50,7 +49,7 @@ class pi.resources.HasOne extends pi.Core
       @[name] = el
       if @_persisted and not @[name][params.foreign_key]
         @[name][params.foreign_key] = @id
-      @trigger_assoc_event(name, pi.ResourceEvent.Create, utils.obj.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
+      @trigger_assoc_event(name, ResourceEvent.Create, utils.obj.wrap(name, @[name])) unless (silent or not _update_filter(null, el))
 
     # add callbacks
 
@@ -59,11 +58,11 @@ class pi.resources.HasOne extends pi.Core
         @[bind_fun](el, true)
 
     @after_update (data) ->
-      return if data instanceof pi.resources.Base
+      return if data instanceof Base
       if @_persisted and not @[name] and (el = params.source.get_by(utils.obj.wrap(params.foreign_key,@id)))
         @[bind_fun](el, true)
       if data[name]
-        if @[name] instanceof pi.resources.Base 
+        if @[name] instanceof Base 
           @[name].set data[name]
         else
           @[bind_fun] params.source.build data[name]
@@ -81,4 +80,4 @@ class pi.resources.HasOne extends pi.Core
         data[name] = @[name].attributes()
         data
 
-module.exports = pi.resources.HasOne
+module.exports = HasOne

@@ -1,22 +1,22 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Component Initializer", ->
   Nod = pi.Nod
   it "parse options", ->
     el = Nod.create('<div data-component="test" data-hidden="true" data-collection-id="13" data-plugins="autoload search filter"></div>')
-    options = pi.ComponentInitializer.gather_options el
+    options = pi.Initializer.gather_options el
     expect(options).to.include({component:"test",hidden:true,collection_id:13}).and.to.have.property('plugins').with.length(3)
 
   it "init base component", ->
     el = Nod.create('<div data-component="test_component" data-hidden="true"></div>')
-    component = pi.ComponentInitializer.init el
-    expect(component).to.be.an.instanceof pi.TestComponent
+    component = pi.Initializer.init el
+    expect(component).to.be.an.instanceof $c.TestComponent
     expect(component.visible).to.be.false
 
   it "return undefined if component not found", ->
     el = Nod.create('<div data-component="testtt" data-hidden="true"></div>')
-    expect(pi.ComponentInitializer.init(el)).to.be.undefined
+    expect(pi.Initializer.init(el)).to.be.undefined
 
   it "find cut", ->
     _html = '''
@@ -37,6 +37,6 @@ describe "Component Initializer", ->
     </div>
     '''
     el = Nod.create('div')
-    el = pi.ComponentInitializer.init el
+    el = pi.Initializer.init el
     el.html _html
     expect(el.find_cut('.pi')).to.have.length 3

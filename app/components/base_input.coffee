@@ -1,13 +1,12 @@
 'use strict'
-pi = require '../../core'
-require './base'
-require '../events/input_events'
-utils = pi.utils
+Base = require './base'
+Events = require './events'
+utils = require '../core/utils'
 
 _pass = (val) -> val
 _serialize = (val) -> utils.serialize(val)
 
-class pi.BaseInput extends pi.Base
+class BaseInput extends Base
   postinitialize: ->
     @input ||= if @node.nodeName is 'INPUT' then @ else @find('input')
     if @options.serialize is true
@@ -30,6 +29,6 @@ class pi.BaseInput extends pi.Base
       @value @options.default_value
     else
       @value ''
-    @trigger(pi.InputEvent.Clear) unless silent
+    @trigger(Events.InputEvent.Clear) unless silent
 
-module.exports = pi.BaseInput
+module.exports = BaseInput

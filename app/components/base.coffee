@@ -1,17 +1,13 @@
 'use strict'
-pi = require '../../core'
-require './setup'
-require './compiler'
-require './klass'
-require '../events'
-utils = pi.utils
-Nod = pi.Nod
-
-Init = pi.ComponentInitializer
+Klass = require './utils/klass'
+Events = require './events'
+utils = require '../core/utils'
+Nod = require('../core/nod').Nod
+Compiler = require '../grammar/compiler'
 
 _array_rxp = /\[\]$/
 
-_proper = (klass, name, prop) -> Object.defineProperty(klass::, name, prop)
+_proper = (target, name, prop) -> Object.defineProperty(target, name, prop)
 
 _prop_setter =
   'default': (name, val) ->
@@ -43,7 +39,7 @@ _node_attr = (val, node_attr) ->
   else
     @attr(node_attr.name, null)
 
-class pi.Base extends pi.Nod
+class Base extends Nod
   @include_plugins: (plugins...) ->
     plugin.included(@) for plugin in plugins
 
@@ -57,7 +53,7 @@ class pi.Base extends pi.Nod
         if @[cmp] is undefined
           throw Error("Missing required component #{cmp}") 
 
-  # Generates active property for instance of a class
+  # Generates active property for target
   # - adds __properties__ object to store properties values and description;
   # - generate simple getter (with default values support);
   # - generate setter which can toggle class, trigger events, cast values;
@@ -75,9 +71,9 @@ class pi.Base extends pi.Nod
   #       on: false
   #     functions: ['enable', 'disable']
   #     toggle: true
-  @active_property = (name, options={}) ->
+  @active_property = (target, name, options={}) ->
     # ensure that every class has its own props
-    @::__prop_desc__ = utils.clone(@::__prop_desc__ || {})
+    target.__prop_desc__ = utils.clone(target.__prop_desc__ || {})
 
     options.type ||= 'default'
 
@@ -91,7 +87,7 @@ class pi.Base extends pi.Nod
         name: options.node_attr
         on: true
 
-    @::__prop_desc__[name] = options 
+    target.__prop_desc__[name] = options 
 
     d = 
       get: ->
@@ -112,23 +108,23 @@ class pi.Base extends pi.Nod
     if options.type is 'bool'
       if options.functions?
         # first name is for setting true values
-        @::[options.functions[0]] = -> 
+        target[options.functions[0]] = -> 
           @[name] = true
           @
         # second name is for setting false value
-        @::[options.functions[1]] = -> 
+        target[options.functions[1]] = -> 
           @[name] = false
           @
       if options.toggle
         toggle_name = if typeof options.toggle is 'string' then options.toggle else "toggle_#{name}"
-        @::[toggle_name] = (val = null) ->
+        target[toggle_name] = (val = null) ->
           if val is null
             @[name] = !@[name]
           else
             @[name] = val
           @
 
-    _proper(@, name, d)
+    _proper(target, name, d)
 
   constructor: (@node, @host, @options = {}) ->
     super
@@ -143,7 +139,7 @@ class pi.Base extends pi.Nod
 
   # Define instance vars here and active properties defaults
   preinitialize: ->
-    pi.Nod.store(@, true)
+    Nod.store(@, true)
     @__properties__ = {}
     @__components__ = []
     @__plugins__ = []
@@ -155,11 +151,11 @@ class pi.Base extends pi.Nod
 
   # Setup instance initial state (but not children)
   initialize: ->       
-    @disable() if (@options.disabled || @hasClass(pi.klass.DISABLED))
-    @hide() if (@options.hidden || @hasClass(pi.klass.HIDDEN))
-    @activate() if (@options.active || @hasClass(pi.klass.ACTIVE))
+    @disable() if (@options.disabled || @hasClass(Klass.DISABLED))
+    @hide() if (@options.hidden || @hasClass(Klass.HIDDEN))
+    @activate() if (@options.active || @hasClass(Klass.ACTIVE))
     @_initialized = true
-    @trigger pi.Events.Initialized, true, false
+    @trigger Events.Initialized, true, false
 
   @register_callback 'initialize'
 
@@ -176,7 +172,7 @@ class pi.Base extends pi.Nod
       utils.debug_verbose "plugin attached #{plugin::id}"
       @__plugins__.push plugin.attached(@)
 
-  # Find all top-level children components (elements with class pi.klass.PI)
+  # Find all top-level children components (elements with class Klass.PI)
   # and initialize them
   # 
   # If a child has pid then it would be stored as this[pid]
@@ -194,9 +190,9 @@ class pi.Base extends pi.Nod
   #   example.b # => pi.Base
   #   example.b.c #=> pi.Base
   init_children: ->
-    for node in @find_cut(".#{pi.klass.PI}")
+    for node in @find_cut(".#{Klass.PI}")
       do (node) =>
-        child = Init.init node, @
+        child = Nod.create(node).piecify(@)
         if child?.pid
           if _array_rxp.test(child.pid)
             arr = (@[child.pid[..-3]]||=[])
@@ -210,13 +206,13 @@ class pi.Base extends pi.Nod
   setup_events: ->
     for event, handlers of @options.events
       for handler in handlers.split(/;\s*/)
-        @on event, pi.Compiler.str_to_event_handler(handler, this)
+        @on event, Compiler.str_to_event_handler(handler, this)
     delete @options.events
     return
 
   # Finish initialiation and trigger 'created' event.
   postinitialize: ->
-    @trigger pi.Events.Created, true, false
+    @trigger Events.Created, true, false
 
   @register_callback 'postinitialize', as: 'create' 
 
@@ -226,12 +222,13 @@ class pi.Base extends pi.Nod
     @__components__.length = 0
     @init_children()
     for c in @__components__
-      c.piecify()
+      c.piecify(@)
+    @
 
   ## event dispatcher ##
 
   trigger: (event, data, bubbles) ->
-    if @enabled or event is pi.Events.Enabled
+    if @_initialized && (@enabled or event is Events.Enabled)
       super event, data, bubbles
 
   bubble_event: (event) ->
@@ -239,35 +236,36 @@ class pi.Base extends pi.Nod
 
   ## public interface ##
 
-  @active_property 'visible', 
+  @active_property @::, 'visible', 
     type: 'bool', 
     default: true,
-    event: pi.Events.Hidden, 
+    event: Events.Hidden, 
     class: 
-       name: pi.klass.HIDDEN
+       name: Klass.HIDDEN
        on: false
     functions: ['show', 'hide']
 
-  @active_property 'enabled', 
+  @active_property @::, 'enabled', 
     type: 'bool',
     default: true
-    event: pi.Events.Enabled, 
+    event: Events.Enabled, 
     class: 
-       name: pi.klass.DISABLED
+       name: Klass.DISABLED
        on: false
     functions: ['enable', 'disable']
 
-  @active_property 'active', 
+  @active_property @::, 'active', 
     type: 'bool',
     default: true
-    event: pi.Events.Active, 
+    event: Events.Active, 
     class: 
-       name: pi.klass.ACTIVE
+       name: Klass.ACTIVE
        on: false
     functions: ['activate', 'deactivate']
 
   dispose: ->
     return if @_disposed
+    @_initialized = false
     if @host?
       @host.remove_component @
     plugin.dispose() for plugin in @__plugins__
@@ -275,7 +273,7 @@ class pi.Base extends pi.Nod
     @__components__.length = 0
     @__properties__ = {}
     super
-    @trigger pi.Events.Destroyed, true, false
+    @trigger Events.Destroyed, true, false
 
   # Remove all references to child (called when child is disposed)
   remove_component: (child) ->
@@ -294,4 +292,4 @@ class pi.Base extends pi.Nod
       child.remove()
     super
 
-module.exports = pi.Base
+module.exports = Base

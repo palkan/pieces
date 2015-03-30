@@ -1,14 +1,13 @@
 'use strict'
-pi = require '../../core'
-require '../../components/base'
-require '../plugin'
-utils = pi.utils
+Base = require '../../components/base'
+Plugin = require '../plugin'
+utils = require '../../core/utils'
+Renderers = require '../../renderers'
 
 _renderer_reg = /(\w+)(?:\(([\w\-\/]+)\))?/
 
-# [Plugin]
-# Add  js templates ('render(data)')
-class pi.Base.Renderable extends pi.Plugin
+# Add render method to component; support simple templates 
+class Base.Renderable extends Plugin
   id: 'renderable'
 
   @included: (klass) ->
@@ -35,13 +34,13 @@ class pi.Base.Renderable extends pi.Plugin
   find_renderer: ->
     if @target.options.renderer? and _renderer_reg.test(@target.options.renderer)
       [_, name, param] = @target.options.renderer.match _renderer_reg
-      klass = pi.Renderers[utils.camelCase(name)]
+      klass = Renderers[utils.camelCase(name)]
       if klass?
         return new klass(param)
     else if (tpl = @target.find('.pi-renderer'))
-      renderer = new pi.Renderers.Simple(tpl)
+      renderer = new Renderers.Simple(tpl)
       tpl.remove()
       return renderer
-    new pi.Renderers.Base()
+    new Renderers.Base()
 
-module.exports = pi.Base.Renderable
+module.exports = Base.Renderable

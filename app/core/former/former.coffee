@@ -1,20 +1,19 @@
 'use strict'
-pi = require '../pi'
 utils = require '../utils'
 
-class pi.Former
+class Former
   constructor: (@nod, @options={}) ->
     @options.name_transform = @_rails_name_transform if @options.rails is true
     @options.parse_value = utils.serialize if @options.serialize is true
 
   @parse: (nod, options) ->
-    (new pi.Former(nod,options)).parse()
+    (new Former(nod,options)).parse()
 
   @fill: (nod, options) ->
-    (new pi.Former(nod,options)).fill()
+    (new Former(nod,options)).fill()
 
   @clear: (nod, options) ->
-    (new pi.Former(nod, options)).clear()
+    (new Former(nod, options)).clear()
 
   parse: ->
     @process_name_values @collect_name_values()
@@ -208,4 +207,4 @@ class pi.Former
   _rails_name_transform: (name) ->
     name.replace(/\[([^\]])/ig, ".$1").replace(/([^\[])([\]]+)/ig,"$1")
 
-module.exports = pi.Former
+module.exports = Former

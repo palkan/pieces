@@ -1,11 +1,11 @@
 'use strict'
-pi = require '../core'
-utils = pi.utils
+Core = require '../core/core'
+utils = require '../core/utils'
 
-class pi.Plugin extends pi.Core
+class Plugin extends Core
   # uniq plugin id
   id: ""
-  # invoked when plugin included to class (pi.Base)
+  # invoked when plugin included to class
   @included: (klass) ->
     self = @
     klass.after_initialize -> @attach_plugin self 
@@ -22,4 +22,4 @@ class pi.Plugin extends pi.Core
 
   dispose: utils.truthy
 
-module.exports = pi.Plugin
+module.exports = Plugin

@@ -26,7 +26,7 @@ _operands =
 _key_operand = /^([\w\d_]+)(\?&|>|<|~|\?)$/
 
 # Filter functions generators
-class utils.matchers
+class Matchers
   # object matcher
   # if 'all' is true then matching objects must include passed object
   # @example matchers.object(type: 1, kind: 2) returns 'true' on {type: 1, kind:2, ...}
@@ -89,4 +89,4 @@ class utils.matchers
           matchers[key] = val
     @object matchers, all
 
-module.exports = utils.matchers
+module.exports = Matchers

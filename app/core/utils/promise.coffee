@@ -2,7 +2,7 @@
 utils = require './base'
 
 # Object utils
-class utils.promise
+class PromiseUtils
   # return data as resolved promise  
   @resolved: (data) ->
     new Promise( (resolve) -> resolve(data))  
@@ -21,11 +21,11 @@ class utils.promise
 
   # if obj is promise then return it; otherwise wrap it in resolved promise
   @as: (obj) ->
-    if utils.promise.is(obj) then obj else utils.promise.resolved(obj)
+    if PromiseUtils.is(obj) then obj else PromiseUtils.resolved(obj)
 
   # check that given object is a promise  
   @is: (obj) ->
     obj && (typeof obj is 'object' || typeof obj is 'function') && typeof obj.then is 'function'
 
 
-module.exports = utils.promise
+module.exports = PromiseUtils

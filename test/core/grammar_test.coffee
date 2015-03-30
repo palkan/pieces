@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Compiler", ->
   Compiler = pi.Compiler
@@ -12,9 +12,17 @@ describe "Compiler", ->
     log: (level, msg) ->
       level: level, msg: msg
 
+  class $r.PiCallTests extends $r.Base
+    @set_resource 'call_tests'
+
+  $r.Test = {}
+
+  class $r.Test.Call extends $r.Base
+    @set_resource 'calls'
+    
   describe "compile_fun", ->
-    R = $r.create("pi_call_tests")
-    R2 = $r.create("test.call")
+    R = $r.PiCallTests
+    R2 = $r.Test.Call
     window._abc_ = 
       fun: -> true
       echo: (data) -> data

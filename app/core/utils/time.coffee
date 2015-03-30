@@ -1,5 +1,4 @@
 'use strict'
-utils = require './base'
 
 _reg = /%[a-zA-Z]/g
 
@@ -52,7 +51,7 @@ _formatter =
 
 
 # utils for working with time
-utils.time =
+class Time
   # Add new code with formatter,
   # which can be used to format strings.
   # 
@@ -62,19 +61,19 @@ utils.time =
   #   }
   #   
   #   utils.time.add_formatter('E', even_date)
-  add_formatter: (code, formatter) ->
+  @add_formatter: (code, formatter) ->
     _formatter[code] = formatter
   # Parses t and returns Date object.
   # Simply calls Date constructor, but
   # can auto-detect seconds/milliseconds
-  parse: (t) ->
+  @parse: (t) ->
     # convert to milliseconds if time was provided as number of seconds
     if typeof t is 'number' and t < 4000000000
       t*=1000
     new Date(t) # t can be date object or string or ts
  
   # Current time formated according to fmt.
-  now: (fmt) ->
+  @now: (fmt) ->
     @format(new Date(), fmt)
 
   # Format time according fmt.
@@ -94,7 +93,7 @@ utils.time =
   #   %P - median indicator ("AM"/"PM")
   #   %p - median indicator ("am"/"pm")
 
-  format:(t, fmt) ->
+  @format:(t, fmt) ->
     t = @parse(t)
     return t unless fmt?
     fmt.replace(_reg, (match) -> 
@@ -106,7 +105,7 @@ utils.time =
     )
 
   # return string representing given time as duration ('%H:%M:%S(.%L)')
-  duration: (val, milliseconds = false, show_milliseconds = false) ->
+  @duration: (val, milliseconds = false, show_milliseconds = false) ->
     if milliseconds
       ms = val % 1000
       val = (val/1000)|0
@@ -123,4 +122,4 @@ utils.time =
       res+=".#{_pad(ms,2)}"
     res
 
-module.exports = utils.time
+module.exports = Time

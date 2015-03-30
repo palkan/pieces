@@ -1,15 +1,17 @@
 'use strict'
-h = require 'pi/test/helpers'
+h = require 'pieces/test/helpers'
 
 describe "Former", ->
   root = h.test_cont(pi.Nod.body)
+
+  Former = require '../../core/former/former'
 
   after ->
     root.remove()
 
   describe "parse", ->
     it "parse simple name values (without nested objects)", ->
-      f = new pi.Former()
+      f = new Former()
 
       name_values = [
         {name: 'a', value: "1"},
@@ -20,7 +22,7 @@ describe "Former", ->
       expect(f.process_name_values(name_values)).to.include({a:"1",b:"2",c:"3"})
 
     it "parse name values on object (without arrays)", ->
-      f = new pi.Former()
+      f = new Former()
 
       name_values = [
         {name: "obj.a", value: "1"},
@@ -31,7 +33,7 @@ describe "Former", ->
       expect(f.process_name_values(name_values)["obj"]).to.include({a:"1",b:"2",c:"3"})
 
     it "parse complex name values on objects (without arrays)", ->
-      f = new pi.Former()
+      f = new Former()
 
       name_values = [
         {name: "obj.a", value: "1"},
@@ -50,7 +52,7 @@ describe "Former", ->
 
 
     it "parse name values with arrays", ->
-      f = new pi.Former()
+      f = new Former()
 
       name_values = [
         {name: "obj.a[]", value: "1"},
@@ -67,7 +69,7 @@ describe "Former", ->
 
 
     it "parse name values with nested arrays", ->
-      f = new pi.Former()
+      f = new Former()
 
       name_values = [
         {name: "obj.a[].id", value: "1"},
@@ -87,7 +89,7 @@ describe "Former", ->
 
 
     it "parse name values very complex", ->
-      f = new pi.Former()
+      f = new Former()
 
       name_values = [
         {name: "obj.a[].id", value: "1"},
@@ -119,7 +121,7 @@ describe "Former", ->
 
     ## Bug from teachbase
     it "parse arrays of nested objects (rails)", ->
-      f = new pi.Former(null, {rails: true})
+      f = new Former(null, {rails: true})
       data = f.process_name_values([{name: 'users[][labels[12]]',value: 1},{name:'users[][labels[15]]',value:2}])
 
       expect(data["users"]).to.have.length(1)
@@ -127,7 +129,7 @@ describe "Former", ->
       expect(data["users"][0]["labels"]["15"]).to.eql(2)
 
     it "parse rails names and serialize data", ->
-      f = new pi.Former(null, serialize: true, rails: true)
+      f = new Former(null, serialize: true, rails: true)
 
       name_values = [
         {name: "model[a][][id]", value: "1"},
@@ -148,7 +150,7 @@ describe "Former", ->
       expect(data["model"]["flag"]).to.eql(true)
 
     it "parse rails datetime names", ->
-      f = new pi.Former(null, rails: true)
+      f = new Former(null, rails: true)
 
       name_values = [
         {name: "model[created_at(2i)]", value: "7"},
@@ -163,7 +165,7 @@ describe "Former", ->
       expect(data["model"]["created_at(3i)"]).to.equal '1'
 
      it "parse nested rails names", ->
-      f = new pi.Former(null, rails: true)
+      f = new Former(null, rails: true)
 
       name_values = [
         {name: "model[created_at[month]]", value: "7"},
@@ -201,7 +203,7 @@ describe "Former", ->
       root.append(test_form)
 
     it "collect form data", ->
-      data = pi.Former.parse(test_form, serialize: true)
+      data = Former.parse(test_form, serialize: true)
       expect(data["post"]["is_private"]).to.eql(1)
       expect(data["post"]["is_draft"]).to.be.undefined
       expect(data["post"]["category"]).to.eql('sports')    
@@ -209,7 +211,7 @@ describe "Former", ->
       expect(data["post"]["lang"]).to.eql(['ru','de'])
 
     it "fill form data", ->
-      f = new pi.Former(test_form, serialize: true, fill_prefix: 'post.')
+      f = new Former(test_form, serialize: true, fill_prefix: 'post.')
       f.fill name: 'Zeit', is_draft: true, is_private: false, category: 'politics', lang: 'es'
 
       data = f.parse()
@@ -221,18 +223,18 @@ describe "Former", ->
       expect(data["post"]["lang"]).to.eql(['es'])
 
     it "clear form", ->
-      pi.Former.clear(test_form)
+      Former.clear(test_form)
 
-      data = pi.Former.parse(test_form)
+      data = Former.parse(test_form)
 
       expect(data.post.name).to.be.empty
       expect(data.post.lang).to.be.empty
       expect(data.post.parent_id).to.equal('123')
 
     it "clear hidden elements when 'clear_hidden' is true", ->
-      pi.Former.clear(test_form, clear_hidden: true)
+      Former.clear(test_form, clear_hidden: true)
 
-      data = pi.Former.parse(test_form)
+      data = Former.parse(test_form)
 
       expect(data.post.name).to.be.empty
       expect(data.post.lang).to.be.empty

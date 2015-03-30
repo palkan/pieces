@@ -1,8 +1,5 @@
 'use strict'
-pi = require '../../core'
-utils = pi.utils
-
-pi.Events = 
+module.exports = 
   Initialized: 'initialized'
   Created: 'creation_complete'
   Destroyed: 'destroyed'
@@ -11,4 +8,3 @@ pi.Events =
   Active: 'active'
   Selected: 'selected'
   Update: 'update'
-  SelectionCleared: 'selection_cleared'

@@ -1,79 +1,24 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
-var pi, utils;
-
-pi = require('../core/pi');
-
-utils = pi.utils;
-
-pi.App = (function() {
-  function App() {}
-
-  App.prototype.initialize = function(nod) {
-    if (this._initialized) {
-      return false;
-    }
-    this.page = new pi.controllers.Page();
-    this.view = pi.piecify(nod || pi.Nod.root);
-    this._initialized = true;
-    return this.page.load();
-  };
-
-  App.prototype.reinitialize = function() {
-    if (!this._initialized) {
-      return false;
-    }
-    this.page.dispose();
-    this.view.piecify();
-    return this.page.load();
-  };
-
-  App.prototype.dispose = function() {
-    if (!this._initialized) {
-      return false;
-    }
-    this.page.dispose();
-    this.view.remove_children();
-    return true;
-  };
-
-  return App;
-
-})();
-
-pi.app = new pi.App();
-
-module.exports = pi.app;
-
-
-
-},{"../core/pi":32}],2:[function(require,module,exports){
-'use strict';
-var Init, Nod, _array_rxp, _node_attr, _prop_setter, _proper, _toggle_class, pi, utils,
+var Base, Compiler, Events, Klass, Nod, _array_rxp, _node_attr, _prop_setter, _proper, _toggle_class, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   slice = [].slice;
 
-pi = require('../../core');
+Klass = require('./utils/klass');
 
-require('./setup');
+Events = require('./events');
 
-require('./compiler');
+utils = require('../core/utils');
 
-require('./klass');
+Nod = require('../core/nod').Nod;
 
-require('../events');
-
-utils = pi.utils;
-
-Nod = pi.Nod;
-
-Init = pi.ComponentInitializer;
+Compiler = require('../grammar/compiler');
 
 _array_rxp = /\[\]$/;
 
-_proper = function(klass, name, prop) {
-  return Object.defineProperty(klass.prototype, name, prop);
+_proper = function(target, name, prop) {
+  return Object.defineProperty(target, name, prop);
 };
 
 _prop_setter = {
@@ -118,7 +63,7 @@ _node_attr = function(val, node_attr) {
   }
 };
 
-pi.Base = (function(superClass) {
+Base = (function(superClass) {
   extend(Base, superClass);
 
   Base.include_plugins = function() {
@@ -150,12 +95,12 @@ pi.Base = (function(superClass) {
     });
   };
 
-  Base.active_property = function(name, options) {
+  Base.active_property = function(target, name, options) {
     var d, toggle_name;
     if (options == null) {
       options = {};
     }
-    this.prototype.__prop_desc__ = utils.clone(this.prototype.__prop_desc__ || {});
+    target.__prop_desc__ = utils.clone(target.__prop_desc__ || {});
     options.type || (options.type = 'default');
     if ((options["class"] != null) && typeof options['class'] === 'string') {
       options["class"] = {
@@ -169,7 +114,7 @@ pi.Base = (function(superClass) {
         on: true
       };
     }
-    this.prototype.__prop_desc__[name] = options;
+    target.__prop_desc__[name] = options;
     d = {
       get: function() {
         return this.__properties__[name];
@@ -192,18 +137,18 @@ pi.Base = (function(superClass) {
     }
     if (options.type === 'bool') {
       if (options.functions != null) {
-        this.prototype[options.functions[0]] = function() {
+        target[options.functions[0]] = function() {
           this[name] = true;
           return this;
         };
-        this.prototype[options.functions[1]] = function() {
+        target[options.functions[1]] = function() {
           this[name] = false;
           return this;
         };
       }
       if (options.toggle) {
         toggle_name = typeof options.toggle === 'string' ? options.toggle : "toggle_" + name;
-        this.prototype[toggle_name] = function(val) {
+        target[toggle_name] = function(val) {
           if (val == null) {
             val = null;
           }
@@ -216,7 +161,7 @@ pi.Base = (function(superClass) {
         };
       }
     }
-    return _proper(this, name, d);
+    return _proper(target, name, d);
   };
 
   function Base(node1, host, options1) {
@@ -234,7 +179,7 @@ pi.Base = (function(superClass) {
 
   Base.prototype.preinitialize = function() {
     var desc, name, ref, results;
-    pi.Nod.store(this, true);
+    Nod.store(this, true);
     this.__properties__ = {};
     this.__components__ = [];
     this.__plugins__ = [];
@@ -254,17 +199,17 @@ pi.Base = (function(superClass) {
   };
 
   Base.prototype.initialize = function() {
-    if (this.options.disabled || this.hasClass(pi.klass.DISABLED)) {
+    if (this.options.disabled || this.hasClass(Klass.DISABLED)) {
       this.disable();
     }
-    if (this.options.hidden || this.hasClass(pi.klass.HIDDEN)) {
+    if (this.options.hidden || this.hasClass(Klass.HIDDEN)) {
       this.hide();
     }
-    if (this.options.active || this.hasClass(pi.klass.ACTIVE)) {
+    if (this.options.active || this.hasClass(Klass.ACTIVE)) {
       this.activate();
     }
     this._initialized = true;
-    return this.trigger(pi.Events.Initialized, true, false);
+    return this.trigger(Events.Initialized, true, false);
   };
 
   Base.register_callback('initialize');
@@ -290,11 +235,11 @@ pi.Base = (function(superClass) {
 
   Base.prototype.init_children = function() {
     var fn, i, len, node, ref;
-    ref = this.find_cut("." + pi.klass.PI);
+    ref = this.find_cut("." + Klass.PI);
     fn = (function(_this) {
       return function(node) {
         var arr, child, name1;
-        child = Init.init(node, _this);
+        child = Nod.create(node).piecify(_this);
         if (child != null ? child.pid : void 0) {
           if (_array_rxp.test(child.pid)) {
             arr = (_this[name1 = child.pid.slice(0, -2)] || (_this[name1] = []));
@@ -322,14 +267,14 @@ pi.Base = (function(superClass) {
       ref1 = handlers.split(/;\s*/);
       for (i = 0, len = ref1.length; i < len; i++) {
         handler = ref1[i];
-        this.on(event, pi.Compiler.str_to_event_handler(handler, this));
+        this.on(event, Compiler.str_to_event_handler(handler, this));
       }
     }
     delete this.options.events;
   };
 
   Base.prototype.postinitialize = function() {
-    return this.trigger(pi.Events.Created, true, false);
+    return this.trigger(Events.Created, true, false);
   };
 
   Base.register_callback('postinitialize', {
@@ -337,20 +282,19 @@ pi.Base = (function(superClass) {
   });
 
   Base.prototype.piecify = function() {
-    var c, i, len, ref, results;
+    var c, i, len, ref;
     this.__components__.length = 0;
     this.init_children();
     ref = this.__components__;
-    results = [];
     for (i = 0, len = ref.length; i < len; i++) {
       c = ref[i];
-      results.push(c.piecify());
+      c.piecify(this);
     }
-    return results;
+    return this;
   };
 
   Base.prototype.trigger = function(event, data, bubbles) {
-    if (this.enabled || event === pi.Events.Enabled) {
+    if (this._initialized && (this.enabled || event === Events.Enabled)) {
       return Base.__super__.trigger.call(this, event, data, bubbles);
     }
   };
@@ -361,34 +305,34 @@ pi.Base = (function(superClass) {
     }
   };
 
-  Base.active_property('visible', {
+  Base.active_property(Base.prototype, 'visible', {
     type: 'bool',
     "default": true,
-    event: pi.Events.Hidden,
+    event: Events.Hidden,
     "class": {
-      name: pi.klass.HIDDEN,
+      name: Klass.HIDDEN,
       on: false
     },
     functions: ['show', 'hide']
   });
 
-  Base.active_property('enabled', {
+  Base.active_property(Base.prototype, 'enabled', {
     type: 'bool',
     "default": true,
-    event: pi.Events.Enabled,
+    event: Events.Enabled,
     "class": {
-      name: pi.klass.DISABLED,
+      name: Klass.DISABLED,
       on: false
     },
     functions: ['enable', 'disable']
   });
 
-  Base.active_property('active', {
+  Base.active_property(Base.prototype, 'active', {
     type: 'bool',
     "default": true,
-    event: pi.Events.Active,
+    event: Events.Active,
     "class": {
-      name: pi.klass.ACTIVE,
+      name: Klass.ACTIVE,
       on: false
     },
     functions: ['activate', 'deactivate']
@@ -399,6 +343,7 @@ pi.Base = (function(superClass) {
     if (this._disposed) {
       return;
     }
+    this._initialized = false;
     if (this.host != null) {
       this.host.remove_component(this);
     }
@@ -411,7 +356,7 @@ pi.Base = (function(superClass) {
     this.__components__.length = 0;
     this.__properties__ = {};
     Base.__super__.dispose.apply(this, arguments);
-    return this.trigger(pi.Events.Destroyed, true, false);
+    return this.trigger(Events.Destroyed, true, false);
   };
 
   Base.prototype.remove_component = function(child) {
@@ -441,25 +386,23 @@ pi.Base = (function(superClass) {
 
   return Base;
 
-})(pi.Nod);
+})(Nod);
 
-module.exports = pi.Base;
+module.exports = Base;
 
 
 
-},{"../../core":30,"../events":11,"./compiler":4,"./klass":7,"./setup":8}],3:[function(require,module,exports){
+},{"../core/nod":28,"../core/utils":34,"../grammar/compiler":40,"./events":3,"./utils/klass":11}],2:[function(require,module,exports){
 'use strict';
-var _pass, _serialize, pi, utils,
+var Base, BaseInput, Events, _pass, _serialize, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+Base = require('./base');
 
-require('./base');
+Events = require('./events');
 
-require('../events/input_events');
-
-utils = pi.utils;
+utils = require('../core/utils');
 
 _pass = function(val) {
   return val;
@@ -469,7 +412,7 @@ _serialize = function(val) {
   return utils.serialize(val);
 };
 
-pi.BaseInput = (function(superClass) {
+BaseInput = (function(superClass) {
   extend(BaseInput, superClass);
 
   function BaseInput() {
@@ -507,562 +450,45 @@ pi.BaseInput = (function(superClass) {
       this.value('');
     }
     if (!silent) {
-      return this.trigger(pi.InputEvent.Clear);
+      return this.trigger(Events.InputEvent.Clear);
     }
   };
 
   return BaseInput;
 
-})(pi.Base);
+})(Base);
 
-module.exports = pi.BaseInput;
+module.exports = BaseInput;
 
 
 
-},{"../../core":30,"../events/input_events":12,"./base":2}],4:[function(require,module,exports){
+},{"../core/utils":34,"./base":1,"./events":3}],3:[function(require,module,exports){
+var events = require('./pi_events'),
+    utils = require('../../core/utils');
+
+utils.extend(events, require('./input_events'));
+module.exports = events;
+
+},{"../../core/utils":34,"./input_events":4,"./pi_events":5}],4:[function(require,module,exports){
 'use strict';
-var CompiledFun, _error, _operators, _view_context_mdf, parser, pi, utils,
-  slice = [].slice;
-
-pi = require('../../core');
-
-parser = require('../../grammar/pi_grammar').parser;
-
-utils = pi.utils;
-
-_error = function(fun_str) {
-  utils.error("Function [" + fun_str + "] was compiled with error");
-  return false;
-};
-
-_operators = {
-  ">": function(a, b) {
-    return a > b;
+module.exports = {
+  InputEvent: {
+    Change: 'changed',
+    Clear: 'cleared',
+    Editable: 'editable'
   },
-  "<": function(a, b) {
-    return a < b;
-  },
-  "=": function(a, b) {
-    return a === b;
-  },
-  "bool": function(a) {
-    return !!a;
+  FormEvent: {
+    Update: 'updated',
+    Submit: 'submited',
+    Invalid: 'invalid'
   }
 };
 
-CompiledFun = (function() {
-  function CompiledFun(target1, fun_str1) {
-    var e;
-    this.target = target1 != null ? target1 : {};
-    this.fun_str = fun_str1;
-    try {
-      this._parsed = parser.parse(fun_str);
-    } catch (_error) {
-      e = _error;
-      this._compiled = utils.curry(_error, [fun_str]);
-    }
-  }
-
-  CompiledFun.prototype.call = function() {
-    var args, ths;
-    ths = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-    return this.apply(ths, args);
-  };
-
-  CompiledFun.prototype.apply = function(ths, args) {
-    this.call_ths = ths || {};
-    return this.compiled().apply(this, args);
-  };
-
-  CompiledFun.prototype.compiled = function() {
-    return this._compiled || (this._compiled = this._compile_fun());
-  };
-
-  CompiledFun.prototype._compile_fun = function() {
-    return (function(_this) {
-      return function() {
-        return _this["_get_" + _this._parsed.code](_this._parsed);
-      };
-    })(this);
-  };
-
-  CompiledFun.prototype._get_chain = function(data) {
-    var _target, frst, i, step;
-    frst = data.value[0];
-    _target = (function() {
-      var base;
-      switch (frst.name) {
-        case 'this':
-          return this.target;
-        case 'app':
-          return pi.app;
-        case 'host':
-          return this.target.host;
-        case 'view':
-          return typeof (base = this.target).view === "function" ? base.view() : void 0;
-        default:
-          return this["_get_" + frst.code](frst, this.call_ths) || this["_get_" + frst.code](frst, window);
-      }
-    }).call(this);
-    i = 1;
-    while (i < data.value.length) {
-      step = data.value[i++];
-      _target = this["_get_" + step.code](step, _target);
-    }
-    return _target;
-  };
-
-  CompiledFun.prototype._get_res = function(data, from) {
-    if (from == null) {
-      from = {};
-    }
-    return from[data.name] || pi.resources[data.name];
-  };
-
-  CompiledFun.prototype._get_prop = function(data, from) {
-    return from[data.name];
-  };
-
-  CompiledFun.prototype._get_call = function(data, from) {
-    return from[data.name].apply(from, this._get_args(data.args));
-  };
-
-  CompiledFun.prototype._get_args = function(args) {
-    var arg, j, len, results;
-    results = [];
-    for (j = 0, len = args.length; j < len; j++) {
-      arg = args[j];
-      results.push(this["_get_" + arg.code](arg));
-    }
-    return results;
-  };
-
-  CompiledFun.prototype._get_if = function(data) {
-    var _left, _right;
-    _left = data.cond.left;
-    _right = data.cond.right;
-    _left = this["_get_" + _left.code](_left);
-    if (_right != null) {
-      _right = this["_get_" + _right.code](_right);
-    }
-    if (_operators[data.cond.type](_left, _right)) {
-      return this["_get_" + data.left.code](data.left);
-    } else if (data.right != null) {
-      return this["_get_" + data.right.code](data.right);
-    } else {
-      return false;
-    }
-  };
-
-  CompiledFun.prototype._get_simple = function(data) {
-    return data.value;
-  };
-
-  return CompiledFun;
-
-})();
-
-pi.Compiler = (function() {
-  function Compiler() {}
-
-  Compiler.modifiers = [];
-
-  Compiler.process_modifiers = function(str) {
-    var fun, j, len, ref;
-    ref = this.modifiers;
-    for (j = 0, len = ref.length; j < len; j++) {
-      fun = ref[j];
-      str = fun.call(null, str);
-    }
-    return str;
-  };
-
-  Compiler.compile_fun = function(callstr, target) {
-    callstr = this.process_modifiers(callstr);
-    return new CompiledFun(target, callstr);
-  };
-
-  Compiler.str_to_fun = Compiler.compile_fun;
-
-  Compiler.str_to_event_handler = function(callstr, host) {
-    var _f;
-    _f = this.compile_fun(callstr, host);
-    return function(e) {
-      return _f.call({
-        e: e
-      });
-    };
-  };
-
-  return Compiler;
-
-})();
-
-_view_context_mdf = function(str) {
-  return str.replace(/@(this|app|host|view)(\b)/g, '$1$2').replace(/@@/g, 'pi.app.page.context.').replace(/@/g, 'pi.app.view.');
-};
-
-pi.Compiler.modifiers.push(_view_context_mdf);
-
-pi.call = pi.Compiler.call;
-
-module.exports = pi.Compiler;
 
 
-
-},{"../../core":30,"../../grammar/pi_grammar":44}],5:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
-require('./base');
-
-require('./base_input');
-
-require('./textinput');
-
-
-
-},{"./base":2,"./base_input":3,"./textinput":9}],6:[function(require,module,exports){
-'use strict';
-var event_re, pi, utils;
-
-pi = require('../../core');
-
-utils = pi.utils;
-
-event_re = /^on_(.+)/i;
-
-pi.ComponentInitializer = (function() {
-  function ComponentInitializer() {}
-
-  ComponentInitializer.guess_component = function(nod) {
-    var component, component_name;
-    component_name = nod.data('component') || pi.Guesser.find(nod);
-    component = utils.obj.get_class_path(pi, component_name);
-    if (component == null) {
-      return utils.error("Unknown component " + component_name, nod.data());
-    } else {
-      component.class_name = component_name;
-      utils.debug_verbose("Component created: " + component_name);
-      return component;
-    }
-  };
-
-  ComponentInitializer.gather_options = function(el, component_name) {
-    var key, matches, opts, val;
-    if (component_name == null) {
-      component_name = "base";
-    }
-    opts = utils.clone(el.data());
-    opts.plugins = opts.plugins != null ? opts.plugins.split(/\s+/) : null;
-    opts.events = {};
-    for (key in opts) {
-      val = opts[key];
-      if (matches = key.match(event_re)) {
-        opts.events[matches[1]] = val;
-      }
-    }
-    return utils.merge(pi.config[component_name] || {}, opts);
-  };
-
-  ComponentInitializer.init = function(nod, host) {
-    var component;
-    nod = nod instanceof pi.Nod ? nod : pi.Nod.create(nod);
-    if (nod.data('controller')) {
-      return pi.ControllerInitializer.build_controller(nod, host);
-    }
-    component = this.guess_component(nod);
-    if (component == null) {
-      return;
-    }
-    if (nod instanceof component) {
-      return nod;
-    } else {
-      return new component(nod.node, host, this.gather_options(nod, component.class_name));
-    }
-  };
-
-  return ComponentInitializer;
-
-})();
-
-module.exports = pi.ComponentInitializer;
-
-
-
-},{"../../core":30}],7:[function(require,module,exports){
-'use strict';
-var pi;
-
-pi = require('../../core');
-
-pi.klass = {
-  PI: 'pi',
-  DISABLED: 'is-disabled',
-  HIDDEN: 'is-hidden',
-  ACTIVE: 'is-active',
-  READONLY: 'is-readonly',
-  INVALID: 'is-invalid',
-  SELECTED: 'is-selected',
-  LIST: 'list',
-  LIST_ITEM: 'item',
-  FILTERED: 'is-filtered',
-  SEARCHING: 'is-searching',
-  EMPTY: 'is-empty'
-};
-
-module.exports = pi.klass;
-
-
-
-},{"../../core":30}],8:[function(require,module,exports){
-'use strict';
-var pi, utils;
-
-pi = require('../../core');
-
-require('./initializer');
-
-require('./klass');
-
-utils = pi.utils;
-
-utils.extend(pi.Nod.prototype, {
-  find_cut: function(selector) {
-    var acc, el, rest;
-    rest = [];
-    acc = [];
-    el = this.node.firstChild;
-    while (el) {
-      if (el.nodeType !== 1) {
-        el = el.nextSibling || rest.shift();
-        continue;
-      }
-      if (el.matches(selector)) {
-        acc.push(el);
-      } else {
-        el.firstChild && rest.unshift(el.firstChild);
-      }
-      el = el.nextSibling || rest.shift();
-    }
-    return acc;
-  }
-});
-
-pi.piecify = function(nod, host) {
-  return pi.ComponentInitializer.init(nod, host || nod.parent(pi.klass.PI));
-};
-
-pi.event = new pi.EventDispatcher();
-
-pi.Nod.root = new pi.NodRoot();
-
-pi.Nod.root.initialize();
-
-pi.find = function(pid_path, from) {
-  return utils.obj.get_path(pi.app.view, pid_path);
-};
-
-utils.extend(pi.Nod.prototype, {
-  piecify: function(host) {
-    return pi.piecify(this, host);
-  },
-  pi_call: function(target, action) {
-    if (!this._pi_call || this._pi_action !== action) {
-      this._pi_action = action;
-      this._pi_call = pi.Compiler.str_to_fun(action, target);
-    }
-    return this._pi_call.call(null);
-  }
-});
-
-pi.Nod.root.ready(function() {
-  return pi.Nod.root.listen('a', 'click', function(e) {
-    var href;
-    if ((href = e.target.attr("href")) && href[0] === "@") {
-      e.cancel();
-      utils.debug("handle pi click: " + (e.target.attr("href")));
-      e.target.pi_call(e.target, e.target.attr("href"));
-    }
-  });
-});
-
-pi.$ = function(q) {
-  if (q[0] === '@') {
-    return pi.find(q.slice(1));
-  } else if (utils.is_html(q)) {
-    return pi.Nod.create(q);
-  } else {
-    return pi.Nod.root.find(q);
-  }
-};
-
-pi["export"](pi.$, '$');
-
-
-
-},{"../../core":30,"./initializer":6,"./klass":7}],9:[function(require,module,exports){
-'use strict';
-var pi, utils,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-pi = require('../../core');
-
-require('./base');
-
-require('./base_input');
-
-require('../events/input_events');
-
-utils = pi.utils;
-
-pi.TextInput = (function(superClass) {
-  extend(TextInput, superClass);
-
-  function TextInput() {
-    return TextInput.__super__.constructor.apply(this, arguments);
-  }
-
-  TextInput.prototype.postinitialize = function() {
-    TextInput.__super__.postinitialize.apply(this, arguments);
-    this.editable = true;
-    if (this.options.readonly || this.hasClass(pi.klass.READONLY)) {
-      this.readonly();
-    }
-    return this.input.on('change', (function(_this) {
-      return function(e) {
-        e.cancel();
-        return _this.trigger(pi.InputEvent.Change, _this.value());
-      };
-    })(this));
-  };
-
-  TextInput.active_property('editable', {
-    type: 'bool',
-    "default": true,
-    event: pi.InputEvent.Editable,
-    "class": {
-      name: pi.klass.READONLY,
-      on: false
-    },
-    node_attr: {
-      name: 'readonly',
-      on: false
-    }
-  });
-
-  TextInput.prototype.readonly = function(val) {
-    if (val == null) {
-      val = true;
-    }
-    return this.editable = !val;
-  };
-
-  return TextInput;
-
-})(pi.BaseInput);
-
-module.exports = pi.TextInput;
-
-
-
-},{"../../core":30,"../events/input_events":12,"./base":2,"./base_input":3}],10:[function(require,module,exports){
-'use strict';
-var _type_rxp, pi, utils;
-
-pi = require('../../core');
-
-require('./base_input');
-
-utils = pi.utils;
-
-_type_rxp = /(\w+)(?:\(([\w\-\/]+)\))/;
-
-pi.BaseInput.Validator = (function() {
-  function Validator() {}
-
-  Validator.add = function(name, fun) {
-    return this[name] = fun;
-  };
-
-  Validator.validate = function(type, nod, form) {
-    var data, matches;
-    if ((matches = type.match(_type_rxp))) {
-      type = matches[1];
-      data = utils.serialize(matches[2]);
-    }
-    return this[type](nod.value(), nod, form, data);
-  };
-
-  Validator.email = function(val) {
-    return utils.is_email(val);
-  };
-
-  Validator.len = function(val, nod, form, data) {
-    return (val + "").length >= data;
-  };
-
-  Validator.truth = function(val) {
-    return !!utils.serialize(val);
-  };
-
-  Validator.presence = function(val) {
-    return val && ((val + "").length > 0);
-  };
-
-  Validator.digital = function(val) {
-    return utils.is_digital(val + "");
-  };
-
-  Validator.confirm = function(val, nod, form) {
-    var conf_nod, confirm_name;
-    confirm_name = nod.name().replace(/([\]]+)?$/, "_confirmation$1");
-    conf_nod = form.find_by_name(confirm_name);
-    if (conf_nod == null) {
-      return false;
-    }
-    return conf_nod.value() === val;
-  };
-
-  return Validator;
-
-})();
-
-module.exports = pi.BaseInput.Validator;
-
-
-
-},{"../../core":30,"./base_input":3}],11:[function(require,module,exports){
-require('./pi_events')
-require('./input_events')
-},{"./input_events":12,"./pi_events":13}],12:[function(require,module,exports){
-'use strict';
-var pi;
-
-pi = require('../../core');
-
-pi.InputEvent = {
-  Change: 'changed',
-  Clear: 'cleared',
-  Editable: 'editable'
-};
-
-pi.FormEvent = {
-  Update: 'updated',
-  Submit: 'submited',
-  Invalid: 'invalid'
-};
-
-
-
-},{"../../core":30}],13:[function(require,module,exports){
-'use strict';
-var pi, utils;
-
-pi = require('../../core');
-
-utils = pi.utils;
-
-pi.Events = {
+module.exports = {
   Initialized: 'initialized',
   Created: 'creation_complete',
   Destroyed: 'destroyed',
@@ -1070,33 +496,38 @@ pi.Events = {
   Hidden: 'hidden',
   Active: 'active',
   Selected: 'selected',
-  Update: 'update',
-  SelectionCleared: 'selection_cleared'
+  Update: 'update'
 };
 
 
 
-},{"../../core":30}],14:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
-var Validator, _array_name, pi, utils,
+var Base, BaseInput, Events, Form, Former, Klass, Nod, Validator, _array_name, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+Base = require('./base');
 
-require('./events/input_events');
+Events = require('./events');
 
-require('./base/validator');
+Validator = require('./utils/validator');
 
-utils = pi.utils;
+utils = require('../core/utils');
 
-Validator = pi.BaseInput.Validator;
+Former = require('../core/former/former');
+
+Nod = require('../core/nod').Nod;
+
+BaseInput = require('./base_input');
+
+Klass = require('./utils/klass');
 
 _array_name = function(name) {
   return name.indexOf('[]') > -1;
 };
 
-pi.Form = (function(superClass) {
+Form = (function(superClass) {
   extend(Form, superClass);
 
   function Form() {
@@ -1108,9 +539,9 @@ pi.Form = (function(superClass) {
     this._cache = {};
     this._value = {};
     this._invalids = [];
-    this.former = new pi.Former(this.node, this.options);
+    this.former = new Former(this.node, this.options);
     this.read_values();
-    this.on(pi.InputEvent.Change, (function(_this) {
+    this.on(Events.InputEvent.Change, (function(_this) {
       return function(e) {
         e.cancel();
         if (_this.validate_nod(e.target)) {
@@ -1142,7 +573,7 @@ pi.Form = (function(superClass) {
   Form.prototype.submit = function() {
     this.read_values();
     if (this.validate() === true) {
-      return this.trigger(pi.FormEvent.Submit, this._value);
+      return this.trigger(Events.FormEvent.Submit, this._value);
     }
   };
 
@@ -1175,7 +606,7 @@ pi.Form = (function(superClass) {
       this.read_values();
     }
     if (!silent) {
-      return this.trigger(pi.InputEvent.Clear);
+      return this.trigger(Events.InputEvent.Clear);
     }
   };
 
@@ -1185,7 +616,7 @@ pi.Form = (function(superClass) {
     this.former.traverse_nodes(this.node, (function(_this) {
       return function(node) {
         var nod;
-        if (((nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput) && nod.name()) {
+        if (((nod = Nod.fetch(node._nod)) instanceof BaseInput) && nod.name()) {
           if (!_array_name(name)) {
             _this._cache[nod.name()] = nod;
           }
@@ -1195,7 +626,7 @@ pi.Form = (function(superClass) {
           });
         } else if (utils.is_input(node) && node.name) {
           if (!_array_name(node.name)) {
-            _this._cache[node.name] = pi.Nod.create(node);
+            _this._cache[node.name] = Nod.create(node);
           }
           return _name_values.push({
             name: node.name,
@@ -1220,7 +651,7 @@ pi.Form = (function(superClass) {
 
   Form.prototype.fill_value = function(node, val) {
     var nod;
-    if (((nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput) && nod.name()) {
+    if (((nod = Nod.fetch(node._nod)) instanceof BaseInput) && nod.name()) {
       val = this.former._nod_data_value(nod.name(), val);
       if (val == null) {
         return;
@@ -1238,7 +669,7 @@ pi.Form = (function(superClass) {
       };
     })(this));
     if (this._invalids.length) {
-      this.trigger(pi.FormEvent.Invalid, this._invalids);
+      this.trigger(Events.FormEvent.Invalid, this._invalids);
       return false;
     } else {
       return true;
@@ -1247,7 +678,7 @@ pi.Form = (function(superClass) {
 
   Form.prototype.validate_value = function(node) {
     var nod;
-    if ((nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput) {
+    if ((nod = Nod.fetch(node._nod)) instanceof BaseInput) {
       return this.validate_nod(nod);
     }
   };
@@ -1260,13 +691,13 @@ pi.Form = (function(superClass) {
       for (i = 0, len = ref.length; i < len; i++) {
         type = ref[i];
         if (!Validator.validate(type, nod, this)) {
-          nod.addClass(pi.klass.INVALID);
+          nod.addClass(Klass.INVALID);
           flag = false;
           break;
         }
       }
       if (flag) {
-        nod.removeClass(pi.klass.INVALID);
+        nod.removeClass(Klass.INVALID);
         if (nod.__invalid__) {
           this._invalids.splice(this._invalids.indexOf(nod.name()), 1);
           delete nod.__invalid__;
@@ -1286,7 +717,7 @@ pi.Form = (function(superClass) {
 
   Form.prototype.clear_value = function(node) {
     var nod;
-    if ((nod = pi.Nod.fetch(node._nod)) instanceof pi.BaseInput) {
+    if ((nod = Nod.fetch(node._nod)) instanceof BaseInput) {
       return nod.clear();
     } else if (utils.is_input(node)) {
       return this.former._clear_nod(node);
@@ -1307,29 +738,103 @@ pi.Form = (function(superClass) {
     }
     utils.obj.set_path(this._value, name, val);
     if (!silent) {
-      return this.trigger(pi.FormEvent.Update, this._value);
+      return this.trigger(Events.FormEvent.Update, this._value);
     }
   };
 
   return Form;
 
-})(pi.Base);
+})(Base);
 
-module.exports = pi.Form;
+module.exports = Form;
 
 
 
-},{"../core":30,"./base/validator":10,"./events/input_events":12}],15:[function(require,module,exports){
+},{"../core/former/former":26,"../core/nod":28,"../core/utils":34,"./base":1,"./base_input":2,"./events":3,"./utils/klass":11,"./utils/validator":13}],7:[function(require,module,exports){
+'use strict'
+var components = {};
+components.Events = require('./events');
+components.Base = require('./base');
+components.BaseInput = require('./base_input');
+components.TextInput = require('./textinput');
+components.Form = require('./form')
+module.exports = components;
+
+},{"./base":1,"./base_input":2,"./events":3,"./form":6,"./textinput":8}],8:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Base, BaseInput, Events, Klass, TextInput, utils,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+Base = require('./base');
+
+Events = require('./events');
+
+utils = require('../core/utils');
+
+BaseInput = require('./base_input');
+
+Klass = require('./utils/klass');
+
+TextInput = (function(superClass) {
+  extend(TextInput, superClass);
+
+  function TextInput() {
+    return TextInput.__super__.constructor.apply(this, arguments);
+  }
+
+  TextInput.prototype.postinitialize = function() {
+    TextInput.__super__.postinitialize.apply(this, arguments);
+    this.editable = true;
+    if (this.options.readonly || this.hasClass(Klass.READONLY)) {
+      this.readonly();
+    }
+    return this.input.on('change', (function(_this) {
+      return function(e) {
+        e.cancel();
+        return _this.trigger(Events.InputEvent.Change, _this.value());
+      };
+    })(this));
+  };
+
+  TextInput.active_property(TextInput.prototype, 'editable', {
+    type: 'bool',
+    "default": true,
+    event: Events.InputEvent.Editable,
+    "class": {
+      name: Klass.READONLY,
+      on: false
+    },
+    node_attr: {
+      name: 'readonly',
+      on: false
+    }
+  });
+
+  TextInput.prototype.readonly = function(val) {
+    if (val == null) {
+      val = true;
+    }
+    return this.editable = !val;
+  };
+
+  return TextInput;
+
+})(BaseInput);
+
+module.exports = TextInput;
+
+
+
+},{"../core/utils":34,"./base":1,"./base_input":2,"./events":3,"./utils/klass":11}],9:[function(require,module,exports){
+'use strict';
+var Guesser, utils,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+utils = require('../../core/utils');
 
-utils = pi.utils;
-
-pi.Guesser = (function() {
+Guesser = (function() {
   function Guesser() {}
 
   Guesser.klasses = [];
@@ -1442,41 +947,292 @@ pi.Guesser = (function() {
 
 })();
 
-module.exports = pi.Guesser;
+module.exports = Guesser;
 
 
 
-},{"../../core":30}],16:[function(require,module,exports){
+},{"../../core/utils":34}],10:[function(require,module,exports){
 'use strict';
-require('./app');
+var ComponentBuilder, Components, Config, Guesser, Initializer, Nod, _event_re, utils;
 
-require('./guess/guesser');
+Guesser = require('./guesser');
 
-require('./events');
+Nod = require('../../core/nod').Nod;
 
-require('./base/index');
+Config = require('../../core/config');
 
-require('./form');
+Components = require('../');
 
-require('../plugins/index');
+utils = require('../../core/utils');
 
-require('../renderers/index');
+_event_re = /^on_(.+)/i;
+
+Initializer = (function() {
+  function Initializer() {}
+
+  Initializer.builders = [];
+
+  Initializer.append_builder = function(builder) {
+    return this.builders.push(builder);
+  };
+
+  Initializer.insert_builder_at = function(builder, index) {
+    return this.builders.splice(index, 0, builder);
+  };
+
+  Initializer.insert_builder_before = function(builder, before_builder) {
+    var ind;
+    if ((ind = this.builders.indexOf(before_builder)) > -1) {
+      return this.insert_builder_at(builder, ind);
+    } else {
+      return this.append_builder(builder);
+    }
+  };
+
+  Initializer.insert_builder_after = function(builder, after_builder) {
+    var ind;
+    if ((ind = this.builders.indexOf(before_builder)) > -1) {
+      return this.insert_builder_at(builder, ind + 1);
+    } else {
+      return this.append_builder(builder);
+    }
+  };
+
+  Initializer.init = function(nod, host) {
+    var builder, i, len, ref;
+    nod = nod instanceof Nod ? nod : Nod.create(nod);
+    ref = this.builders;
+    for (i = 0, len = ref.length; i < len; i++) {
+      builder = ref[i];
+      if (builder.match(nod)) {
+        return builder.build(nod, host);
+      }
+    }
+  };
+
+  Initializer.gather_options = function(el, config_name) {
+    var key, matches, opts, val;
+    if (config_name == null) {
+      config_name = "base";
+    }
+    opts = utils.clone(el.data());
+    opts.plugins = opts.plugins != null ? opts.plugins.split(/\s+/) : null;
+    opts.events = {};
+    for (key in opts) {
+      val = opts[key];
+      if (matches = key.match(_event_re)) {
+        opts.events[matches[1]] = val;
+      }
+    }
+    return utils.merge(utils.obj.get_path(Config, config_name) || {}, opts);
+  };
+
+  return Initializer;
+
+})();
+
+ComponentBuilder = (function() {
+  function ComponentBuilder() {}
+
+  ComponentBuilder.match = utils.truthy;
+
+  ComponentBuilder.build = function(nod, host) {
+    var component;
+    component = this.guess_component(nod);
+    if (component == null) {
+      return;
+    }
+    if (nod instanceof component) {
+      return nod;
+    }
+    return new component(nod.node, host, Initializer.gather_options(nod, "components." + component.class_name));
+  };
+
+  ComponentBuilder.guess_component = function(nod) {
+    var component, component_name;
+    component_name = nod.data('component') || Guesser.find(nod);
+    component = utils.obj.get_class_path(Components, component_name);
+    if (component == null) {
+      return utils.error("Unknown component " + component_name, nod.data());
+    } else {
+      component.class_name = component_name;
+      utils.debug_verbose("Component created: " + component_name);
+      return component;
+    }
+  };
+
+  return ComponentBuilder;
+
+})();
+
+Initializer.append_builder(ComponentBuilder);
+
+module.exports = Initializer;
 
 
 
-},{"../plugins/index":53,"../renderers/index":56,"./app":1,"./base/index":5,"./events":11,"./form":14,"./guess/guesser":15}],17:[function(require,module,exports){
+},{"../":7,"../../core/config":20,"../../core/nod":28,"../../core/utils":34,"./guesser":9}],11:[function(require,module,exports){
 'use strict';
-var Context, pi, utils,
+var klass;
+
+klass = {
+  PI: 'pi',
+  DISABLED: 'is-disabled',
+  HIDDEN: 'is-hidden',
+  ACTIVE: 'is-active',
+  READONLY: 'is-readonly',
+  INVALID: 'is-invalid',
+  SELECTED: 'is-selected',
+  EMPTY: 'is-empty'
+};
+
+module.exports = klass;
+
+
+
+},{}],12:[function(require,module,exports){
+'use strict';
+var $, App, Compiler, EventDispatcher, Initializer, Klass, Nod, find, piecify, utils;
+
+EventDispatcher = require('../../core/events').EventDispatcher;
+
+Nod = require('../../core/nod').Nod;
+
+Initializer = require('./initializer');
+
+Klass = require('./klass');
+
+Compiler = require('../../grammar/compiler');
+
+utils = require('../../core/utils');
+
+App = require('../../core/app');
+
+piecify = function(nod, host) {
+  return Initializer.init(nod, host || nod.parent(Klass.PI));
+};
+
+EventDispatcher.Global = new EventDispatcher();
+
+Nod.root = new Nod.Root();
+
+Nod.root.initialize();
+
+find = function(pid_path, from) {
+  return utils.obj.get_path(window.pi.app.view, pid_path);
+};
+
+utils.extend(Nod.prototype, {
+  piecify: function(host) {
+    return piecify(this, host);
+  },
+  pi_call: function(target, action) {
+    if (!this._pi_call || this._pi_action !== action) {
+      this._pi_action = action;
+      this._pi_call = Compiler.str_to_fun(action, target);
+    }
+    return this._pi_call.call(null);
+  }
+});
+
+Nod.root.ready(function() {
+  return Nod.root.listen('a', 'click', function(e) {
+    var href;
+    if ((href = e.target.attr("href")) && href[0] === "@") {
+      e.cancel();
+      utils.debug("handle pi click: " + (e.target.attr("href")));
+      e.target.pi_call(e.target, e.target.attr("href"));
+    }
+  });
+});
+
+$ = function(q) {
+  if (q[0] === '@') {
+    return find(q.slice(1));
+  } else if (utils.is_html(q)) {
+    return Nod.create(q);
+  } else {
+    return Nod.root.find(q);
+  }
+};
+
+module.exports = $;
+
+
+
+},{"../../core/app":19,"../../core/events":24,"../../core/nod":28,"../../core/utils":34,"../../grammar/compiler":40,"./initializer":10,"./klass":11}],13:[function(require,module,exports){
+'use strict';
+var Validator, _type_rxp, utils;
+
+utils = require('../../core/utils');
+
+_type_rxp = /(\w+)(?:\(([\w\-\/]+)\))/;
+
+Validator = (function() {
+  function Validator() {}
+
+  Validator.add = function(name, fun) {
+    return this[name] = fun;
+  };
+
+  Validator.validate = function(type, nod, form) {
+    var data, matches;
+    if ((matches = type.match(_type_rxp))) {
+      type = matches[1];
+      data = utils.serialize(matches[2]);
+    }
+    return this[type](nod.value(), nod, form, data);
+  };
+
+  Validator.email = function(val) {
+    return utils.is_email(val);
+  };
+
+  Validator.len = function(val, nod, form, data) {
+    return (val + "").length >= data;
+  };
+
+  Validator.truth = function(val) {
+    return !!utils.serialize(val);
+  };
+
+  Validator.presence = function(val) {
+    return val && ((val + "").length > 0);
+  };
+
+  Validator.digital = function(val) {
+    return utils.is_digital(val + "");
+  };
+
+  Validator.confirm = function(val, nod, form) {
+    var conf_nod, confirm_name;
+    confirm_name = nod.name().replace(/([\]]+)?$/, "_confirmation$1");
+    conf_nod = form.find_by_name(confirm_name);
+    if (conf_nod == null) {
+      return false;
+    }
+    return conf_nod.value() === val;
+  };
+
+  return Validator;
+
+})();
+
+module.exports = Validator;
+
+
+
+},{"../../core/utils":34}],14:[function(require,module,exports){
+'use strict';
+var Base, Context, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
-
 Context = require('./context');
 
-utils = pi.utils;
+utils = require('../core/utils');
 
-pi.controllers.Base = (function(superClass) {
+Base = (function(superClass) {
   extend(Base, superClass);
 
   Base.prototype.id = 'base';
@@ -1540,19 +1296,19 @@ pi.controllers.Base = (function(superClass) {
 
 })(Context);
 
-module.exports = pi.controllers.Base;
+module.exports = Base;
 
 
 
-},{"../core":30,"./context":18}],18:[function(require,module,exports){
+},{"../core/utils":34,"./context":15}],15:[function(require,module,exports){
 'use strict';
-var Context, History, Strategy, pi, utils,
+var Context, Core, History, Strategy, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+Core = require('../core/core');
 
-utils = pi.utils;
+utils = require('../core/utils');
 
 History = require('../core/utils/history');
 
@@ -1627,7 +1383,7 @@ Context = (function(superClass) {
 
   return Context;
 
-})(pi.Core);
+})(Core);
 
 Strategy = (function() {
   function Strategy() {}
@@ -1748,7 +1504,7 @@ Strategy.OneForAll = (function(superClass) {
 
   return OneForAll;
 
-})(pi.Core);
+})(Core);
 
 Strategy.OneByOne = (function(superClass) {
   extend(OneByOne, superClass);
@@ -1870,7 +1626,7 @@ Strategy.AllForOne = (function(superClass) {
 
   return AllForOne;
 
-})(pi.Core);
+})(Core);
 
 Strategy.register('one_for_all', Strategy.OneForAll);
 
@@ -1878,59 +1634,58 @@ Strategy.register('one_by_one', Strategy.OneByOne);
 
 Strategy.register('all_for_one', Strategy.AllForOne);
 
-module.exports = (pi.controllers.Context = Context);
+module.exports = Context;
 
 
 
-},{"../core":30,"../core/utils/history":37}],19:[function(require,module,exports){
+},{"../core/core":21,"../core/utils":34,"../core/utils/history":33}],16:[function(require,module,exports){
+'use strict'
+var controllers = {}
+
+controllers.Context = require('./context');
+controllers.Page = require('./page');
+controllers.Base = require('./base');
+module.exports = controllers;
+
+},{"./base":14,"./context":15,"./page":18}],17:[function(require,module,exports){
 'use strict';
-var pi;
+var BaseView, Compiler, ControllerBuilder, Controllers, Initializer, Page, Views, _mod_rxp, utils;
 
-pi = require('../core');
+Controllers = require('./index');
 
-pi.controllers = {};
+utils = require('../core/utils');
 
-pi["export"](pi.resources, "$c");
+BaseView = require('../views/base');
 
-require('./context');
+Views = require('../views');
 
-require('./page');
+Initializer = require('../components/utils/initializer');
 
-require('./base');
+Page = require('./page');
 
-require('./initializer');
-
-module.exports = pi.controllers;
-
-
-
-},{"../core":30,"./base":17,"./context":18,"./initializer":20,"./page":21}],20:[function(require,module,exports){
-'use strict';
-var _mod_rxp, pi, utils;
-
-pi = require('../core');
-
-require('./base');
-
-utils = pi.utils;
+Compiler = require('../grammar/compiler');
 
 _mod_rxp = /^(\w+)(\(.*\))?$/;
 
-pi.ControllerInitializer = (function() {
-  function ControllerInitializer() {}
+ControllerBuilder = (function() {
+  function ControllerBuilder() {}
 
-  ControllerInitializer.build_controller = function(nod, host) {
+  ControllerBuilder.match = function(nod) {
+    return !!nod.data('controller');
+  };
+
+  ControllerBuilder.build = function(nod, host) {
     var _view, c_options, cklass, cklass_name, controller, host_context, options, ref, ref1, v_options, view, vklass, vklass_name;
-    options = pi.ComponentInitializer.gather_options(nod);
+    options = Initializer.gather_options(nod);
     c_options = options.controller.split(/\s*\|\s*/);
     cklass_name = c_options[0] || 'base';
-    cklass = utils.obj.get_class_path(pi.controllers, cklass_name);
+    cklass = utils.obj.get_class_path(Controllers, cklass_name);
     if (cklass == null) {
       return utils.error("Unknown controller " + options.controller);
     }
     v_options = (ref = (ref1 = options.view) != null ? ref1.split(/\s*\|\s*/) : void 0) != null ? ref : [cklass_name];
     vklass_name = v_options[0] || cklass_name;
-    vklass = utils.obj.get_class_path(pi.views, vklass_name) || pi.views.Base;
+    vklass = utils.obj.get_class_path(Views, vklass_name) || BaseView;
     delete options['view'];
     delete options['controller'];
     options.modules = this.parse_modules(c_options.slice(1));
@@ -1940,21 +1695,21 @@ pi.ControllerInitializer = (function() {
     utils.extend(options.modules, this.parse_modules(v_options.slice(1)), true);
     view = new vklass(nod.node, host, options);
     controller.set_view(view);
-    host_context = (_view = host.view()) ? _view.controller : pi.app.page;
+    host_context = (_view = host.view()) ? _view.controller : Page.instance;
     host_context.add_context(controller, {
       as: view.pid
     });
     return view;
   };
 
-  ControllerInitializer.parse_modules = function(list) {
+  ControllerBuilder.parse_modules = function(list) {
     var data, fn, i, len, mod;
     data = {};
     fn = function(mod) {
       var _, name, opts, optstr, ref;
       ref = mod.match(_mod_rxp), _ = ref[0], name = ref[1], optstr = ref[2];
       if (optstr != null) {
-        opts = pi.Compiler.compile_fun(optstr).call();
+        opts = Compiler.compile_fun(optstr).call();
       }
       return data[name] = opts;
     };
@@ -1965,73 +1720,125 @@ pi.ControllerInitializer = (function() {
     return data;
   };
 
-  return ControllerInitializer;
+  return ControllerBuilder;
 
 })();
 
-module.exports = pi.ControllerInitializer;
+Initializer.insert_builder_at(ControllerBuilder, 0);
+
+module.exports = ControllerBuilder;
 
 
 
-},{"../core":30,"./base":17}],21:[function(require,module,exports){
+},{"../components/utils/initializer":10,"../core/utils":34,"../grammar/compiler":40,"../views":65,"../views/base":64,"./index":16,"./page":18}],18:[function(require,module,exports){
 'use strict';
-var Context, History, pi, utils,
+var Compiler, Config, Context, Page, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
-
 Context = require('./context');
 
-utils = pi.utils;
+utils = require('../core/utils');
 
-History = require('../core/utils/history');
+Config = require('../core/config');
 
-pi.controllers.Page = (function(superClass) {
+Compiler = require('../grammar/compiler');
+
+Page = (function(superClass) {
   extend(Page, superClass);
 
+  Page.instance = null;
+
   function Page() {
+    this.constructor.instance = this;
     Page.__super__.constructor.call(this, utils.merge({
       strategy: 'one_for_all',
       "default": 'main'
-    }, pi.config.page));
+    }, Config.page));
   }
 
   return Page;
 
 })(Context);
 
-pi.Compiler.modifiers.push(function(str) {
+Compiler.modifiers.push(function(str) {
   if (str.slice(0, 2) === '@@') {
     str = "@app.page.context." + str.slice(2);
   }
   return str;
 });
 
-module.exports = pi.controllers.Page;
+module.exports = Page;
 
 
 
-},{"../core":30,"../core/utils/history":37,"./context":18}],22:[function(require,module,exports){
+},{"../core/config":20,"../core/utils":34,"../grammar/compiler":40,"./context":15}],19:[function(require,module,exports){
 'use strict';
-var pi;
+var App, Nod, Page, utils;
 
-pi = require('./pi');
+Nod = require('./nod').Nod;
 
-pi.config = {};
-
-
-
-},{"./pi":32}],23:[function(require,module,exports){
-'use strict';
-var pi, utils,
-  slice = [].slice;
-
-pi = require('./pi');
+Page = require('../controllers/page');
 
 utils = require('./utils');
 
-pi.Core = (function() {
+App = (function() {
+  function App() {}
+
+  App.prototype.initialize = function(nod) {
+    if (this._initialized) {
+      return false;
+    }
+    this.page = new Page();
+    this.view = (nod != null ? nod : Nod.root).piecify();
+    this._initialized = true;
+    return this.page.load();
+  };
+
+  App.prototype.reinitialize = function() {
+    if (!this._initialized) {
+      return false;
+    }
+    this.page.dispose();
+    this.view.piecify();
+    return this.page.load();
+  };
+
+  App.prototype.dispose = function() {
+    if (!this._initialized) {
+      return false;
+    }
+    this.page.dispose();
+    this.view.remove_children();
+    return true;
+  };
+
+  return App;
+
+})();
+
+module.exports = App;
+
+
+
+},{"../controllers/page":18,"./nod":28,"./utils":34}],20:[function(require,module,exports){
+'use strict';
+var config;
+
+config = {};
+
+module.exports = config;
+
+
+
+},{}],21:[function(require,module,exports){
+'use strict';
+var Core, utils,
+  slice = [].slice;
+
+utils = require('./utils');
+
+Core = (function() {
   var _after, _before;
 
   Core.include = function() {
@@ -2213,39 +2020,37 @@ pi.Core = (function() {
 
 })();
 
-module.exports = pi.Core;
+module.exports = Core;
 
 
 
-},{"./pi":32,"./utils":38}],24:[function(require,module,exports){
+},{"./utils":34}],22:[function(require,module,exports){
 'use strict';
-var Browser, pi;
+var Browser, NodEvent;
 
-pi = require('../pi');
-
-require('./nod_events');
+NodEvent = require('../nod').NodEvent;
 
 Browser = require('../utils/browser');
 
 if (!!Browser.info().gecko) {
-  pi.NodEvent.register_alias('mousewheel', 'DOMMouseScroll');
+  NodEvent.register_alias('mousewheel', 'DOMMouseScroll');
 }
 
 
 
-},{"../pi":32,"../utils/browser":35,"./nod_events":27}],25:[function(require,module,exports){
+},{"../nod":28,"../utils/browser":31}],23:[function(require,module,exports){
 'use strict';
-var _types, pi, utils,
+var Core, Event, EventDispatcher, EventListener, _types, exports, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../pi');
-
 utils = require('../utils');
 
-require('../core');
+Core = require('../core');
 
-pi.Event = (function(superClass) {
+exports = {};
+
+Event = (function(superClass) {
   extend(Event, superClass);
 
   function Event(event, target, bubbles) {
@@ -2269,9 +2074,11 @@ pi.Event = (function(superClass) {
 
   return Event;
 
-})(pi.Core);
+})(Core);
 
-pi.EventListener = (function(superClass) {
+exports.Event = Event;
+
+EventListener = (function(superClass) {
   extend(EventListener, superClass);
 
   function EventListener(type1, handler, context1, disposable, conditions1) {
@@ -2315,7 +2122,7 @@ pi.EventListener = (function(superClass) {
 
   return EventListener;
 
-})(pi.Core);
+})(Core);
 
 _types = function(types) {
   if (typeof types === 'string') {
@@ -2327,7 +2134,9 @@ _types = function(types) {
   }
 };
 
-pi.EventDispatcher = (function(superClass) {
+exports.EventListener = EventListener;
+
+EventDispatcher = (function(superClass) {
   extend(EventDispatcher, superClass);
 
   EventDispatcher.prototype.listeners = '';
@@ -2346,13 +2155,13 @@ pi.EventDispatcher = (function(superClass) {
     results = [];
     for (i = 0, len = ref.length; i < len; i++) {
       type = ref[i];
-      results.push(this.add_listener(new pi.EventListener(type, callback, context, false, conditions)));
+      results.push(this.add_listener(new EventListener(type, callback, context, false, conditions)));
     }
     return results;
   };
 
   EventDispatcher.prototype.one = function(type, callback, context, conditions) {
-    return this.add_listener(new pi.EventListener(type, callback, context, true, conditions));
+    return this.add_listener(new EventListener(type, callback, context, true, conditions));
   };
 
   EventDispatcher.prototype.off = function(types, callback, context, conditions) {
@@ -2371,8 +2180,8 @@ pi.EventDispatcher = (function(superClass) {
     if (bubbles == null) {
       bubbles = true;
     }
-    if (!(event instanceof pi.Event)) {
-      event = new pi.Event(event, this, bubbles);
+    if (!(event instanceof Event)) {
+      event = new Event(event, this, bubbles);
     }
     if (data != null) {
       event.data = data;
@@ -2479,311 +2288,35 @@ pi.EventDispatcher = (function(superClass) {
 
   return EventDispatcher;
 
-})(pi.Core);
+})(Core);
 
-module.exports = pi.EventDispatcher;
+exports.EventDispatcher = EventDispatcher;
+
+module.exports = exports;
 
 
 
-},{"../core":23,"../pi":32,"../utils":38}],26:[function(require,module,exports){
+},{"../core":21,"../utils":34}],24:[function(require,module,exports){
+'use strict'
+module.exports = require('./events');
+
+},{"./events":23}],25:[function(require,module,exports){
 'use strict';
-require('./events');
-
-require('./nod_events');
-
-require('./aliases');
-
-require('./resize_delegate');
-
-
-
-},{"./aliases":24,"./events":25,"./nod_events":27,"./resize_delegate":28}],27:[function(require,module,exports){
-'use strict';
-var NodEvent, _key_regexp, _mouse_regexp, _prepare_event, _selector, _selector_regexp, pi, utils,
+var Core, EventListener, Nod, NodEvent, ResizeDelegate, ResizeListener, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../pi');
-
 utils = require('../utils');
 
-require('./events');
+EventListener = require('./events').EventListener;
 
-pi.NodEvent = (function(superClass) {
-  extend(NodEvent, superClass);
+Core = require('../core');
 
-  NodEvent.aliases = {};
+Nod = require('../nod').Nod;
 
-  NodEvent.reversed_aliases = {};
+NodEvent = require('../nod').NodEvent;
 
-  NodEvent.delegates = {};
-
-  NodEvent.add = (function() {
-    if (typeof Element.prototype.addEventListener === "undefined") {
-      return function(nod, event, handler) {
-        return nod.attachEvent("on" + event, handler);
-      };
-    } else {
-      return function(nod, event, handler) {
-        return nod.addEventListener(event, handler);
-      };
-    }
-  })();
-
-  NodEvent.remove = (function() {
-    if (typeof Element.prototype.removeEventListener === "undefined") {
-      return function(nod, event, handler) {
-        return nod.detachEvent("on" + event, handler);
-      };
-    } else {
-      return function(nod, event, handler) {
-        return nod.removeEventListener(event, handler);
-      };
-    }
-  })();
-
-  NodEvent.register_delegate = function(type, delegate) {
-    return this.delegates[type] = delegate;
-  };
-
-  NodEvent.has_delegate = function(type) {
-    return !!this.delegates[type];
-  };
-
-  NodEvent.register_alias = function(from, to) {
-    this.aliases[from] = to;
-    return this.reversed_aliases[to] = from;
-  };
-
-  NodEvent.has_alias = function(type) {
-    return !!this.aliases[type];
-  };
-
-  NodEvent.is_aliased = function(type) {
-    return !!this.reversed_aliases[type];
-  };
-
-  function NodEvent(event) {
-    this.event = event || window.event;
-    this.origTarget = this.event.target || this.event.srcElement;
-    this.target = pi.Nod.create(this.origTarget);
-    this.type = this.constructor.is_aliased(event.type) ? this.constructor.reversed_aliases[event.type] : event.type;
-    this.ctrlKey = this.event.ctrlKey;
-    this.shiftKey = this.event.shiftKey;
-    this.altKey = this.event.altKey;
-    this.metaKey = this.event.metaKey;
-    this.detail = this.event.detail;
-    this.bubbles = this.event.bubbles;
-  }
-
-  NodEvent.prototype.stopPropagation = function() {
-    if (this.event.stopPropagation) {
-      return this.event.stopPropagation();
-    } else {
-      return this.event.cancelBubble = true;
-    }
-  };
-
-  NodEvent.prototype.stopImmediatePropagation = function() {
-    if (this.event.stopImmediatePropagation) {
-      return this.event.stopImmediatePropagation();
-    } else {
-      this.event.cancelBubble = true;
-      return this.event.cancel = true;
-    }
-  };
-
-  NodEvent.prototype.preventDefault = function() {
-    if (this.event.preventDefault) {
-      return this.event.preventDefault();
-    } else {
-      return this.event.returnValue = false;
-    }
-  };
-
-  NodEvent.prototype.cancel = function() {
-    this.stopImmediatePropagation();
-    this.preventDefault();
-    return NodEvent.__super__.cancel.apply(this, arguments);
-  };
-
-  return NodEvent;
-
-})(pi.Event);
-
-NodEvent = pi.NodEvent;
-
-_mouse_regexp = /(click|mouse|contextmenu)/i;
-
-_key_regexp = /(keyup|keydown|keypress)/i;
-
-pi.MouseEvent = (function(superClass) {
-  extend(MouseEvent, superClass);
-
-  function MouseEvent() {
-    MouseEvent.__super__.constructor.apply(this, arguments);
-    this.button = this.event.button;
-    if (this.pageX == null) {
-      this.pageX = this.event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-      this.pageY = this.event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
-    if (this.offsetX == null) {
-      this.offsetX = this.event.layerX - this.origTarget.offsetLeft;
-      this.offsetY = this.event.layerY - this.origTarget.offsetTop;
-    }
-    this.wheelDelta = this.event.wheelDelta;
-    if (this.wheelDelta == null) {
-      this.wheelDelta = -this.event.detail * 40;
-    }
-  }
-
-  return MouseEvent;
-
-})(NodEvent);
-
-pi.KeyEvent = (function(superClass) {
-  extend(KeyEvent, superClass);
-
-  function KeyEvent() {
-    KeyEvent.__super__.constructor.apply(this, arguments);
-    this.keyCode = this.event.keyCode || this.event.which;
-    this.charCode = this.event.charCode;
-  }
-
-  return KeyEvent;
-
-})(NodEvent);
-
-_prepare_event = function(e) {
-  if (_mouse_regexp.test(e.type)) {
-    return new pi.MouseEvent(e);
-  } else if (_key_regexp.test(e.type)) {
-    return new pi.KeyEvent(e);
-  } else {
-    return new NodEvent(e);
-  }
-};
-
-_selector_regexp = /[\.#]/;
-
-_selector = function(s, parent) {
-  if (!_selector_regexp.test(s)) {
-    return function(e) {
-      return e.target.node.matches(s);
-    };
-  } else {
-    return function(e) {
-      var node;
-      parent || (parent = document);
-      node = e.target.node;
-      if (node.matches(s)) {
-        return true;
-      }
-      if (node === parent) {
-        return false;
-      }
-      while ((node = node.parentNode) && node !== parent) {
-        if (node.matches(s)) {
-          return (e.target = pi.Nod.create(node));
-        }
-      }
-    };
-  }
-};
-
-pi.NodEventDispatcher = (function(superClass) {
-  extend(NodEventDispatcher, superClass);
-
-  function NodEventDispatcher() {
-    NodEventDispatcher.__super__.constructor.apply(this, arguments);
-    this.native_event_listener = (function(_this) {
-      return function(event) {
-        return _this.trigger(_prepare_event(event));
-      };
-    })(this);
-  }
-
-  NodEventDispatcher.prototype.listen = function(selector, event, callback, context) {
-    return this.on(event, callback, context, _selector(selector, this.node));
-  };
-
-  NodEventDispatcher.prototype.add_native_listener = function(type) {
-    if (NodEvent.has_delegate(type)) {
-      return NodEvent.delegates[type].add(this, this.native_event_listener);
-    } else {
-      return NodEvent.add(this.node, type, this.native_event_listener);
-    }
-  };
-
-  NodEventDispatcher.prototype.remove_native_listener = function(type) {
-    if (NodEvent.has_delegate(type)) {
-      return NodEvent.delegates[type].remove(this);
-    } else {
-      return NodEvent.remove(this.node, type, this.native_event_listener);
-    }
-  };
-
-  NodEventDispatcher.prototype.add_listener = function(listener) {
-    if (!this.listeners[listener.type]) {
-      if (NodEvent.has_alias(listener.type)) {
-        this.add_native_listener(NodEvent.aliases[listener.type]);
-      } else {
-        this.add_native_listener(listener.type);
-      }
-    }
-    return NodEventDispatcher.__super__.add_listener.apply(this, arguments);
-  };
-
-  NodEventDispatcher.prototype.remove_type = function(type) {
-    if (NodEvent.has_alias(type)) {
-      this.remove_native_listener(NodEvent.aliases[type]);
-    } else {
-      this.remove_native_listener(type);
-    }
-    return NodEventDispatcher.__super__.remove_type.apply(this, arguments);
-  };
-
-  NodEventDispatcher.prototype.remove_all = function() {
-    var fn, list, ref, type;
-    ref = this.listeners;
-    fn = (function(_this) {
-      return function() {
-        if (NodEvent.has_alias(type)) {
-          return _this.remove_native_listener(NodEvent.aliases[type]);
-        } else {
-          return _this.remove_native_listener(type);
-        }
-      };
-    })(this);
-    for (type in ref) {
-      if (!hasProp.call(ref, type)) continue;
-      list = ref[type];
-      fn();
-    }
-    return NodEventDispatcher.__super__.remove_all.apply(this, arguments);
-  };
-
-  return NodEventDispatcher;
-
-})(pi.EventDispatcher);
-
-module.exports = pi.NodEventDispatcher;
-
-
-
-},{"../pi":32,"../utils":38,"./events":25}],28:[function(require,module,exports){
-'use strict';
-var pi, utils,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
-
-pi = require('../pi');
-
-utils = require('../utils');
-
-require('./nod_events');
-
-pi.NodEvent.ResizeListener = (function(superClass) {
+ResizeListener = (function(superClass) {
   extend(ResizeListener, superClass);
 
   function ResizeListener(nod1, handler) {
@@ -2808,9 +2341,9 @@ pi.NodEvent.ResizeListener = (function(superClass) {
 
   return ResizeListener;
 
-})(pi.EventListener);
+})(EventListener);
 
-pi.NodEvent.ResizeDelegate = (function(superClass) {
+ResizeDelegate = (function(superClass) {
   extend(ResizeDelegate, superClass);
 
   function ResizeDelegate() {
@@ -2818,7 +2351,7 @@ pi.NodEvent.ResizeDelegate = (function(superClass) {
   }
 
   ResizeDelegate.prototype.add = function(nod, callback) {
-    this.listeners.push(new pi.NodEvent.ResizeListener(nod, callback));
+    this.listeners.push(new ResizeListener(nod, callback));
     if (this.listeners.length === 1) {
       return this.listen();
     }
@@ -2841,11 +2374,11 @@ pi.NodEvent.ResizeDelegate = (function(superClass) {
   };
 
   ResizeDelegate.prototype.listen = function() {
-    return pi.NodEvent.add(pi.Nod.win.node, 'resize', this.resize_listener());
+    return NodEvent.add(Nod.win.node, 'resize', this.resize_listener());
   };
 
   ResizeDelegate.prototype.off = function() {
-    return pi.NodEvent.remove(pi.Nod.win.node, 'resize', this.resize_listener());
+    return NodEvent.remove(Nod.win.node, 'resize', this.resize_listener());
   };
 
   ResizeDelegate.prototype.resize_listener = function(e) {
@@ -2876,22 +2409,20 @@ pi.NodEvent.ResizeDelegate = (function(superClass) {
 
   return ResizeDelegate;
 
-})(pi.Core);
+})(Core);
 
-pi.NodEvent.register_delegate('resize', new pi.NodEvent.ResizeDelegate());
+module.exports = ResizeDelegate;
 
 
 
-},{"../pi":32,"../utils":38,"./nod_events":27}],29:[function(require,module,exports){
+},{"../core":21,"../nod":28,"../utils":34,"./events":23}],26:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Former, utils,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-pi = require('../pi');
 
 utils = require('../utils');
 
-pi.Former = (function() {
+Former = (function() {
   function Former(nod1, options1) {
     this.nod = nod1;
     this.options = options1 != null ? options1 : {};
@@ -2904,15 +2435,15 @@ pi.Former = (function() {
   }
 
   Former.parse = function(nod, options) {
-    return (new pi.Former(nod, options)).parse();
+    return (new Former(nod, options)).parse();
   };
 
   Former.fill = function(nod, options) {
-    return (new pi.Former(nod, options)).fill();
+    return (new Former(nod, options)).fill();
   };
 
   Former.clear = function(nod, options) {
-    return (new pi.Former(nod, options)).clear();
+    return (new Former(nod, options)).clear();
   };
 
   Former.prototype.parse = function() {
@@ -3216,41 +2747,326 @@ pi.Former = (function() {
 
 })();
 
-module.exports = pi.Former;
+module.exports = Former;
 
 
 
-},{"../pi":32,"../utils":38}],30:[function(require,module,exports){
-'use strict';
-var pi;
+},{"../utils":34}],27:[function(require,module,exports){
+'use strict'
+var pi = {}
 
-pi = require('./pi');
+// export function to global object (window) with ability to rollback (noconflict)
+var _conflicts = {}
 
-require('./config');
+pi.export = function(fun, as){
+  if(window[as] && !_conflicts[as])
+    _conflicts[as] = window[as];
+  window[as] = fun;
+};
 
-require('./nod');
+pi.noconflict = function(){
+  for (var name in _conflicts){
+    if(_conflicts.hasOwnProperty(name)){
+      window[name] = _conflicts[name];
+    }
+  }
+};
 
-require('./former/former');
+pi.config = require('./config');
+
+var utils = pi.utils = require('./utils');
+
+// export functions 
+pi.export(utils.curry, 'curry');
+pi.export(utils.delayed, 'delayed');
+pi.export(utils.after, 'after');
+pi.export(utils.debounce, 'debounce');
+pi.export(utils.throttle, 'throttle');
+
+pi.Core = require('./core');
+
+pi.Events = require('./events');
+
+var NodClasses = require('./nod');
+
+pi.Nod = NodClasses.Nod;
+
+utils.extend(pi.Events, NodClasses, false, ['Nod']);
+
+pi.Events.ResizeDelegate = require('./events/resize_delegate');
+
+pi.Events.NodEvent.register_delegate('resize', new pi.Events.ResizeDelegate());
+
+// setup event aliases
+require('./events/aliases');
 
 module.exports = pi;
 
-
-
-},{"./config":22,"./former/former":29,"./nod":31,"./pi":32}],31:[function(require,module,exports){
+},{"./config":20,"./core":21,"./events":24,"./events/aliases":22,"./events/resize_delegate":25,"./nod":28,"./utils":34}],28:[function(require,module,exports){
 'use strict';
-var _body, _caf, _data_reg, _dataset, _fragment, _from_dataCase, _geometry_styles, _node, _prop_hash, _raf, _store, _win, d, fn, fn1, j, l, len, len1, pi, ref, ref1, utils,
-  hasProp = {}.hasOwnProperty,
+var Event, EventDispatcher, KeyEvent, MouseEvent, Nod, NodEvent, NodEventDispatcher, _body, _caf, _data_reg, _dataset, _fragment, _from_dataCase, _geometry_styles, _key_regexp, _mouse_regexp, _node, _prepare_event, _prop_hash, _raf, _selector, _selector_regexp, _store, _win, d, exports, fn, fn1, j, l, len, len1, ref, ref1, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty,
   slice = [].slice;
-
-pi = require('./pi');
 
 utils = require('./utils');
 
-require('./events');
+EventDispatcher = require('./events').EventDispatcher;
+
+Event = require('./events').Event;
+
+exports = {};
+
+NodEvent = (function(superClass) {
+  extend(NodEvent, superClass);
+
+  NodEvent.aliases = {};
+
+  NodEvent.reversed_aliases = {};
+
+  NodEvent.delegates = {};
+
+  NodEvent.add = function(nod, event, handler) {
+    return nod.addEventListener(event, handler);
+  };
+
+  NodEvent.remove = function(nod, event, handler) {
+    return nod.removeEventListener(event, handler);
+  };
+
+  NodEvent.register_delegate = function(type, delegate) {
+    return this.delegates[type] = delegate;
+  };
+
+  NodEvent.has_delegate = function(type) {
+    return !!this.delegates[type];
+  };
+
+  NodEvent.register_alias = function(from, to) {
+    this.aliases[from] = to;
+    return this.reversed_aliases[to] = from;
+  };
+
+  NodEvent.has_alias = function(type) {
+    return !!this.aliases[type];
+  };
+
+  NodEvent.is_aliased = function(type) {
+    return !!this.reversed_aliases[type];
+  };
+
+  function NodEvent(event) {
+    this.event = event || window.event;
+    this.origTarget = this.event.target || this.event.srcElement;
+    this.target = Nod.create(this.origTarget);
+    this.type = this.constructor.is_aliased(event.type) ? this.constructor.reversed_aliases[event.type] : event.type;
+    this.ctrlKey = this.event.ctrlKey;
+    this.shiftKey = this.event.shiftKey;
+    this.altKey = this.event.altKey;
+    this.metaKey = this.event.metaKey;
+    this.detail = this.event.detail;
+    this.bubbles = this.event.bubbles;
+  }
+
+  NodEvent.prototype.stopPropagation = function() {
+    if (this.event.stopPropagation) {
+      return this.event.stopPropagation();
+    } else {
+      return this.event.cancelBubble = true;
+    }
+  };
+
+  NodEvent.prototype.stopImmediatePropagation = function() {
+    if (this.event.stopImmediatePropagation) {
+      return this.event.stopImmediatePropagation();
+    } else {
+      this.event.cancelBubble = true;
+      return this.event.cancel = true;
+    }
+  };
+
+  NodEvent.prototype.preventDefault = function() {
+    if (this.event.preventDefault) {
+      return this.event.preventDefault();
+    } else {
+      return this.event.returnValue = false;
+    }
+  };
+
+  NodEvent.prototype.cancel = function() {
+    this.stopImmediatePropagation();
+    this.preventDefault();
+    return NodEvent.__super__.cancel.apply(this, arguments);
+  };
+
+  return NodEvent;
+
+})(Event);
+
+exports.NodEvent = NodEvent;
+
+_mouse_regexp = /(click|mouse|contextmenu)/i;
+
+_key_regexp = /(keyup|keydown|keypress)/i;
+
+MouseEvent = (function(superClass) {
+  extend(MouseEvent, superClass);
+
+  function MouseEvent() {
+    MouseEvent.__super__.constructor.apply(this, arguments);
+    this.button = this.event.button;
+    if (this.pageX == null) {
+      this.pageX = this.event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+      this.pageY = this.event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+    }
+    if (this.offsetX == null) {
+      this.offsetX = this.event.layerX - this.origTarget.offsetLeft;
+      this.offsetY = this.event.layerY - this.origTarget.offsetTop;
+    }
+    this.wheelDelta = this.event.wheelDelta;
+    if (this.wheelDelta == null) {
+      this.wheelDelta = -this.event.detail * 40;
+    }
+  }
+
+  return MouseEvent;
+
+})(NodEvent);
+
+exports.MouseEvent = MouseEvent;
+
+KeyEvent = (function(superClass) {
+  extend(KeyEvent, superClass);
+
+  function KeyEvent() {
+    KeyEvent.__super__.constructor.apply(this, arguments);
+    this.keyCode = this.event.keyCode || this.event.which;
+    this.charCode = this.event.charCode;
+  }
+
+  return KeyEvent;
+
+})(NodEvent);
+
+exports.KeyEvent = KeyEvent;
+
+_prepare_event = function(e) {
+  if (_mouse_regexp.test(e.type)) {
+    return new MouseEvent(e);
+  } else if (_key_regexp.test(e.type)) {
+    return new KeyEvent(e);
+  } else {
+    return new NodEvent(e);
+  }
+};
+
+_selector_regexp = /^[\.#]/;
+
+_selector = function(s, parent) {
+  if (!_selector_regexp.test(s)) {
+    return function(e) {
+      return e.target.node.matches(s);
+    };
+  } else {
+    return function(e) {
+      var node;
+      parent || (parent = document);
+      node = e.target.node;
+      if (node.matches(s)) {
+        return true;
+      }
+      if (node === parent) {
+        return false;
+      }
+      while ((node = node.parentNode) && node !== parent) {
+        if (node.matches(s)) {
+          return (e.target = Nod.create(node));
+        }
+      }
+    };
+  }
+};
+
+NodEventDispatcher = (function(superClass) {
+  extend(NodEventDispatcher, superClass);
+
+  function NodEventDispatcher() {
+    NodEventDispatcher.__super__.constructor.apply(this, arguments);
+    this.native_event_listener = (function(_this) {
+      return function(event) {
+        return _this.trigger(_prepare_event(event));
+      };
+    })(this);
+  }
+
+  NodEventDispatcher.prototype.listen = function(selector, event, callback, context) {
+    return this.on(event, callback, context, _selector(selector, this.node));
+  };
+
+  NodEventDispatcher.prototype.add_native_listener = function(type) {
+    if (NodEvent.has_delegate(type)) {
+      return NodEvent.delegates[type].add(this, this.native_event_listener);
+    } else {
+      return NodEvent.add(this.node, type, this.native_event_listener);
+    }
+  };
+
+  NodEventDispatcher.prototype.remove_native_listener = function(type) {
+    if (NodEvent.has_delegate(type)) {
+      return NodEvent.delegates[type].remove(this);
+    } else {
+      return NodEvent.remove(this.node, type, this.native_event_listener);
+    }
+  };
+
+  NodEventDispatcher.prototype.add_listener = function(listener) {
+    if (!this.listeners[listener.type]) {
+      if (NodEvent.has_alias(listener.type)) {
+        this.add_native_listener(NodEvent.aliases[listener.type]);
+      } else {
+        this.add_native_listener(listener.type);
+      }
+    }
+    return NodEventDispatcher.__super__.add_listener.apply(this, arguments);
+  };
+
+  NodEventDispatcher.prototype.remove_type = function(type) {
+    if (NodEvent.has_alias(type)) {
+      this.remove_native_listener(NodEvent.aliases[type]);
+    } else {
+      this.remove_native_listener(type);
+    }
+    return NodEventDispatcher.__super__.remove_type.apply(this, arguments);
+  };
+
+  NodEventDispatcher.prototype.remove_all = function() {
+    var fn, list, ref, type;
+    ref = this.listeners;
+    fn = (function(_this) {
+      return function() {
+        if (NodEvent.has_alias(type)) {
+          return _this.remove_native_listener(NodEvent.aliases[type]);
+        } else {
+          return _this.remove_native_listener(type);
+        }
+      };
+    })(this);
+    for (type in ref) {
+      if (!hasProp.call(ref, type)) continue;
+      list = ref[type];
+      fn();
+    }
+    return NodEventDispatcher.__super__.remove_all.apply(this, arguments);
+  };
+
+  return NodEventDispatcher;
+
+})(EventDispatcher);
+
+exports.NodEventDispatcher = NodEventDispatcher;
 
 _prop_hash = function(method, callback) {
-  return pi.Nod.prototype[method] = function(prop, val) {
+  return Nod.prototype[method] = function(prop, val) {
     var k, p;
     if (typeof prop !== "object") {
       return callback.call(this, prop, val);
@@ -3268,7 +3084,7 @@ _geometry_styles = function(sty) {
   fn = function() {
     var name;
     name = s;
-    pi.Nod.prototype[name] = function(val) {
+    Nod.prototype[name] = function(val) {
       if (val === void 0) {
         return this.node["offset" + (utils.capitalize(name))];
       }
@@ -3289,8 +3105,19 @@ _geometry_styles = function(sty) {
   }
 };
 
+_fragment = function(html) {
+  var f, temp;
+  temp = document.createElement('div');
+  temp.innerHTML = html;
+  f = document.createDocumentFragment();
+  while (temp.firstChild) {
+    f.appendChild(temp.firstChild);
+  }
+  return f;
+};
+
 _node = function(n) {
-  if (n instanceof pi.Nod) {
+  if (n instanceof Nod) {
     return n.node;
   }
   if (typeof n === "string") {
@@ -3338,17 +3165,6 @@ _dataset = (function() {
   }
 })();
 
-_fragment = function(html) {
-  var f, temp;
-  temp = document.createElement('div');
-  temp.innerHTML = html;
-  f = document.createDocumentFragment();
-  while (temp.firstChild) {
-    f.appendChild(temp.firstChild);
-  }
-  return f;
-};
-
 _raf = window.requestAnimationFrame != null ? window.requestAnimationFrame : function(callback) {
   return utils.after(0, callback);
 };
@@ -3357,7 +3173,7 @@ _caf = window.cancelAnimationFrame != null ? window.cancelAnimationFrame : utils
 
 _store = {};
 
-pi.Nod = (function(superClass) {
+Nod = (function(superClass) {
   extend(Nod, superClass);
 
   Nod.store = function(nod, overwrite) {
@@ -3389,7 +3205,7 @@ pi.Nod = (function(superClass) {
       case !(node instanceof this):
         return node;
       case !(typeof node["_nod"] !== "undefined"):
-        return pi.Nod.fetch(node._nod);
+        return Nod.fetch(node._nod);
       case !utils.is_html(node):
         return this._create_html(node);
       case typeof node !== "string":
@@ -3415,11 +3231,11 @@ pi.Nod = (function(superClass) {
     }
     this._disposed = false;
     this._data = _dataset(this.node);
-    pi.Nod.store(this);
+    Nod.store(this);
   }
 
   Nod.prototype.find = function(selector) {
-    return pi.Nod.create(this.node.querySelector(selector));
+    return Nod.create(this.node.querySelector(selector));
   };
 
   Nod.prototype.all = function(selector) {
@@ -3481,6 +3297,26 @@ pi.Nod = (function(superClass) {
     return acc;
   };
 
+  Nod.prototype.find_cut = function(selector) {
+    var acc, el, rest;
+    rest = [];
+    acc = [];
+    el = this.node.firstChild;
+    while (el) {
+      if (el.nodeType !== 1) {
+        el = el.nextSibling || rest.shift();
+        continue;
+      }
+      if (el.matches(selector)) {
+        acc.push(el);
+      } else {
+        el.firstChild && rest.unshift(el.firstChild);
+      }
+      el = el.nextSibling || rest.shift();
+    }
+    return acc;
+  };
+
   Nod.prototype.attrs = function(data) {
     var name, val;
     for (name in data) {
@@ -3505,7 +3341,7 @@ pi.Nod = (function(superClass) {
     var p;
     if (selector == null) {
       if (this.node.parentNode != null) {
-        return pi.Nod.create(this.node.parentNode);
+        return Nod.create(this.node.parentNode);
       } else {
         return null;
       }
@@ -3513,7 +3349,7 @@ pi.Nod = (function(superClass) {
       p = this.node;
       while ((p = p.parentNode) && (p !== document)) {
         if (p.matches(selector)) {
-          return pi.Nod.create(p);
+          return Nod.create(p);
         }
       }
       return null;
@@ -3540,7 +3376,7 @@ pi.Nod = (function(superClass) {
   Nod.prototype.wrap = function() {
     var klasses, wrapper;
     klasses = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-    wrapper = pi.Nod.create('div');
+    wrapper = Nod.create('div');
     wrapper.addClass.apply(wrapper, klasses);
     this.node.parentNode.insertBefore(wrapper.node, this.node);
     return wrapper.append(this.node);
@@ -3588,7 +3424,7 @@ pi.Nod = (function(superClass) {
   Nod.prototype.remove_children = function() {
     var nod;
     while (this.node.firstChild) {
-      if ((nod = pi.Nod.fetch(this.node.firstChild._nod))) {
+      if ((nod = Nod.fetch(this.node.firstChild._nod))) {
         nod.remove();
       } else {
         this.node.removeChild(this.node.firstChild);
@@ -3613,7 +3449,7 @@ pi.Nod = (function(superClass) {
     var c, nod;
     c = document.createElement(this.node.nameNode);
     c.innerHTML = this.node.outerHTML;
-    nod = new pi.Nod(c.firstChild);
+    nod = new Nod(c.firstChild);
     return utils.extend(nod, this, true, ['listeners', 'listeners_by_type', '__components__', 'native_event_listener', 'node']);
   };
 
@@ -3622,7 +3458,7 @@ pi.Nod = (function(superClass) {
       return;
     }
     this.off();
-    pi.Nod["delete"](this);
+    Nod["delete"](this);
     this._disposed = true;
   };
 
@@ -3830,7 +3666,7 @@ pi.Nod = (function(superClass) {
 
   return Nod;
 
-})(pi.NodEventDispatcher);
+})(NodEventDispatcher);
 
 _prop_hash("data", function(prop, val) {
   if (prop === void 0) {
@@ -3875,7 +3711,7 @@ ref = ["width", "height"];
 fn = function() {
   var prop;
   prop = "client" + (utils.capitalize(d));
-  return pi.Nod.prototype[prop] = function() {
+  return Nod.prototype[prop] = function() {
     return this.node[prop];
   };
 };
@@ -3888,7 +3724,7 @@ ref1 = ["top", "left", "width", "height"];
 fn1 = function() {
   var prop;
   prop = "scroll" + (utils.capitalize(d));
-  return pi.Nod.prototype[prop] = function() {
+  return Nod.prototype[prop] = function() {
     return this.node[prop];
   };
 };
@@ -3897,20 +3733,22 @@ for (l = 0, len1 = ref1.length; l < len1; l++) {
   fn1();
 }
 
-pi.NodRoot = (function(superClass) {
-  extend(NodRoot, superClass);
+exports.Nod = Nod;
 
-  NodRoot.instance = null;
+Nod.Root = (function(superClass) {
+  extend(Root, superClass);
 
-  function NodRoot() {
-    if (pi.NodRoot.instance) {
-      throw "NodRoot is already defined!";
+  Root.instance = null;
+
+  function Root() {
+    if (Nod.Root.instance) {
+      throw "Nod.Root is already defined!";
     }
-    pi.NodRoot.instance = this;
-    NodRoot.__super__.constructor.call(this, document.documentElement);
+    Nod.Root.instance = this;
+    Root.__super__.constructor.call(this, document.documentElement);
   }
 
-  NodRoot.prototype.initialize = function() {
+  Root.prototype.initialize = function() {
     var _ready_state, load_handler, ready_handler;
     _ready_state = document.attachEvent ? 'complete' : 'interactive';
     this._loaded = document.readyState === 'complete';
@@ -3921,10 +3759,10 @@ pi.NodRoot = (function(superClass) {
           utils.debug('DOM loaded');
           _this._loaded = true;
           _this.fire_all();
-          return pi.NodEvent.remove(window, 'load', load_handler);
+          return NodEvent.remove(window, 'load', load_handler);
         };
       })(this);
-      pi.NodEvent.add(window, 'load', load_handler);
+      NodEvent.add(window, 'load', load_handler);
     }
     if (!this._ready) {
       if (document.addEventListener) {
@@ -3963,7 +3801,7 @@ pi.NodRoot = (function(superClass) {
     }
   };
 
-  NodRoot.prototype.ready = function(callback) {
+  Root.prototype.ready = function(callback) {
     if (this._ready) {
       return callback.call(null);
     } else {
@@ -3971,7 +3809,7 @@ pi.NodRoot = (function(superClass) {
     }
   };
 
-  NodRoot.prototype.loaded = function(callback) {
+  Root.prototype.loaded = function(callback) {
     if (this._loaded) {
       return callback.call(null);
     } else {
@@ -3979,7 +3817,7 @@ pi.NodRoot = (function(superClass) {
     }
   };
 
-  NodRoot.prototype.fire_all = function() {
+  Root.prototype.fire_all = function() {
     var callback;
     if (this._ready_callbacks) {
       this.fire_ready();
@@ -3990,7 +3828,7 @@ pi.NodRoot = (function(superClass) {
     return this._loaded_callbacks = null;
   };
 
-  NodRoot.prototype.fire_ready = function() {
+  Root.prototype.fire_ready = function() {
     var callback;
     while (callback = this._ready_callbacks.shift()) {
       callback.call(null);
@@ -3998,49 +3836,49 @@ pi.NodRoot = (function(superClass) {
     return this._ready_callbacks = null;
   };
 
-  NodRoot.prototype.scrollTop = function() {
+  Root.prototype.scrollTop = function() {
     return this.node.scrollTop || document.body.scrollTop;
   };
 
-  NodRoot.prototype.scrollLeft = function() {
+  Root.prototype.scrollLeft = function() {
     return this.node.scrollLeft || document.body.scrollLeft;
   };
 
-  NodRoot.prototype.scrollHeight = function() {
+  Root.prototype.scrollHeight = function() {
     return this.node.scrollHeight;
   };
 
-  NodRoot.prototype.scrollWidth = function() {
+  Root.prototype.scrollWidth = function() {
     return this.node.scrollWidth;
   };
 
-  NodRoot.prototype.height = function() {
+  Root.prototype.height = function() {
     return window.innerHeight || this.node.clientHeight;
   };
 
-  NodRoot.prototype.width = function() {
+  Root.prototype.width = function() {
     return window.innerWidth || this.node.clientWidth;
   };
 
-  return NodRoot;
+  return Root;
 
-})(pi.Nod);
+})(Nod);
 
-pi.NodWin = (function(superClass) {
-  extend(NodWin, superClass);
+Nod.Win = (function(superClass) {
+  extend(Win, superClass);
 
-  NodWin.instance = null;
+  Win.instance = null;
 
-  function NodWin() {
-    if (pi.NodWin.instance) {
-      throw "NodWin is already defined!";
+  function Win() {
+    if (Nod.Win.instance) {
+      throw "Nod.Win is already defined!";
     }
-    pi.NodWin.instance = this;
-    this.delegate_to(pi.Nod.root, 'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight');
-    NodWin.__super__.constructor.call(this, window);
+    Nod.Win.instance = this;
+    this.delegate_to(Nod.root, 'scrollLeft', 'scrollTop', 'scrollWidth', 'scrollHeight');
+    Win.__super__.constructor.call(this, window);
   }
 
-  NodWin.prototype.scrollY = function(y) {
+  Win.prototype.scrollY = function(y) {
     var x;
     x = this.scrollLeft();
     return this._with_raf('scrollY', (function(_this) {
@@ -4050,7 +3888,7 @@ pi.NodWin = (function(superClass) {
     })(this));
   };
 
-  NodWin.prototype.scrollX = function(x) {
+  Win.prototype.scrollX = function(x) {
     var y;
     y = this.scrollTop();
     return this._with_raf('scrollX', (function(_this) {
@@ -4060,75 +3898,69 @@ pi.NodWin = (function(superClass) {
     })(this));
   };
 
-  NodWin.prototype.width = function() {
+  Win.prototype.width = function() {
     return this.node.innerWidth;
   };
 
-  NodWin.prototype.height = function() {
+  Win.prototype.height = function() {
     return this.node.innerHeight;
   };
 
-  NodWin.prototype.x = function() {
+  Win.prototype.x = function() {
     return 0;
   };
 
-  NodWin.prototype.y = function() {
+  Win.prototype.y = function() {
     return 0;
   };
 
-  return NodWin;
+  return Win;
 
-})(pi.Nod);
+})(Nod);
 
 _win = null;
 
 _body = null;
 
-Object.defineProperties(pi.Nod, {
+Object.defineProperties(Nod, {
   win: {
     get: function() {
-      return _win || (_win = new pi.NodWin());
+      return _win || (_win = new Nod.Win());
     }
   },
   body: {
     get: function() {
-      return _body || (_body = new pi.Nod(document.body));
+      return _body || (_body = new Nod(document.body));
     }
   }
 });
 
-module.exports = pi.Nod;
+module.exports = exports;
 
 
 
-},{"./events":26,"./pi":32,"./utils":38}],32:[function(require,module,exports){
+},{"./events":24,"./utils":34}],29:[function(require,module,exports){
 'use strict';
-module.exports = {};
-
-
-
-},{}],33:[function(require,module,exports){
-'use strict';
-var utils,
+var Arr, utils,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 utils = require('./base');
 
-utils.arr = (function() {
-  function arr() {}
+Arr = (function() {
+  function Arr() {}
 
-  arr.sort = function(arr, sort_params) {
+  Arr.sort = function(arr, sort_params) {
     return arr.sort(utils.curry(utils.keys_compare, [sort_params], utils, true));
   };
 
-  arr.sort_by = function(arr, key, order) {
+  Arr.sort_by = function(arr, key, order) {
     if (order == null) {
       order = 'asc';
     }
     return arr.sort(utils.curry(utils.key_compare, [key, order], utils, true));
   };
 
-  arr.uniq = function(arr) {
+  Arr.uniq = function(arr) {
     var el, k, len1, res;
     res = [];
     for (k = 0, len1 = arr.length; k < len1; k++) {
@@ -4140,7 +3972,7 @@ utils.arr = (function() {
     return res;
   };
 
-  arr.shuffle = function(arr) {
+  Arr.shuffle = function(arr) {
     var _, i, j, k, len, len1, res;
     len = arr.length;
     res = Array(len);
@@ -4155,7 +3987,7 @@ utils.arr = (function() {
     return res;
   };
 
-  arr.sample = function(arr, size) {
+  Arr.sample = function(arr, size) {
     var len;
     if (size == null) {
       size = 1;
@@ -4167,48 +3999,24 @@ utils.arr = (function() {
     return this.shuffle(arr).slice(0, +(size - 1) + 1 || 9e9);
   };
 
-  return arr;
+  return Arr;
 
 })();
 
-module.exports = utils.arr;
+module.exports = Arr;
 
 
 
-},{"./base":34}],34:[function(require,module,exports){
+},{"./base":30}],30:[function(require,module,exports){
 'use strict';
-var _conflicts, _uniq_id, fn, i, len, method, pi, ref,
+var _uniq_id, fn, i, len, method, ref, utils,
   hasProp = {}.hasOwnProperty,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
   slice = [].slice;
 
-pi = require('../pi');
-
-_conflicts = {};
-
-pi["export"] = function(fun, as) {
-  if (window[as] != null) {
-    if (_conflicts[as] == null) {
-      _conflicts[as] = window[as];
-    }
-  }
-  return window[as] = fun;
-};
-
-pi.noconflict = function() {
-  var fun, name, results;
-  results = [];
-  for (name in _conflicts) {
-    if (!hasProp.call(_conflicts, name)) continue;
-    fun = _conflicts[name];
-    results.push(window[name] = fun);
-  }
-  return results;
-};
-
 _uniq_id = 100;
 
-pi.utils = (function() {
+utils = (function() {
   function utils() {}
 
   utils.email_rxp = /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i;
@@ -4562,7 +4370,7 @@ pi.utils = (function() {
         _buf = args;
         return;
       }
-      (ths || {}).__debounce_id__ = pi.utils.after(period, function() {
+      (ths || {}).__debounce_id__ = utils.after(period, function() {
         _wait = false;
         if (throttle && (_buf != null)) {
           fun.apply(ths, _buf);
@@ -4577,7 +4385,7 @@ pi.utils = (function() {
   };
 
   utils.throttle = function(period, fun, ths) {
-    return pi.utils.debounce(period, fun, ths, true);
+    return utils.debounce(period, fun, ths, true);
   };
 
   utils.curry = function(fun, args, ths, last) {
@@ -4588,7 +4396,7 @@ pi.utils = (function() {
       last = false;
     }
     fun = "function" === typeof fun ? fun : ths[fun];
-    args = pi.utils.to_a(args);
+    args = utils.to_a(args);
     return function() {
       var rest;
       rest = 1 <= arguments.length ? slice.call(arguments, 0) : [];
@@ -4601,12 +4409,12 @@ pi.utils = (function() {
       args = [];
     }
     return function() {
-      return setTimeout(pi.utils.curry(fun, args, ths), delay);
+      return setTimeout(utils.curry(fun, args, ths), delay);
     };
   };
 
   utils.after = function(delay, fun, ths) {
-    return pi.utils.delayed(delay, fun, [], ths)();
+    return utils.delayed(delay, fun, [], ths)();
   };
 
   return utils;
@@ -4617,7 +4425,7 @@ ref = [['truthy', true], ['falsey', false], ['null', null], ['pass', void 0]];
 fn = function(method) {
   var name, val;
   name = method[0], val = method[1];
-  return pi.utils[name] = function() {
+  return utils[name] = function() {
     return val;
   };
 };
@@ -4626,25 +4434,13 @@ for (i = 0, len = ref.length; i < len; i++) {
   fn(method);
 }
 
-pi["export"](pi.utils.curry, 'curry');
-
-pi["export"](pi.utils.delayed, 'delayed');
-
-pi["export"](pi.utils.after, 'after');
-
-pi["export"](pi.utils.debounce, 'debounce');
-
-pi["export"](pi.utils.throttle, 'throttle');
-
-module.exports = pi.utils;
+module.exports = utils;
 
 
 
-},{"../pi":32}],35:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 'use strict';
-var _android_version_rxp, _ios_rxp, _ios_version_rxp, _mac_os_version_rxp, _win_version, _win_version_rxp, utils;
-
-utils = require('./base');
+var _android_version_rxp, _ios_rxp, _ios_version_rxp, _mac_os_version_rxp, _win_version, _win_version_rxp, browser;
 
 _mac_os_version_rxp = /\bMac OS X ([\d\._]+)\b/;
 
@@ -4665,7 +4461,7 @@ _win_version = {
   '5.1': 'XP'
 };
 
-utils.browser = (function() {
+browser = (function() {
   function browser() {}
 
   browser.scrollbar_width = function() {
@@ -4743,23 +4539,23 @@ utils.browser = (function() {
 
 })();
 
-module.exports = utils.browser;
+module.exports = browser;
 
 
 
-},{"./base":34}],36:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 'use strict';
-var utils,
+var Func, utils,
   slice = [].slice;
 
 utils = require('./base');
 
-utils.func = (function() {
-  function func() {}
+Func = (function() {
+  function Func() {}
 
-  func.BREAK = "__BREAK__";
+  Func.BREAK = "__BREAK__";
 
-  func.wrap = function(target, before, after, options) {
+  Func.wrap = function(target, before, after, options) {
     if (options == null) {
       options = {};
     }
@@ -4772,7 +4568,7 @@ utils.func = (function() {
         if (b && (options.break_if_value === true)) {
           return b;
         }
-        if (b === utils.func.BREAK) {
+        if (b === Func.BREAK) {
           return options.break_with;
         }
       }
@@ -4784,21 +4580,21 @@ utils.func = (function() {
     };
   };
 
-  func.append = function(target, callback, options) {
+  Func.append = function(target, callback, options) {
     if (options == null) {
       options = {};
     }
-    return pi.utils.func.wrap(target, null, callback, options);
+    return Func.wrap(target, null, callback, options);
   };
 
-  func.prepend = function(target, callback, options) {
+  Func.prepend = function(target, callback, options) {
     if (options == null) {
       options = {};
     }
-    return pi.utils.func.wrap(target, callback, null, options);
+    return Func.wrap(target, callback, null, options);
   };
 
-  func.unwrap = function(fun, options, ths) {
+  Func.unwrap = function(fun, options, ths) {
     if (options == null) {
       options = {};
     }
@@ -4816,15 +4612,15 @@ utils.func = (function() {
     };
   };
 
-  return func;
+  return Func;
 
 })();
 
-module.exports = utils.func;
+module.exports = Func;
 
 
 
-},{"./base":34}],37:[function(require,module,exports){
+},{"./base":30}],33:[function(require,module,exports){
 'use strict';
 var History;
 
@@ -4879,38 +4675,28 @@ module.exports = History;
 
 
 
-},{}],38:[function(require,module,exports){
-'use strict';
-var utils;
+},{}],34:[function(require,module,exports){
+'use strict'
+var utils = require('./base');
 
-utils = require('./base');
+utils.arr = require('./arr');
+utils.obj = require('./obj');
+utils.promise = require('./promise');
+utils.func = require('./func');
+utils.browser = require('./browser');
+utils.time = require('./time');
 
-require('./arr');
-
-require('./obj');
-
-require('./promise');
-
-require('./func');
-
-require('./browser');
-
-require('./time');
-
+// logger extends base utils
 require('./logger');
 
-require('./matchers');
+utils.matchers = require('./matchers');
 
 module.exports = utils;
 
-
-
-},{"./arr":33,"./base":34,"./browser":35,"./func":36,"./logger":39,"./matchers":40,"./obj":41,"./promise":42,"./time":43}],39:[function(require,module,exports){
+},{"./arr":29,"./base":30,"./browser":31,"./func":32,"./logger":35,"./matchers":36,"./obj":37,"./promise":38,"./time":39}],35:[function(require,module,exports){
 'use strict';
-var _formatter, _log_levels, _show_log, info, level, pi, utils, val,
+var _formatter, _log_levels, _show_log, info, level, utils, val,
   slice = [].slice;
-
-pi = require('../pi');
 
 utils = require('./base');
 
@@ -4932,7 +4718,7 @@ if (!window.console || !window.console.log) {
   };
 }
 
-pi.log_level || (pi.log_level = "info");
+utils.log_level || (utils.log_level = "info");
 
 _log_levels = {
   error: {
@@ -4958,7 +4744,7 @@ _log_levels = {
 };
 
 _show_log = function(level) {
-  return _log_levels[pi.log_level].sort <= _log_levels[level].sort;
+  return _log_levels[utils.log_level].sort <= _log_levels[level].sort;
 };
 
 utils.log = function() {
@@ -4976,9 +4762,9 @@ module.exports = utils.log;
 
 
 
-},{"../pi":32,"./base":34,"./browser":35,"./time":43}],40:[function(require,module,exports){
+},{"./base":30,"./browser":31,"./time":39}],36:[function(require,module,exports){
 'use strict';
-var _key_operand, _operands, utils,
+var Matchers, _key_operand, _operands, utils,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
   hasProp = {}.hasOwnProperty;
 
@@ -5024,10 +4810,10 @@ _operands = {
 
 _key_operand = /^([\w\d_]+)(\?&|>|<|~|\?)$/;
 
-utils.matchers = (function() {
-  function matchers() {}
+Matchers = (function() {
+  function Matchers() {}
 
-  matchers.object = function(obj, all) {
+  Matchers.object = function(obj, all) {
     var fn, key, val;
     if (all == null) {
       all = true;
@@ -5074,7 +4860,7 @@ utils.matchers = (function() {
     };
   };
 
-  matchers.nod = function(string) {
+  Matchers.nod = function(string) {
     var query, ref, regexp, selectors;
     if (string.indexOf(":") > 0) {
       ref = string.split(":"), selectors = ref[0], query = ref[1];
@@ -5098,7 +4884,7 @@ utils.matchers = (function() {
     }
   };
 
-  matchers.object_ext = function(obj, all) {
+  Matchers.object_ext = function(obj, all) {
     var key, matchers, matches, val;
     if (all == null) {
       all = true;
@@ -5120,24 +4906,24 @@ utils.matchers = (function() {
     return this.object(matchers, all);
   };
 
-  return matchers;
+  return Matchers;
 
 })();
 
-module.exports = utils.matchers;
+module.exports = Matchers;
 
 
 
-},{"./base":34}],41:[function(require,module,exports){
+},{"./base":30}],37:[function(require,module,exports){
 'use strict';
-var utils;
+var Obj, utils;
 
 utils = require('./base');
 
-utils.obj = (function() {
-  function obj() {}
+Obj = (function() {
+  function Obj() {}
 
-  obj.get_path = function(obj, path) {
+  Obj.get_path = function(obj, path) {
     var key, parts, res;
     parts = path.split(".");
     res = obj;
@@ -5152,7 +4938,7 @@ utils.obj = (function() {
     return res;
   };
 
-  obj.set_path = function(obj, path, val) {
+  Obj.set_path = function(obj, path, val) {
     var key, parts, res;
     parts = path.split(".");
     res = obj;
@@ -5166,7 +4952,7 @@ utils.obj = (function() {
     return res[parts[0]] = val;
   };
 
-  obj.get_class_path = function(pckg, path) {
+  Obj.get_class_path = function(pckg, path) {
     path = path.split('.').map((function(_this) {
       return function(p) {
         return utils.camelCase(p);
@@ -5175,7 +4961,7 @@ utils.obj = (function() {
     return this.get_path(pckg, path);
   };
 
-  obj.set_class_path = function(pckg, path, val) {
+  Obj.set_class_path = function(pckg, path, val) {
     path = path.split('.').map((function(_this) {
       return function(p) {
         return utils.camelCase(p);
@@ -5184,14 +4970,14 @@ utils.obj = (function() {
     return this.set_path(pckg, path, val);
   };
 
-  obj.wrap = function(key, obj) {
+  Obj.wrap = function(key, obj) {
     var data;
     data = {};
     data[key] = obj;
     return data;
   };
 
-  obj.from_arr = function(arr) {
+  Obj.from_arr = function(arr) {
     var _, data, i, j, len;
     data = {};
     for (i = j = 0, len = arr.length; j < len; i = j += 2) {
@@ -5201,36 +4987,36 @@ utils.obj = (function() {
     return data;
   };
 
-  return obj;
+  return Obj;
 
 })();
 
-module.exports = utils.obj;
+module.exports = Obj;
 
 
 
-},{"./base":34}],42:[function(require,module,exports){
+},{"./base":30}],38:[function(require,module,exports){
 'use strict';
-var utils;
+var PromiseUtils, utils;
 
 utils = require('./base');
 
-utils.promise = (function() {
-  function promise() {}
+PromiseUtils = (function() {
+  function PromiseUtils() {}
 
-  promise.resolved = function(data) {
+  PromiseUtils.resolved = function(data) {
     return new Promise(function(resolve) {
       return resolve(data);
     });
   };
 
-  promise.rejected = function(error) {
+  PromiseUtils.rejected = function(error) {
     return new Promise(function(_, reject) {
       return reject(error);
     });
   };
 
-  promise.delayed = function(time, data, rejected) {
+  PromiseUtils.delayed = function(time, data, rejected) {
     if (rejected == null) {
       rejected = false;
     }
@@ -5245,31 +5031,29 @@ utils.promise = (function() {
     });
   };
 
-  promise.as = function(obj) {
-    if (utils.promise.is(obj)) {
+  PromiseUtils.as = function(obj) {
+    if (PromiseUtils.is(obj)) {
       return obj;
     } else {
-      return utils.promise.resolved(obj);
+      return PromiseUtils.resolved(obj);
     }
   };
 
-  promise.is = function(obj) {
+  PromiseUtils.is = function(obj) {
     return obj && (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function';
   };
 
-  return promise;
+  return PromiseUtils;
 
 })();
 
-module.exports = utils.promise;
+module.exports = PromiseUtils;
 
 
 
-},{"./base":34}],43:[function(require,module,exports){
+},{"./base":30}],39:[function(require,module,exports){
 'use strict';
-var _formatter, _pad, _reg, utils;
-
-utils = require('./base');
+var Time, _formatter, _pad, _reg;
 
 _reg = /%[a-zA-Z]/g;
 
@@ -5351,20 +5135,25 @@ _formatter = {
   }
 };
 
-utils.time = {
-  add_formatter: function(code, formatter) {
+Time = (function() {
+  function Time() {}
+
+  Time.add_formatter = function(code, formatter) {
     return _formatter[code] = formatter;
-  },
-  parse: function(t) {
+  };
+
+  Time.parse = function(t) {
     if (typeof t === 'number' && t < 4000000000) {
       t *= 1000;
     }
     return new Date(t);
-  },
-  now: function(fmt) {
+  };
+
+  Time.now = function(fmt) {
     return this.format(new Date(), fmt);
-  },
-  format: function(t, fmt) {
+  };
+
+  Time.format = function(t, fmt) {
     t = this.parse(t);
     if (fmt == null) {
       return t;
@@ -5378,8 +5167,9 @@ utils.time = {
         return match;
       }
     });
-  },
-  duration: function(val, milliseconds, show_milliseconds) {
+  };
+
+  Time.duration = function(val, milliseconds, show_milliseconds) {
     var arr, m, ms, res;
     if (milliseconds == null) {
       milliseconds = false;
@@ -5401,14 +5191,204 @@ utils.time = {
       res += "." + (_pad(ms, 2));
     }
     return res;
+  };
+
+  return Time;
+
+})();
+
+module.exports = Time;
+
+
+
+},{}],40:[function(require,module,exports){
+'use strict';
+var CompiledFun, Compiler, _error, _operators, _view_context_mdf, parser, utils,
+  slice = [].slice;
+
+parser = require('./pi_grammar').parser;
+
+utils = require('../core/utils');
+
+_error = function(fun_str) {
+  utils.error("Function [" + fun_str + "] was compiled with error");
+  return false;
+};
+
+_operators = {
+  ">": function(a, b) {
+    return a > b;
+  },
+  "<": function(a, b) {
+    return a < b;
+  },
+  "=": function(a, b) {
+    return a === b;
+  },
+  "bool": function(a) {
+    return !!a;
   }
 };
 
-module.exports = utils.time;
+CompiledFun = (function() {
+  function CompiledFun(target1, fun_str1) {
+    var e;
+    this.target = target1 != null ? target1 : {};
+    this.fun_str = fun_str1;
+    try {
+      this._parsed = parser.parse(fun_str);
+    } catch (_error) {
+      e = _error;
+      this._compiled = utils.curry(_error, [fun_str]);
+    }
+  }
+
+  CompiledFun.prototype.call = function() {
+    var args, ths;
+    ths = arguments[0], args = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    return this.apply(ths, args);
+  };
+
+  CompiledFun.prototype.apply = function(ths, args) {
+    this.call_ths = ths || {};
+    return this.compiled().apply(this, args);
+  };
+
+  CompiledFun.prototype.compiled = function() {
+    return this._compiled || (this._compiled = this._compile_fun());
+  };
+
+  CompiledFun.prototype._compile_fun = function() {
+    return (function(_this) {
+      return function() {
+        return _this["_get_" + _this._parsed.code](_this._parsed);
+      };
+    })(this);
+  };
+
+  CompiledFun.prototype._get_chain = function(data) {
+    var _target, frst, i, step;
+    frst = data.value[0];
+    _target = (function() {
+      var base;
+      switch (frst.name) {
+        case 'this':
+          return this.target;
+        case 'app':
+          return pi.app;
+        case 'host':
+          return this.target.host;
+        case 'view':
+          return typeof (base = this.target).view === "function" ? base.view() : void 0;
+        default:
+          return this["_get_" + frst.code](frst, this.call_ths) || this["_get_" + frst.code](frst, window);
+      }
+    }).call(this);
+    i = 1;
+    while (i < data.value.length) {
+      step = data.value[i++];
+      _target = this["_get_" + step.code](step, _target);
+    }
+    return _target;
+  };
+
+  CompiledFun.prototype._get_res = function(data, from) {
+    if (from == null) {
+      from = {};
+    }
+    return from[data.name] || window.pi.resources[data.name];
+  };
+
+  CompiledFun.prototype._get_prop = function(data, from) {
+    return from[data.name];
+  };
+
+  CompiledFun.prototype._get_call = function(data, from) {
+    return from[data.name].apply(from, this._get_args(data.args));
+  };
+
+  CompiledFun.prototype._get_args = function(args) {
+    var arg, j, len, results;
+    results = [];
+    for (j = 0, len = args.length; j < len; j++) {
+      arg = args[j];
+      results.push(this["_get_" + arg.code](arg));
+    }
+    return results;
+  };
+
+  CompiledFun.prototype._get_if = function(data) {
+    var _left, _right;
+    _left = data.cond.left;
+    _right = data.cond.right;
+    _left = this["_get_" + _left.code](_left);
+    if (_right != null) {
+      _right = this["_get_" + _right.code](_right);
+    }
+    if (_operators[data.cond.type](_left, _right)) {
+      return this["_get_" + data.left.code](data.left);
+    } else if (data.right != null) {
+      return this["_get_" + data.right.code](data.right);
+    } else {
+      return false;
+    }
+  };
+
+  CompiledFun.prototype._get_simple = function(data) {
+    return data.value;
+  };
+
+  return CompiledFun;
+
+})();
+
+Compiler = (function() {
+  function Compiler() {}
+
+  Compiler.modifiers = [];
+
+  Compiler.process_modifiers = function(str) {
+    var fun, j, len, ref;
+    ref = this.modifiers;
+    for (j = 0, len = ref.length; j < len; j++) {
+      fun = ref[j];
+      str = fun.call(null, str);
+    }
+    return str;
+  };
+
+  Compiler.compile_fun = function(callstr, target) {
+    callstr = this.process_modifiers(callstr);
+    return new CompiledFun(target, callstr);
+  };
+
+  Compiler.str_to_fun = Compiler.compile_fun;
+
+  Compiler.str_to_event_handler = function(callstr, host) {
+    var _f;
+    _f = this.compile_fun(callstr, host);
+    return function(e) {
+      return _f.call({
+        e: e
+      });
+    };
+  };
+
+  return Compiler;
+
+})();
+
+_view_context_mdf = function(str) {
+  return str.replace(/@(this|app|host|view)(\b)/g, '$1$2').replace(/@@/g, 'pi.app.page.context.').replace(/@/g, 'pi.app.view.');
+};
+
+Compiler.modifiers.push(_view_context_mdf);
+
+module.exports = Compiler;
 
 
 
-},{"./base":34}],44:[function(require,module,exports){
+},{"../core/utils":34,"./pi_grammar":41}],41:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.15 */
 /*
@@ -6126,22 +6106,63 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require('_process'))
-},{"_process":72,"fs":70,"path":71}],45:[function(require,module,exports){
+},{"_process":68,"fs":66,"path":67}],42:[function(require,module,exports){
+'use strict'
+var pi = require('./core');
+
+pi.Compiler = require('./grammar/compiler');
+
+pi.components = require('./components');
+
+pi.export(pi.components, "$c");
+
+pi.klass = require('./components/utils/klass');
+
+pi.renderers = require('./renderers');
+
+pi.Plugin = require('./plugins');
+
+pi.Net = require('./net');
+
+pi.resources = require('./resources');
+
+pi.export(pi.resources, "$r");
+
+pi.controllers = require('./controllers');
+
+pi.views = require('./views');
+
+pi.Initializer = require('./components/utils/initializer');
+require('./controllers/initializer');
+
+pi.Guesser = require('./components/utils/guesser');
+
+// setup application
+pi.$ = require('./components/utils/setup');
+
+// export pi.$ to global scope
+pi.export(pi.$, '$')
+
+var App = require('./core/app')
+
+pi.app = new App();
+
+module.exports = (window.pi = pi);
+
+},{"./components":7,"./components/utils/guesser":9,"./components/utils/initializer":10,"./components/utils/klass":11,"./components/utils/setup":12,"./controllers":16,"./controllers/initializer":17,"./core":27,"./core/app":19,"./grammar/compiler":40,"./net":44,"./plugins":50,"./renderers":53,"./resources":58,"./views":65}],43:[function(require,module,exports){
 'use strict';
-var pi, utils;
+var IframeUpload, Nod, utils;
 
-pi = require('../core');
+Nod = require('../core/nod').Nod;
 
-require('./net');
+utils = require('../core/utils');
 
-utils = pi.utils;
-
-pi.Net.IframeUpload = (function() {
+IframeUpload = (function() {
   function IframeUpload() {}
 
   IframeUpload._build_iframe = function(id) {
     var iframe;
-    iframe = pi.Nod.create('iframe');
+    iframe = Nod.create('iframe');
     iframe.attrs({
       id: id,
       name: id,
@@ -6159,7 +6180,7 @@ pi.Net.IframeUpload = (function() {
 
   IframeUpload._build_input = function(name, value) {
     var input;
-    input = pi.Nod.create('input');
+    input = Nod.create('input');
     input.node.type = 'hidden';
     input.node.name = name;
     input.node.value = value;
@@ -6190,7 +6211,7 @@ pi.Net.IframeUpload = (function() {
         iframe_id = "iframe_" + (utils.uid());
         iframe = _this._build_iframe(iframe_id);
         form = _this._build_form(form, iframe_id, params, url, method);
-        pi.Nod.body.append(iframe);
+        Nod.body.append(iframe);
         iframe.on("load", function() {
           var response;
           if (iframe.node.contentDocument.readyState === 'complete') {
@@ -6211,28 +6232,26 @@ pi.Net.IframeUpload = (function() {
 
 })();
 
-module.exports = pi.Net.IframeUpload;
+module.exports = IframeUpload;
 
 
 
-},{"../core":30,"./net":47}],46:[function(require,module,exports){
+},{"../core/nod":28,"../core/utils":34}],44:[function(require,module,exports){
+'use strict'
+module.exports = require('./net');
+
+},{"./net":45}],45:[function(require,module,exports){
 'use strict';
-require('./net');
-
-require('./iframe.upload');
-
-
-
-},{"./iframe.upload":45,"./net":47}],47:[function(require,module,exports){
-'use strict';
-var i, len, method, pi, ref, utils,
+var IframeUpload, Net, Nod, i, len, method, ref, utils,
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+utils = require('../core/utils');
 
-utils = pi.utils;
+IframeUpload = require('./iframe.upload');
 
-pi.Net = (function() {
+Nod = require('../core/nod').Nod;
+
+Net = (function() {
   function Net() {}
 
   Net._prepare_response = function(xhr) {
@@ -6346,7 +6365,7 @@ pi.Net = (function() {
         var _headers, key, q, req, use_json, value;
         req = xhr || new XMLHttpRequest();
         use_json = options.json != null ? options.json : _this.use_json;
-        _headers = utils.merge(pi.net.headers, options.headers || {});
+        _headers = utils.merge(_this.headers, options.headers || {});
         if (method === 'GET') {
           q = _this._data_to_query(data);
           if (q) {
@@ -6432,8 +6451,8 @@ pi.Net = (function() {
       options = {};
     }
     as_json = options.as_json != null ? options.as_json : this.use_json;
-    if (!(form instanceof pi.Nod)) {
-      form = pi.Nod.create(form);
+    if (!(form instanceof Nod)) {
+      form = Nod.create(form);
     }
     if (form == null) {
       throw Error('Form is undefined');
@@ -6441,7 +6460,7 @@ pi.Net = (function() {
     method = options.method || 'POST';
     return new Promise((function(_this) {
       return function(resolve, reject) {
-        return pi.net.IframeUpload.upload(form, url, _this._to_params(data), method).then(function(response) {
+        return IframeUpload.upload(form, url, _this._to_params(data), method).then(function(response) {
           var e;
           if (response == null) {
             reject(Error('Response is empty'));
@@ -6469,56 +6488,42 @@ pi.Net = (function() {
 
 })();
 
-pi.Net.XHR_UPLOAD = !!window.FormData;
+Net.XHR_UPLOAD = !!window.FormData;
 
-pi.net = pi.Net;
+Net.IframeUpload = IframeUpload;
 
 ref = ['get', 'post', 'patch', 'put', 'delete'];
 for (i = 0, len = ref.length; i < len; i++) {
   method = ref[i];
-  pi.Net[method] = utils.curry(pi.Net.request, [method.toUpperCase()], pi.Net);
+  Net[method] = utils.curry(Net.request, [method.toUpperCase()], Net);
 }
 
-module.exports = pi.Net;
+module.exports = Net;
 
 
 
-},{"../core":30}],48:[function(require,module,exports){
+},{"../core/nod":28,"../core/utils":34,"./iframe.upload":43}],46:[function(require,module,exports){
 'use strict'
-window.pi = require('./core')
-require('./components')
-require('./net')
-require('./resources')
-require('./controllers')
-require('./views')
-module.exports = window.pi
-},{"./components":16,"./controllers":19,"./core":30,"./net":46,"./resources":61,"./views":69}],49:[function(require,module,exports){
-'use strict';
 require('./selectable');
-
 require('./renderable');
-
 require('./restful');
-
-
-
-},{"./renderable":50,"./restful":51,"./selectable":52}],50:[function(require,module,exports){
+},{"./renderable":47,"./restful":48,"./selectable":49}],47:[function(require,module,exports){
 'use strict';
-var _renderer_reg, pi, utils,
+var Base, Plugin, Renderers, _renderer_reg, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+Base = require('../../components/base');
 
-require('../../components/base');
+Plugin = require('../plugin');
 
-require('../plugin');
+utils = require('../../core/utils');
 
-utils = pi.utils;
+Renderers = require('../../renderers');
 
 _renderer_reg = /(\w+)(?:\(([\w\-\/]+)\))?/;
 
-pi.Base.Renderable = (function(superClass) {
+Base.Renderable = (function(superClass) {
   extend(Renderable, superClass);
 
   function Renderable() {
@@ -6562,41 +6567,47 @@ pi.Base.Renderable = (function(superClass) {
     var _, klass, name, param, ref, renderer, tpl;
     if ((this.target.options.renderer != null) && _renderer_reg.test(this.target.options.renderer)) {
       ref = this.target.options.renderer.match(_renderer_reg), _ = ref[0], name = ref[1], param = ref[2];
-      klass = pi.Renderers[utils.camelCase(name)];
+      klass = Renderers[utils.camelCase(name)];
       if (klass != null) {
         return new klass(param);
       }
     } else if ((tpl = this.target.find('.pi-renderer'))) {
-      renderer = new pi.Renderers.Simple(tpl);
+      renderer = new Renderers.Simple(tpl);
       tpl.remove();
       return renderer;
     }
-    return new pi.Renderers.Base();
+    return new Renderers.Base();
   };
 
   return Renderable;
 
-})(pi.Plugin);
+})(Plugin);
 
-module.exports = pi.Base.Renderable;
+module.exports = Base.Renderable;
 
 
 
-},{"../../components/base":5,"../../core":30,"../plugin":54}],51:[function(require,module,exports){
+},{"../../components/base":1,"../../core/utils":34,"../../renderers":53,"../plugin":51}],48:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Base, Compiler, Plugin, Renderable, ResourceEvent, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+Base = require('../../components/base');
 
-require('../plugin');
+Plugin = require('../plugin');
 
-require('../../components/base/base');
+utils = require('../../core/utils');
 
-utils = pi.utils;
+Renderable = require('./renderable');
 
-pi.Base.Restful = (function(superClass) {
+Compiler = require('../../grammar/compiler');
+
+ResourceEvent = require('../../resources/events');
+
+utils = require('../../core/utils');
+
+Base.Restful = (function(superClass) {
   extend(Restful, superClass);
 
   function Restful() {
@@ -6611,10 +6622,10 @@ pi.Base.Restful = (function(superClass) {
     Restful.__super__.initialize.apply(this, arguments);
     this._uid = utils.uid('r');
     if (!this.target.has_renderable) {
-      this.target.attach_plugin(pi.Base.Renderable);
+      this.target.attach_plugin(Renderable);
     }
     if ((rest = this.target.options.rest) != null) {
-      f = pi.Compiler.str_to_fun(rest);
+      f = Compiler.str_to_fun(rest);
       promise = f.call(this);
       if (!(promise instanceof Promise)) {
         promise = promise ? utils.promise.resolved(promise) : utils.promise.rejected();
@@ -6637,15 +6648,15 @@ pi.Base.Restful = (function(superClass) {
       render = false;
     }
     if (this.resource) {
-      this.resource.off(pi.ResourceEvent.Update, this.resource_update());
-      this.resource.off(pi.ResourceEvent.Create, this.resource_update());
+      this.resource.off(ResourceEvent.Update, this.resource_update());
+      this.resource.off(ResourceEvent.Create, this.resource_update());
     }
     this.resource = resource;
     if (!this.resource) {
       this.target.render(null);
       return;
     }
-    this.resource.on([pi.ResourceEvent.Update, pi.ResourceEvent.Create], this.resource_update());
+    this.resource.on([ResourceEvent.Update, ResourceEvent.Create], this.resource_update());
     if (render) {
       return this.target.render(resource);
     }
@@ -6668,27 +6679,29 @@ pi.Base.Restful = (function(superClass) {
 
   return Restful;
 
-})(pi.Plugin);
+})(Plugin);
 
-module.exports = pi.Base.Restful;
+module.exports = Base.Restful;
 
 
 
-},{"../../components/base/base":2,"../../core":30,"../plugin":54}],52:[function(require,module,exports){
+},{"../../components/base":1,"../../core/utils":34,"../../grammar/compiler":40,"../../resources/events":57,"../plugin":51,"./renderable":47}],49:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Base, Events, Klass, Plugin, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+Base = require('../../components/base');
 
-require('../../components/base');
+Klass = require('../../components/utils/klass');
 
-require('../plugin');
+Events = require('../../components/events');
 
-utils = pi.utils;
+Plugin = require('../plugin');
 
-pi.Base.Selectable = (function(superClass) {
+utils = require('../../core/utils');
+
+Base.Selectable = (function(superClass) {
   extend(Selectable, superClass);
 
   function Selectable() {
@@ -6700,7 +6713,14 @@ pi.Base.Selectable = (function(superClass) {
   Selectable.prototype.initialize = function(target) {
     this.target = target;
     Selectable.__super__.initialize.apply(this, arguments);
-    this.__selected__ = this.target.hasClass(pi.klass.SELECTED);
+    Base.active_property(this.target, 'selected', {
+      type: 'bool',
+      "default": this.target.hasClass(Klass.SELECTED),
+      event: Events.Selected,
+      "class": Klass.SELECTED,
+      functions: ['select', 'deselect'],
+      toggle_select: 'toggle_select'
+    });
     this.target.on('click', this.click_handler());
     return this;
   };
@@ -6715,59 +6735,31 @@ pi.Base.Selectable = (function(superClass) {
 
   Selectable.event_handler('click_handler');
 
-  Selectable.prototype.toggle_select = function() {
-    if (this.__selected__) {
-      return this.deselect();
-    } else {
-      return this.select();
-    }
-  };
-
-  Selectable.prototype.select = function() {
-    if (!this.__selected__) {
-      this.__selected__ = true;
-      this.target.addClass(pi.klass.SELECTED);
-      this.target.trigger(pi.Events.Selected, true);
-    }
-    return this;
-  };
-
-  Selectable.prototype.deselect = function() {
-    if (this.__selected__) {
-      this.__selected__ = false;
-      this.target.removeClass(pi.klass.SELECTED);
-      this.target.trigger(pi.Events.Selected, false);
-    }
-    return this;
-  };
-
   return Selectable;
 
-})(pi.Plugin);
+})(Plugin);
 
-module.exports = pi.Base.Selectable;
+module.exports = Base.Selectable;
 
 
 
-},{"../../components/base":5,"../../core":30,"../plugin":54}],53:[function(require,module,exports){
-'use strict';
-require('./plugin');
-
+},{"../../components/base":1,"../../components/events":3,"../../components/utils/klass":11,"../../core/utils":34,"../plugin":51}],50:[function(require,module,exports){
+'use strict'
+var plugin = require('./plugin');
 require('./base');
+module.exports = plugin;
 
-
-
-},{"./base":49,"./plugin":54}],54:[function(require,module,exports){
+},{"./base":46,"./plugin":51}],51:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Core, Plugin, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+Core = require('../core/core');
 
-utils = pi.utils;
+utils = require('../core/utils');
 
-pi.Plugin = (function(superClass) {
+Plugin = (function(superClass) {
   extend(Plugin, superClass);
 
   function Plugin() {
@@ -6799,25 +6791,27 @@ pi.Plugin = (function(superClass) {
 
   return Plugin;
 
-})(pi.Core);
+})(Core);
 
-module.exports = pi.Plugin;
+module.exports = Plugin;
 
 
 
-},{"../core":30}],55:[function(require,module,exports){
+},{"../core/core":21,"../core/utils":34}],52:[function(require,module,exports){
 'use strict';
-var pi, utils;
+var Base, BaseComponent, Nod, utils;
 
-pi = require('../core');
+Nod = require('../core/nod').Nod;
 
-utils = pi.utils;
+utils = require('../core/utils');
 
-pi.Renderers.Base = (function() {
+BaseComponent = require('../components/base');
+
+Base = (function() {
   function Base() {}
 
   Base.prototype.render = function(nod, piecified, host) {
-    if (!(nod instanceof pi.Nod)) {
+    if (!(nod instanceof Nod)) {
       return;
     }
     return this._render(nod, nod.data(), piecified, host);
@@ -6827,7 +6821,7 @@ pi.Renderers.Base = (function() {
     if (piecified == null) {
       piecified = true;
     }
-    if (!(nod instanceof pi.Base)) {
+    if (!(nod instanceof BaseComponent)) {
       if (piecified) {
         nod = nod.piecify(host);
       }
@@ -6840,37 +6834,28 @@ pi.Renderers.Base = (function() {
 
 })();
 
-module.exports = pi.Renderers.Base;
+module.exports = Base;
 
 
 
-},{"../core":30}],56:[function(require,module,exports){
+},{"../components/base":1,"../core/nod":28,"../core/utils":34}],53:[function(require,module,exports){
+'use strict'
+var Renderers = {};
+Renderers.Base = require('./base');
+Renderers.Simple = require('./simple');
+module.exports = Renderers;
+
+},{"./base":52,"./simple":54}],54:[function(require,module,exports){
 'use strict';
-var pi;
-
-pi = require('../core');
-
-pi.Renderers = {};
-
-require('./base');
-
-require('./simple');
-
-module.exports = pi.Renderers;
-
-
-
-},{"../core":30,"./base":55,"./simple":57}],57:[function(require,module,exports){
-'use strict';
-var _escape_rxp, _escapes, _reg_partials, _reg_simple, pi, utils,
+var Base, Nod, Simple, _escape_rxp, _escapes, _reg_partials, _reg_simple, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+Nod = require('../core/nod').Nod;
 
-require('./base');
+utils = require('../core/utils');
 
-utils = pi.utils;
+Base = require('./base');
 
 _reg_partials = /\{\>\s*([^\}]+?)\s*\}[\s\S]+?\{\<\s*\1\s*\}/g;
 
@@ -6888,7 +6873,7 @@ _escapes = {
   '\u2029': 'u2029'
 };
 
-pi.Renderers.Simple = (function(superClass) {
+Simple = (function(superClass) {
   extend(Simple, superClass);
 
   function Simple(nod) {
@@ -6942,10 +6927,10 @@ pi.Renderers.Simple = (function(superClass) {
 
   Simple.prototype.render = function(data, piecified, host) {
     var nod;
-    if (data instanceof pi.Nod) {
+    if (data instanceof Nod) {
       return Simple.__super__.render.apply(this, arguments);
     } else {
-      nod = pi.Nod.create(pi.utils.squish(this.templater(data)));
+      nod = Nod.create(utils.squish(this.templater(data)));
       return this._render(nod, data, piecified, host);
     }
   };
@@ -6998,27 +6983,27 @@ pi.Renderers.Simple = (function(superClass) {
 
   return Simple;
 
-})(pi.Renderers.Base);
+})(Base);
 
-module.exports = pi.Renderers.Jst;
+module.exports = Simple;
 
 
 
-},{"../core":30,"./base":55}],58:[function(require,module,exports){
+},{"../core/nod":28,"../core/utils":34,"./base":52}],55:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Association, Base, ResourceEvent, View, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+Base = require('./base');
 
-require('./base');
+View = require('./view');
 
-require('./view');
+ResourceEvent = require('./events');
 
-utils = pi.utils;
+utils = require('../core/utils');
 
-pi.resources.Association = (function(superClass) {
+Association = (function(superClass) {
   extend(Association, superClass);
 
   function Association(resources, scope, options1) {
@@ -7032,7 +7017,7 @@ pi.resources.Association = (function(superClass) {
         this.owner_name_id = this.options.key;
       } else {
         this._only_update = true;
-        this.options.owner.one(pi.ResourceEvent.Create, ((function(_this) {
+        this.options.owner.one(ResourceEvent.Create, ((function(_this) {
           return function() {
             var el, i, len, ref, ref1;
             _this._only_update = false;
@@ -7090,7 +7075,7 @@ pi.resources.Association = (function(superClass) {
       if (data[this.owner_name_id] == null) {
         data[this.owner_name_id] = this.owner.id;
       }
-      if (!(data instanceof pi.resources.Base)) {
+      if (!(data instanceof Base)) {
         data = this.resources.build(data, false);
       }
     }
@@ -7100,7 +7085,7 @@ pi.resources.Association = (function(superClass) {
   Association.prototype.on_update = function(el) {
     if (this.get(el.id)) {
       if (this.options.copy === false) {
-        return this.trigger(pi.ResourceEvent.Update, this._wrap(el));
+        return this.trigger(ResourceEvent.Update, this._wrap(el));
       } else {
         return Association.__super__.on_update.apply(this, arguments);
       }
@@ -7111,7 +7096,7 @@ pi.resources.Association = (function(superClass) {
 
   Association.prototype.on_destroy = function(el) {
     if (this.options.copy === false) {
-      this.trigger(pi.ResourceEvent.Destroy, this._wrap(el));
+      this.trigger(ResourceEvent.Destroy, this._wrap(el));
       return this.remove(el, true, false);
     } else {
       return Association.__super__.on_destroy.apply(this, arguments);
@@ -7123,7 +7108,7 @@ pi.resources.Association = (function(superClass) {
     if ((view_item = this.get(el.id) || this.get(el.__tid__))) {
       this.created(view_item, el.__tid__);
       if (this.options.copy === false) {
-        return this.trigger(pi.ResourceEvent.Create, this._wrap(el));
+        return this.trigger(ResourceEvent.Create, this._wrap(el));
       } else {
         return view_item.set(el.attributes());
       }
@@ -7138,36 +7123,49 @@ pi.resources.Association = (function(superClass) {
     }
     if (this.options.scope) {
       this.load(this.resources.where(this.options.scope));
-      return this.trigger(pi.ResourceEvent.Load, {});
+      return this.trigger(ResourceEvent.Load, {});
     }
   };
 
   return Association;
 
-})(pi.resources.View);
+})(View);
 
-module.exports = pi.resources.Association;
+utils.extend(Base, {
+  view: function(params) {
+    var view;
+    view = new Association(this, params, {
+      scope: params,
+      copy: false,
+      source: this
+    });
+    view.reload();
+    return view;
+  }
+});
+
+module.exports = Association;
 
 
 
-},{"../core":30,"./base":59,"./view":67}],59:[function(require,module,exports){
+},{"../core/utils":34,"./base":56,"./events":57,"./view":63}],56:[function(require,module,exports){
 'use strict';
-var _singular, pi, utils,
+var Base, EventDispatcher, ResourceEvent, _singular, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-pi = require('../core');
+EventDispatcher = require('../core/events').EventDispatcher;
 
-require('./events');
+utils = require('../core/utils');
 
-utils = pi.utils;
+ResourceEvent = require('./events');
 
 _singular = function(str) {
   return str.replace(/s$/, '');
 };
 
-pi.resources.Base = (function(superClass) {
+Base = (function(superClass) {
   extend(Base, superClass);
 
   Base.set_resource = function(plural, singular) {
@@ -7203,7 +7201,7 @@ pi.resources.Base = (function(superClass) {
         return results;
       }).call(this);
       if (!silent) {
-        this.trigger(pi.ResourceEvent.Load, {});
+        this.trigger(ResourceEvent.Load, {});
       }
       return elements;
     }
@@ -7281,7 +7279,7 @@ pi.resources.Base = (function(superClass) {
       if (add) {
         this.add(el);
         if (!(silent || el.__temp__)) {
-          this.trigger(pi.ResourceEvent.Create, this._wrap(el));
+          this.trigger(ResourceEvent.Create, this._wrap(el));
         }
       }
       return el;
@@ -7331,7 +7329,7 @@ pi.resources.Base = (function(superClass) {
     }
     this.__all__.splice(this.__all__.indexOf(el), 1);
     if (!silent) {
-      this.trigger(pi.ResourceEvent.Destroy, this._wrap(el));
+      this.trigger(ResourceEvent.Destroy, this._wrap(el));
     }
     if (disposed) {
       el.dispose();
@@ -7340,20 +7338,20 @@ pi.resources.Base = (function(superClass) {
   };
 
   Base.listen = function(callback, filter) {
-    return pi.event.on(this.resources_name + "_update", callback, null, filter);
+    return EventDispatcher.Global.on(this.resources_name + "_update", callback, null, filter);
   };
 
   Base.trigger = function(event, data, changes) {
     data.type = event;
     data.changes = changes;
-    return pi.event.trigger(this.resources_name + "_update", data, false);
+    return EventDispatcher.Global.trigger(this.resources_name + "_update", data, false);
   };
 
   Base.off = function(callback) {
     if (callback != null) {
-      return pi.event.off(this.resources_name + "_update", callback);
+      return EventDispatcher.Global.off(this.resources_name + "_update", callback);
     } else {
-      return pi.event.off(this.resources_name + "_update");
+      return EventDispatcher.Global.off(this.resources_name + "_update");
     }
   };
 
@@ -7382,19 +7380,8 @@ pi.resources.Base = (function(superClass) {
     return results;
   };
 
-  Base.view = function(params) {
-    var view;
-    view = new pi.resources.Association(this, params, {
-      scope: params,
-      copy: false,
-      source: this
-    });
-    view.reload();
-    return view;
-  };
-
   Base._wrap = function(el) {
-    if (el instanceof pi.resources.Base) {
+    if (el instanceof Base) {
       return utils.obj.wrap(el.constructor.resource_name, el);
     } else {
       return el;
@@ -7504,13 +7491,13 @@ pi.resources.Base = (function(superClass) {
       delete this.__temp__;
       this._persisted = true;
       this.__tid__ = _old_id;
-      type = pi.ResourceEvent.Create;
+      type = ResourceEvent.Create;
       this.created(_old_id);
     } else {
-      type = pi.ResourceEvent.Update;
+      type = ResourceEvent.Update;
     }
     if (_changed && !silent) {
-      this.trigger(type, (type === pi.ResourceEvent.Create ? this : this.changes));
+      this.trigger(type, (type === ResourceEvent.Create ? this : this.changes));
     }
     return this;
   };
@@ -7531,91 +7518,66 @@ pi.resources.Base = (function(superClass) {
     if (typeof this["on_" + name + "_update"] === 'function') {
       this["on_" + name + "_update"].call(this, type, data);
     }
-    return this.trigger(pi.ResourceEvent.Update, utils.obj.wrap(name, true));
+    return this.trigger(ResourceEvent.Update, utils.obj.wrap(name, true));
   };
 
   return Base;
 
-})(pi.EventDispatcher);
+})(EventDispatcher);
 
-pi.resources.create = function(name, parent, options) {
-  var klass, name_parts, rname;
-  if (parent == null) {
-    parent = $r.Base;
-  }
-  if (options == null) {
-    options = {};
-  }
-  klass = utils.subclass(parent);
-  if (name != null) {
-    name_parts = name.split(".");
-    rname = name_parts[name_parts.length - 1];
-    klass.set_resource(rname, options.plural);
-    utils.obj.set_class_path(pi.resources, name, klass);
-  } else {
-    klass.set_resource("unknown");
-  }
-  return klass;
-};
+Base.Event = ResourceEvent;
 
-module["export"] = pi.resources.Base;
+module.exports = Base;
 
 
 
-},{"../core":30,"./events":60}],60:[function(require,module,exports){
+},{"../core/events":24,"../core/utils":34,"./events":57}],57:[function(require,module,exports){
 'use strict';
-var pi;
+var ResourceEvent;
 
-pi = require('../core');
-
-pi.ResourceEvent = {
+ResourceEvent = {
   Update: 'update',
   Create: 'create',
   Destroy: 'destroy',
   Load: 'load'
 };
 
-module.exports = pi.ResourceEvent;
+module.exports = ResourceEvent;
 
 
 
-},{"../core":30}],61:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
+'use strict'
+
+var utils = require('../core/utils');
+
+var resources = {};
+resources.Base = require('./base');
+resources.View = require('./view');
+resources.Association = require('./association');
+resources.REST = require('./rest');
+
+utils.extend(resources, require('./modules'));
+
+module.exports = resources;
+
+},{"../core/utils":34,"./association":55,"./base":56,"./modules":61,"./rest":62,"./view":63}],59:[function(require,module,exports){
 'use strict';
-var pi;
-
-pi = require('../core');
-
-pi.resources = {};
-
-pi["export"](pi.resources, "$r");
-
-require('./base');
-
-require('./view');
-
-require('./association');
-
-require('./rest');
-
-require('./modules');
-
-module.exports = pi.resources;
-
-
-
-},{"../core":30,"./association":58,"./base":59,"./modules":64,"./rest":66,"./view":67}],62:[function(require,module,exports){
-'use strict';
-var pi, utils,
+var Association, Base, Core, HasMany, ResourceEvent, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+Core = require('../../core/core');
 
-require('../rest');
+ResourceEvent = require('../events');
 
-utils = pi.utils;
+utils = require('../../core/utils');
 
-pi.resources.HasMany = (function(superClass) {
+Association = require('../association');
+
+Base = require('../base');
+
+HasMany = (function(superClass) {
   extend(HasMany, superClass);
 
   function HasMany() {
@@ -7661,7 +7623,7 @@ pi.resources.HasMany = (function(superClass) {
           }
         }
         utils.extend(options, params);
-        this["__" + name + "__"] = new pi.resources.Association(params.source, options.scope, options);
+        this["__" + name + "__"] = new Association(params.source, options.scope, options);
         if (options.scope !== false) {
           this["__" + name + "__"].load(params.source.where(options.scope));
         }
@@ -7697,7 +7659,7 @@ pi.resources.HasMany = (function(superClass) {
       };
     }
     this.after_update(function(data) {
-      if (data instanceof pi.resources.Base) {
+      if (data instanceof Base) {
         return;
       }
       if (data[name]) {
@@ -7726,25 +7688,27 @@ pi.resources.HasMany = (function(superClass) {
 
   return HasMany;
 
-})(pi.Core);
+})(Core);
 
-module.exports = pi.resources.HasMany;
+module.exports = HasMany;
 
 
 
-},{"../../core":30,"../rest":66}],63:[function(require,module,exports){
+},{"../../core/core":21,"../../core/utils":34,"../association":55,"../base":56,"../events":57}],60:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Base, Core, HasOne, ResourceEvent, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../../core');
+Core = require('../../core/core');
 
-require('../rest');
+ResourceEvent = require('../events');
 
-utils = pi.utils;
+utils = require('../../core/utils');
 
-pi.resources.HasOne = (function(superClass) {
+Base = require('../base');
+
+HasOne = (function(superClass) {
   extend(HasOne, superClass);
 
   function HasOne() {
@@ -7774,7 +7738,7 @@ pi.resources.HasOne = (function(superClass) {
           return;
         }
         e = e.data;
-        if (e.type === pi.ResourceEvent.Load) {
+        if (e.type === ResourceEvent.Load) {
           ref = params.source.all();
           results = [];
           for (i = 0, len = ref.length; i < len; i++) {
@@ -7789,9 +7753,9 @@ pi.resources.HasOne = (function(superClass) {
         } else {
           el = e[resource_name];
           if (el[params.foreign_key] && (target = _this.get(el[params.foreign_key])) && target.association(name)) {
-            if (e.type === pi.ResourceEvent.Destroy) {
+            if (e.type === ResourceEvent.Destroy) {
               delete _this[name];
-            } else if (e.type === pi.ResourceEvent.Create) {
+            } else if (e.type === ResourceEvent.Create) {
               target[bind_fun](el, true);
             }
             if (_update_filter(e, el)) {
@@ -7813,7 +7777,7 @@ pi.resources.HasOne = (function(superClass) {
         this[name][params.foreign_key] = this.id;
       }
       if (!(silent || !_update_filter(null, el))) {
-        return this.trigger_assoc_event(name, pi.ResourceEvent.Create, utils.obj.wrap(name, this[name]));
+        return this.trigger_assoc_event(name, ResourceEvent.Create, utils.obj.wrap(name, this[name]));
       }
     };
     this.after_initialize(function() {
@@ -7824,14 +7788,14 @@ pi.resources.HasOne = (function(superClass) {
     });
     this.after_update(function(data) {
       var el;
-      if (data instanceof pi.resources.Base) {
+      if (data instanceof Base) {
         return;
       }
       if (this._persisted && !this[name] && (el = params.source.get_by(utils.obj.wrap(params.foreign_key, this.id)))) {
         this[bind_fun](el, true);
       }
       if (data[name]) {
-        if (this[name] instanceof pi.resources.Base) {
+        if (this[name] instanceof Base) {
           return this[name].set(data[name]);
         } else {
           return this[bind_fun](params.source.build(data[name]));
@@ -7857,67 +7821,35 @@ pi.resources.HasOne = (function(superClass) {
 
   return HasOne;
 
-})(pi.Core);
+})(Core);
 
-module.exports = pi.resources.HasOne;
+module.exports = HasOne;
 
 
 
-},{"../../core":30,"../rest":66}],64:[function(require,module,exports){
+},{"../../core/core":21,"../../core/utils":34,"../base":56,"../events":57}],61:[function(require,module,exports){
+'use strict'
+var modules = {};
+modules.HasMany = require('./has_many');
+modules.HasOne = require('./has_one');
+module.exports = modules;
+
+},{"./has_many":59,"./has_one":60}],62:[function(require,module,exports){
 'use strict';
-require('./query');
-
-require('./has_many');
-
-require('./has_one');
-
-
-
-},{"./has_many":62,"./has_one":63,"./query":65}],65:[function(require,module,exports){
-'use strict';
-var pi, utils;
-
-pi = require('../../core');
-
-require('../rest');
-
-utils = pi.utils;
-
-pi.resources.Query = (function() {
-  function Query() {}
-
-  Query.extended = function(klass) {
-    return klass.query_path = klass.fetch_path;
-  };
-
-  Query.query = function(params) {
-    return this._request(this.query_path, 'get', params).then((function(_this) {
-      return function(response) {
-        return _this.on_all(response);
-      };
-    })(this));
-  };
-
-  return Query;
-
-})();
-
-module.exports = pi.resources.Query;
-
-
-
-},{"../../core":30,"../rest":66}],66:[function(require,module,exports){
-'use strict';
-var _double_slashes_reg, _path_reg, _tailing_slash_reg, pi, utils,
+var Base, EventDispatcher, Net, REST, ResourceEvent, _double_slashes_reg, _path_reg, _tailing_slash_reg, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   slice = [].slice;
 
-pi = require('../core');
+Base = require('./base');
 
-require('./base');
+EventDispatcher = require('../core/events').EventDispatcher;
 
-utils = pi.utils;
+ResourceEvent = require('./events');
+
+utils = require('../core/utils');
+
+Net = require('../net');
 
 _path_reg = /:\w+/g;
 
@@ -7925,7 +7857,7 @@ _double_slashes_reg = /\/\//;
 
 _tailing_slash_reg = /\/$/;
 
-pi.resources.REST = (function(superClass) {
+REST = (function(superClass) {
   extend(REST, superClass);
 
   function REST() {
@@ -8088,7 +8020,7 @@ pi.resources.REST = (function(superClass) {
   };
 
   REST.error = function(action, message) {
-    return pi.event.trigger("net_error", {
+    return EventDispatcher.Global.trigger("net_error", {
       resource: this.resources_name,
       action: action,
       message: message
@@ -8100,7 +8032,7 @@ pi.resources.REST = (function(superClass) {
       resources: this.resources_name,
       resource: this.resource_name
     }), target);
-    return pi.net[method].call(null, path, params)["catch"]((function(_this) {
+    return Net[method].call(null, path, params)["catch"]((function(_this) {
       return function(error) {
         _this.error(error.message);
         throw error;
@@ -8250,25 +8182,27 @@ pi.resources.REST = (function(superClass) {
 
   return REST;
 
-})(pi.resources.Base);
+})(Base);
 
-module.exports = pi.resources.REST;
+module.exports = REST;
 
 
 
-},{"../core":30,"./base":59}],67:[function(require,module,exports){
+},{"../core/events":24,"../core/utils":34,"../net":44,"./base":56,"./events":57}],63:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Base, EventDispatcher, ResourceEvent, View, ViewItem, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
+EventDispatcher = require('../core/events').EventDispatcher;
 
-require('./base');
+utils = require('../core/utils');
 
-utils = pi.utils;
+ResourceEvent = require('./events');
 
-pi.resources.ViewItem = (function(superClass) {
+Base = require('./base');
+
+ViewItem = (function(superClass) {
   extend(ViewItem, superClass);
 
   function ViewItem(view, data, options) {
@@ -8282,7 +8216,7 @@ pi.resources.ViewItem = (function(superClass) {
     this.set(data, true);
   }
 
-  utils.extend(ViewItem.prototype, pi.resources.Base.prototype, false);
+  utils.extend(ViewItem.prototype, Base.prototype, false);
 
   ViewItem.prototype.created = function(tid) {
     return this.view.created(this, tid);
@@ -8308,15 +8242,15 @@ pi.resources.ViewItem = (function(superClass) {
       }
       return data;
     } else {
-      return pi.resources.Base.prototype.attributes.call(this);
+      return Base.prototype.attributes.call(this);
     }
   };
 
   return ViewItem;
 
-})(pi.EventDispatcher);
+})(EventDispatcher);
 
-pi.resources.View = (function(superClass) {
+View = (function(superClass) {
   extend(View, superClass);
 
   function View(resources, scope, options) {
@@ -8343,7 +8277,7 @@ pi.resources.View = (function(superClass) {
     })(this));
   }
 
-  utils.extend(View.prototype, pi.resources.Base);
+  utils.extend(View.prototype, Base);
 
   View.prototype.on_update = function(el) {
     var view_item;
@@ -8398,19 +8332,19 @@ pi.resources.View = (function(superClass) {
       params = {};
     }
     if (!(el = this.get(data.id))) {
-      if (data instanceof pi.resources.Base && this.options.copy === false) {
+      if (data instanceof Base && this.options.copy === false) {
         el = data;
       } else {
-        if (data instanceof pi.resources.Base) {
+        if (data instanceof Base) {
           data = data.attributes();
         }
         utils.extend(data, params, true);
-        el = new pi.resources.ViewItem(this, data, this.options);
+        el = new ViewItem(this, data, this.options);
       }
       if (el.id) {
         this.add(el);
         if (!silent) {
-          this.trigger(pi.ResourceEvent.Create, this._wrap(el));
+          this.trigger(ResourceEvent.Create, this._wrap(el));
         }
       }
       return el;
@@ -8420,9 +8354,9 @@ pi.resources.View = (function(superClass) {
   };
 
   View.prototype._wrap = function(el) {
-    if (el instanceof pi.resources.ViewItem) {
+    if (el instanceof ViewItem) {
       return utils.obj.wrap(el.view.resource_name, el);
-    } else if (el instanceof pi.resources.Base) {
+    } else if (el instanceof Base) {
       return utils.obj.wrap(el.constructor.resource_name, el);
     } else {
       return el;
@@ -8455,45 +8389,23 @@ pi.resources.View = (function(superClass) {
 
   return View;
 
-})(pi.EventDispatcher);
+})(EventDispatcher);
 
-module.exports = pi.resources.View;
+module.exports = View;
 
 
 
-},{"../core":30,"./base":59}],68:[function(require,module,exports){
+},{"../core/events":24,"../core/utils":34,"./base":56,"./events":57}],64:[function(require,module,exports){
 'use strict';
-var pi, utils,
+var Base, BaseComponent, utils,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-pi = require('../core');
-
 utils = require('../core/utils');
 
-require('../components/base');
+BaseComponent = require('../components/base');
 
-utils.extend(pi.Base.prototype, {
-  view: function() {
-    return this.__view__ || (this.__view__ = this._find_view());
-  },
-  context: function() {
-    var ref;
-    return this.__controller__ || (this.__controller__ = (ref = this.view()) != null ? ref.controller : void 0);
-  },
-  _find_view: function() {
-    var comp;
-    comp = this;
-    while (comp) {
-      if (comp.is_view === true) {
-        return comp;
-      }
-      comp = comp.host;
-    }
-  }
-});
-
-pi.views.Base = (function(superClass) {
+Base = (function(superClass) {
   extend(Base, superClass);
 
   function Base() {
@@ -8532,27 +8444,41 @@ pi.views.Base = (function(superClass) {
 
   return Base;
 
-})(pi.Base);
+})(BaseComponent);
 
-module.exports = pi.views.Base;
+utils.extend(BaseComponent.prototype, {
+  view: function() {
+    return this.__view__ || (this.__view__ = this._find_view());
+  },
+  context: function() {
+    var ref;
+    return this.__controller__ || (this.__controller__ = (ref = this.view()) != null ? ref.controller : void 0);
+  },
+  _find_view: function() {
+    var comp;
+    comp = this;
+    while (comp) {
+      if (comp.is_view === true) {
+        return comp;
+      }
+      comp = comp.host;
+    }
+  }
+});
+
+module.exports = Base;
 
 
 
-},{"../components/base":5,"../core":30,"../core/utils":38}],69:[function(require,module,exports){
-'use strict';
-var pi;
+},{"../components/base":1,"../core/utils":34}],65:[function(require,module,exports){
+'use strict'
+var views = {};
+views.Base = require('./base');
+module.exports = views;
 
-pi = require('../core');
+},{"./base":64}],66:[function(require,module,exports){
 
-pi.views = {};
-
-require('./base');
-
-
-
-},{"../core":30,"./base":68}],70:[function(require,module,exports){
-
-},{}],71:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8780,7 +8706,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":72}],72:[function(require,module,exports){
+},{"_process":68}],68:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8840,4 +8766,4 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[48]);
+},{}]},{},[42]);

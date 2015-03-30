@@ -1,10 +1,12 @@
 'use strict'
-pi = require '../pi'
 utils = require '../utils'
-require '../core'
+Core = require '../core'
+
+# Exports Event, EventListener, EventDispatcher
+exports = {}
 
 # Base event class
-class pi.Event extends pi.Core
+class Event extends Core
   constructor: (event, @target, bubbles = true) ->
     if event? and typeof event is "object"
       utils.extend @, event
@@ -18,10 +20,12 @@ class pi.Event extends pi.Core
   cancel: ->
     @canceled = true
 
+exports.Event = Event
+
 # Event listener class
 # @private
 
-class pi.EventListener extends pi.Core
+class EventListener extends Core
   constructor: (@type, @handler, @context = null, @disposable = false, @conditions) ->
     super
     @handler._uid = "fun"+utils.uid() if not @handler._uid?
@@ -55,11 +59,13 @@ _types = (types) ->
   else
     [null]
 
+exports.EventListener = EventListener
+
 # Base Event Dispatcher class for all components
 # Wrapper for underlying native events and custom events
 # @private
 
-class pi.EventDispatcher extends pi.Core
+class EventDispatcher extends Core
   listeners: ''
   listeners_by_key: ''
   constructor: ->
@@ -70,12 +76,12 @@ class pi.EventDispatcher extends pi.Core
   # Attach listener
 
   on: (types, callback, context, conditions) ->
-    @add_listener(new pi.EventListener(type, callback, context, false, conditions)) for type in _types(types)
+    @add_listener(new EventListener(type, callback, context, false, conditions)) for type in _types(types)
   
   # Attach disposable (= one-time) listener
 
   one: (type, callback, context, conditions) ->
-    @add_listener new pi.EventListener(type, callback, context, true, conditions)
+    @add_listener new EventListener(type, callback, context, true, conditions)
 
   # Remove listeners
   # 
@@ -100,7 +106,7 @@ class pi.EventDispatcher extends pi.Core
   # @params [Boolean] bubbles 
 
   trigger: (event, data, bubbles = true) ->
-    event = new pi.Event(event, @, bubbles) unless event instanceof pi.Event
+    event = new Event(event, @, bubbles) unless event instanceof Event
     event.data = data if data?
     event.currentTarget = @
     if @listeners[event.type]?
@@ -170,4 +176,6 @@ class pi.EventDispatcher extends pi.Core
     @listeners = {}
     @listeners_by_key = {} 
 
-module.exports = pi.EventDispatcher
+exports.EventDispatcher = EventDispatcher
+
+module.exports = exports

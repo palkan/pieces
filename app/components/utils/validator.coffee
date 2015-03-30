@@ -1,11 +1,9 @@
 'use strict'
-pi = require '../../core'
-require './base_input'
-utils = pi.utils
+utils = require '../../core/utils'
 
 _type_rxp = /(\w+)(?:\(([\w\-\/]+)\))/
 
-class pi.BaseInput.Validator
+class Validator
   @add: (name, fun) ->
     @[name] = fun
 
@@ -40,4 +38,4 @@ class pi.BaseInput.Validator
       return false
     return conf_nod.value() is val 
 
-module.exports = pi.BaseInput.Validator
+module.exports = Validator

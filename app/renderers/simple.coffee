@@ -1,7 +1,7 @@
 'use strict'
-pi = require '../core'
-require './base'
-utils = pi.utils
+Nod = require('../core/nod').Nod
+utils = require('../core/utils')
+Base = require('./base')
 
 _reg_partials = /\{\>\s*([^\}]+?)\s*\}[\s\S]+?\{\<\s*\1\s*\}/g
 
@@ -20,7 +20,7 @@ _escapes =
 
 # [Renderer]
 # Simple template from html with a little bit of logic
-class pi.Renderers.Simple extends pi.Renderers.Base
+class Simple extends Base
   constructor: (nod) ->
     @create_templater(nod.html())
 
@@ -58,10 +58,10 @@ class pi.Renderers.Simple extends pi.Renderers.Base
 
 
   render: (data, piecified, host) ->
-    if data instanceof pi.Nod
+    if data instanceof Nod
       super
     else
-      nod = pi.Nod.create pi.utils.squish(@templater(data))
+      nod = Nod.create utils.squish(@templater(data))
       @_render nod, data, piecified, host
 
   # Creates function source from template string 
@@ -132,4 +132,4 @@ class pi.Renderers.Simple extends pi.Renderers.Base
       //# sourceURL=/simpletemplates/source_#{hash}";\n
       """
 
-module.exports = pi.Renderers.Jst
+module.exports = Simple

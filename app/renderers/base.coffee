@@ -1,16 +1,17 @@
 'use strict'
-pi = require '../core'
-utils = pi.utils
+Nod = require('../core/nod').Nod
+utils = require('../core/utils')
+BaseComponent = require('../components/base')
 
-class pi.Renderers.Base
+class Base
   render: (nod, piecified, host) ->
-    return unless nod instanceof pi.Nod
+    return unless nod instanceof Nod
     @_render nod, nod.data(), piecified, host 
 
   _render: (nod, data, piecified = true, host) ->
-    unless nod instanceof pi.Base
+    unless nod instanceof BaseComponent
       nod = nod.piecify(host) if piecified
     nod.record = data
     nod
 
-module.exports = pi.Renderers.Base
+module.exports = Base

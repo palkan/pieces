@@ -1,9 +1,10 @@
 'use strict'
-pi = require '../core'
-require './base'
-utils = pi.utils
+EventDispatcher = require('../core/events').EventDispatcher
+utils = require '../core/utils'
+ResourceEvent = require './events'
+Base = require './base'
 
-class pi.resources.ViewItem extends pi.EventDispatcher
+class ViewItem extends EventDispatcher
   constructor: (@view, data, @options={}) ->
     super
     if @options.params? and @options.params.indexOf('id')<0
@@ -11,7 +12,7 @@ class pi.resources.ViewItem extends pi.EventDispatcher
     @changes = {}
     @set(data,true)
 
-  utils.extend @::, pi.resources.Base::, false
+  utils.extend @::, Base::, false
 
   created: (tid) ->
     @view.created(@,tid)
@@ -28,10 +29,10 @@ class pi.resources.ViewItem extends pi.EventDispatcher
         delete data.id
       data
     else
-      pi.resources.Base::attributes.call(@)
+      Base::attributes.call(@)
 
 # Resource View is a temporary projection of resource
-class pi.resources.View extends pi.EventDispatcher
+class View extends EventDispatcher
   # generate new view for resource
   constructor: (@resources, scope, @options={}) ->
     super
@@ -50,7 +51,7 @@ class pi.resources.View extends pi.EventDispatcher
 
       @["on_#{e.data.type}"]?(el)
   
-  utils.extend @::, pi.resources.Base
+  utils.extend @::, Base
 
   on_update: (el) ->
     if (view_item = @get(el.id))
@@ -76,24 +77,24 @@ class pi.resources.View extends pi.EventDispatcher
   # create new resource
   build: (data={}, silent = false, params={}) ->
     unless (el = @get(data.id))
-      if data instanceof pi.resources.Base and @options.copy is false
+      if data instanceof Base and @options.copy is false
         el = data
       else
-        if data instanceof pi.resources.Base
+        if data instanceof Base
           data = data.attributes()
         utils.extend data, params, true
-        el = new pi.resources.ViewItem(@,data,@options)
+        el = new ViewItem(@,data,@options)
       if el.id
         @add el  
-        @trigger(pi.ResourceEvent.Create, @_wrap(el)) unless silent
+        @trigger(ResourceEvent.Create, @_wrap(el)) unless silent
       el
     else
       el.set(data, silent)
 
   _wrap: (el) ->
-    if el instanceof pi.resources.ViewItem
+    if el instanceof ViewItem
       utils.obj.wrap el.view.resource_name, el
-    else if el instanceof pi.resources.Base
+    else if el instanceof Base
       utils.obj.wrap el.constructor.resource_name, el
     else
       el
@@ -114,4 +115,4 @@ class pi.resources.View extends pi.EventDispatcher
   off: (callback) ->
     super "update", callback
 
-module.exports = pi.resources.View
+module.exports = View

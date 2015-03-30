@@ -1,15 +1,14 @@
 'use strict'
-pi = require '../core'
-require './events'
-utils = pi.utils
+EventDispatcher = require('../core/events').EventDispatcher
+utils = require('../core/utils')
+ResourceEvent = require('./events')
 
 _singular = (str) ->
   str.replace /s$/,''
 
 # Resources used to share and synchronize data between views.
 # All resources should have 'id' field in order to access them by id and to cache resources locally. 
-
-class pi.resources.Base extends pi.EventDispatcher
+class Base extends EventDispatcher
   # initialize resource with name
   @set_resource: (plural, singular) ->
     # element by id
@@ -31,7 +30,7 @@ class pi.resources.Base extends pi.EventDispatcher
   @load: (data,silent=false) ->
     if data?
       elements = (@build(el,true) for el in data)
-      @trigger(pi.ResourceEvent.Load,{}) unless silent
+      @trigger(ResourceEvent.Load,{}) unless silent
       elements
 
   # Can create collection or item from data if resources_name key or resource_name exists 
@@ -89,11 +88,11 @@ class pi.resources.Base extends pi.EventDispatcher
       el = new @(data)
       if add
         @add el  
-        # resource should not trigger pi.ResourceEvent.Create event if element is temporary
-        @trigger(pi.ResourceEvent.Create, @_wrap(el)) unless (silent or el.__temp__) 
+        # resource should not trigger ResourceEvent.Create event if element is temporary
+        @trigger(ResourceEvent.Create, @_wrap(el)) unless (silent or el.__temp__) 
       el
     else
-      el.set(data,silent)
+      el.set(data, silent)
 
   @created: (el, temp_id) ->
     if @__all_by_tid__[temp_id]
@@ -118,24 +117,24 @@ class pi.resources.Base extends pi.EventDispatcher
       delete @__all_by_tid__[el.id]
     
     @__all__.splice @__all__.indexOf(el), 1
-    @trigger(pi.ResourceEvent.Destroy, @_wrap(el)) unless silent
+    @trigger(ResourceEvent.Destroy, @_wrap(el)) unless silent
     el.dispose() if disposed
     return true
 
   # Add listener to resource
   @listen: (callback, filter) ->
-    pi.event.on "#{@resources_name}_update", callback, null, filter 
+    EventDispatcher.Global.on "#{@resources_name}_update", callback, null, filter 
 
   @trigger: (event, data, changes) ->
     data.type = event
     data.changes = changes
-    pi.event.trigger "#{@resources_name}_update", data, false
+    EventDispatcher.Global.trigger "#{@resources_name}_update", data, false
 
   @off: (callback) ->
     if callback?
-      pi.event.off "#{@resources_name}_update", callback 
+      EventDispatcher.Global.off "#{@resources_name}_update", callback 
     else
-      pi.event.off "#{@resources_name}_update" 
+      EventDispatcher.Global.off "#{@resources_name}_update" 
 
   @all: ->
     @__all__.slice()
@@ -150,15 +149,8 @@ class pi.resources.Base extends pi.EventDispatcher
   @where: (params) ->
     el for el in @__all__ when utils.matchers.object_ext(params)(el)
 
-  # generate scoped association by params
-  # TODO: cache views
-  @view: (params) ->
-    view = new pi.resources.Association(@, params, scope: params, copy: false, source: @)
-    view.reload()
-    view
-
   @_wrap: (el) ->
-    if el instanceof pi.resources.Base
+    if el instanceof Base
       utils.obj.wrap el.constructor.resource_name, el
     else
       el
@@ -229,11 +221,11 @@ class pi.resources.Base extends pi.EventDispatcher
       delete @__temp__
       @_persisted = true
       @__tid__ = _old_id 
-      type = pi.ResourceEvent.Create
+      type = ResourceEvent.Create
       @created(_old_id)
     else
-      type = pi.ResourceEvent.Update 
-    @trigger(type, (if type is pi.ResourceEvent.Create then @ else @changes)) if (_changed && !silent)
+      type = ResourceEvent.Update 
+    @trigger(type, (if type is ResourceEvent.Create then @ else @changes)) if (_changed && !silent)
     @
 
   @register_callback 'set', as: 'update'
@@ -246,20 +238,7 @@ class pi.resources.Base extends pi.EventDispatcher
   trigger_assoc_event: (name, type, data) ->
     if typeof @["on_#{name}_update"] is 'function'
       @["on_#{name}_update"].call(@, type, data)
-    @trigger pi.ResourceEvent.Update, utils.obj.wrap(name, true)
+    @trigger ResourceEvent.Update, utils.obj.wrap(name, true)
 
-# Create new resource by name and superclass (optional)
-pi.resources.create = (name, parent = $r.Base, options={}) ->
-  klass=utils.subclass(parent)
-  if name?
-    # name can be nested
-    name_parts = name.split(".")
-    rname = name_parts[name_parts.length-1]
-    
-    klass.set_resource rname, options.plural
-    utils.obj.set_class_path(pi.resources, name, klass)
-  else
-    klass.set_resource "unknown"
-  klass
-
-module.export = pi.resources.Base
+Base.Event = ResourceEvent
+module.exports = Base

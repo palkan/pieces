@@ -1,22 +1,8 @@
 'use strict'
-pi = require '../pi'
-
-
-# export function to global object (window) with ability to rollback (noconflict)
-_conflicts = {}
-
-pi.export = (fun, as) ->
-  if window[as]?
-    _conflicts[as] = window[as] unless _conflicts[as]?
-  window[as] = fun
-
-pi.noconflict = () ->
-  for own name,fun of _conflicts
-    window[name] = fun
 
 _uniq_id = 100
 
-class pi.utils
+class utils
 
   ## regular experssion
   @email_rxp: /\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/i
@@ -231,7 +217,7 @@ class pi.utils
         _buf = args
         return
 
-      (ths||{}).__debounce_id__ = pi.utils.after period, ->
+      (ths||{}).__debounce_id__ = utils.after period, ->
         _wait = false
         if throttle and _buf?
           fun.apply(ths,_buf) 
@@ -241,35 +227,28 @@ class pi.utils
       fun.apply(ths,args) unless _buf?
 
   @throttle: (period, fun, ths) ->
-    pi.utils.debounce period, fun, ths, true
+    utils.debounce period, fun, ths, true
 
   @curry: (fun, args = [], ths, last = false) ->
       fun = if ("function" == typeof fun) then fun else ths[fun]
-      args = pi.utils.to_a args
+      args = utils.to_a args
       (rest...)->
         fun.apply(ths||@, if last then rest.concat(args) else args.concat(rest))      
 
   # return delayed version of function
   @delayed: (delay, fun, args = [], ths) -> 
       -> 
-        setTimeout(pi.utils.curry(fun, args, ths), delay)
+        setTimeout(utils.curry(fun, args, ths), delay)
 
   # setTimeout with reverse order of arguments and context
   @after: (delay, fun, ths) ->
-    pi.utils.delayed(delay, fun, [], ths)()
+    utils.delayed(delay, fun, [], ths)()
   
 
 # generate constant functions
 for method in [['truthy', true], ['falsey', false], ['null', null], ['pass', undefined]]
   do (method) ->
     [name, val] = method
-    pi.utils[name] = -> val 
+    utils[name] = -> val 
 
-# export functions 
-pi.export pi.utils.curry, 'curry'
-pi.export pi.utils.delayed, 'delayed'
-pi.export pi.utils.after, 'after'
-pi.export pi.utils.debounce, 'debounce'
-pi.export pi.utils.throttle, 'throttle'
-
-module.exports = pi.utils
+module.exports = utils
