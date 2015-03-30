@@ -2,12 +2,16 @@
   "author": "Vlad Dem <palkan>",
   "name": "pieces",
   "description": "JS library and/or framework",
+  "main": "./app/pi.js",
   "version": "0.4.0",
   "license": "MIT",
   "homepage": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/pieces-js/pieces.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pieces-js/pieces/issues"
   },
   "engines": {
     "node": "~0.10"

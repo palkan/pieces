@@ -1,4 +1,6 @@
 'use strict'
+pi = require '../core'
+
 pi.controllers = {}
 
 #shortcut

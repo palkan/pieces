@@ -1,4 +1,5 @@
 'use strict'
+pi = require '../core'
 pi.resources = {}
 
 #shortcut

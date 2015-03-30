@@ -11,19 +11,19 @@ describe "Base.Renderable", ->
   test_div = example = null
   
   beforeEach  ->
-    window.JST ||= {}
-    window.JST['test/base'] = (data) ->
-      nod = Nod.create("<div>#{ data.name }</div>")
-      nod.append "<span class='author'>#{ data.author }</span>"
-      nod.append "<button class='pi' pid='some_btn'>Button</button>"
-      nod  
-
-    test_div = h.test_cont root, '''<div><div class="pi test" data-plugins="renderable" data-renderer="jst(test/base)" data-pid="test" data-id="2">
+    test_div = h.test_cont root, '''<div><div class="pi test" data-plugins="renderable" data-pid="test" data-id="2">
                         <div>John
                           <span class="author">Green</span>
                           <button class="pi" pid="some_btn">Button</button>
                         </div>
-                      </div></div>'''
+                        <script class="pi-renderer" type="text/html">
+                          <div>{{ name }}
+                            <span class='author'>{{ author }}</span>
+                            <button class='pi' pid='some_btn'>Button</button>
+                          </div>
+                        </script>
+                        </div>
+                      </div>'''
     pi.app.view.piecify()
     example = test_div.find('.test')
 
@@ -38,7 +38,7 @@ describe "Base.Renderable", ->
     example.render name: 'Jack', author: 'Sparrow'
 
     expect(old_btn._disposed).to.be.true
-    expect(example.text()).to.eq 'JackSparrowButton'
+    expect(example.find('.author').text()).to.eq 'Sparrow'
     expect(example.some_btn).to.be.an.instanceof pi.Base
     expect(example.__components__).to.have.length 1
     expect(example.some_btn).not.to.eq old_btn

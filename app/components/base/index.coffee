@@ -1,5 +1,4 @@
 'use strict'
 require './base'
 require './base_input'
-require './list'
 require './textinput'

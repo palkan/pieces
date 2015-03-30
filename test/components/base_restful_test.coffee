@@ -14,12 +14,6 @@ describe "Base.Restful", ->
   test_div = example = page = null
 
   beforeEach ->
-    (window.JST||={})['test/user'] = (data) ->
-      nod = Nod.create("<div>#{ data.name }</div>")
-      nod.addClass 'item'
-      nod.append "<span class='age'>#{ data.age }</span>"
-      nod  
-
     page = pi.app.page
 
     test_div = Nod.create('div')
@@ -34,7 +28,12 @@ describe "Base.Restful", ->
   it "bind app resource on init", (done) ->
     pi.app.user = TestUsers.build({name: 'Lee', age: 44})
     test_div.append """
-      <div class="pi" pid="test" data-plugins="restful" data-renderer="jst(test/user)" data-rest="app.user">
+      <div class="pi" pid="test" data-plugins="restful" data-rest="app.user">
+        <script type="text/html" class="pi-renderer">
+          <div class='item'>{{ name }}
+            <span class='age'>{{ age }}</span>
+          </div>
+        </script>
       </div>
     """
     
@@ -47,7 +46,12 @@ describe "Base.Restful", ->
 
   it "bind resource after init", ->
     test_div.append """
-      <div class="pi" pid="test" data-plugins="restful" data-renderer="jst(test/user)">
+      <div class="pi" pid="test" data-plugins="restful">
+        <script type="text/html" class="pi-renderer">
+          <div class='item'>{{ name }}
+            <span class='age'>{{ age }}</span>
+          </div>
+        </script>
       </div>
     """
 
@@ -64,7 +68,12 @@ describe "Base.Restful", ->
 
   it "bind remote resource", (done) ->
     test_div.append """
-      <div class="pi" pid="test" data-plugins="restful" data-renderer="jst(test/user)" data-rest="TestUsers.find(2)">
+      <div class="pi" pid="test" data-plugins="restful" data-rest="TestUsers.find(2)">
+        <script type="text/html" class="pi-renderer">
+          <div class='item'>{{ name }}
+            <span class='age'>{{ age }}</span>
+          </div>
+        </script>
       </div>
     """
     test_div.piecify()

@@ -1,7 +1,6 @@
 'use strict'
+pi = require '../core'
 pi.Renderers = {}
 require './base'
-require './jst'
-require './mustache'
 require './simple'
 module.exports = pi.Renderers
