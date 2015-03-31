@@ -1,6 +1,6 @@
 {
   "author": "Vlad Dem <palkan>",
-  "name": "pieces",
+  "name": "pieces-core",
   "description": "Pieces JS core library",
   "main": "./app/index",
   "directories": {

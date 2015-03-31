@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pieces/test/helpers'
+h = require 'pieces-core/test/helpers'
 
 TestUsers = pi.resources.TestUsers
 Controller = pi.controllers.Base

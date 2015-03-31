@@ -7,7 +7,7 @@ exports.config =
         data
       else
         path = path.replace(/^app\//, '').replace(/\.[^\.]+$/,'')
-        path='pieces/'+path
+        path='pieces-core/'+path
         """
           require.define({'#{path}': function(exports, require, module) {
             #{data}

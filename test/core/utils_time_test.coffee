@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pieces/test/helpers'
+h = require 'pieces-core/test/helpers'
 utime = pi.utils.time
 
 describe "Utils", ->

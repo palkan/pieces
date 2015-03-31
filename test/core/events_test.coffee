@@ -1,5 +1,5 @@
 'use strict'
-h = require 'pieces/test/helpers'
+h = require 'pieces-core/test/helpers'
 
 describe "EventDispatcher", ->
   root_e = h.test_cont(pi.Nod.body)

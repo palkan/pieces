@@ -90,7 +90,7 @@
   globals.require.list = list;
   globals.require.brunch = true;
 })();
-require.define({'pieces/components/base': function(exports, require, module) {
+require.define({'pieces-core/components/base': function(exports, require, module) {
   'use strict';
 var Base, Compiler, Events, Klass, Nod, utils, _array_rxp, _node_attr, _prop_setter, _proper, _toggle_class,
   __hasProp = {}.hasOwnProperty,
@@ -483,7 +483,7 @@ module.exports = Base;
 
 }});
 
-require.define({'pieces/components/base_input': function(exports, require, module) {
+require.define({'pieces-core/components/base_input': function(exports, require, module) {
   'use strict';
 var Base, BaseInput, Events, utils, _pass, _ref, _serialize,
   __hasProp = {}.hasOwnProperty,
@@ -555,7 +555,7 @@ module.exports = BaseInput;
 
 }});
 
-require.define({'pieces/components/events/index': function(exports, require, module) {
+require.define({'pieces-core/components/events/index': function(exports, require, module) {
   var events = require('./pi_events'),
     utils = require('../../core/utils');
 
@@ -565,7 +565,7 @@ module.exports = events;
 
 }});
 
-require.define({'pieces/components/events/input_events': function(exports, require, module) {
+require.define({'pieces-core/components/events/input_events': function(exports, require, module) {
   'use strict';
 module.exports = {
   InputEvent: {
@@ -583,7 +583,7 @@ module.exports = {
 
 }});
 
-require.define({'pieces/components/events/pi_events': function(exports, require, module) {
+require.define({'pieces-core/components/events/pi_events': function(exports, require, module) {
   'use strict';
 module.exports = {
   Initialized: 'initialized',
@@ -599,7 +599,7 @@ module.exports = {
 
 }});
 
-require.define({'pieces/components/form': function(exports, require, module) {
+require.define({'pieces-core/components/form': function(exports, require, module) {
   'use strict';
 var Base, BaseInput, Events, Form, Former, Klass, Nod, Validator, utils, _array_name, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -841,7 +841,7 @@ module.exports = Form;
 
 }});
 
-require.define({'pieces/components/index': function(exports, require, module) {
+require.define({'pieces-core/components/index': function(exports, require, module) {
   'use strict'
 var components = {};
 components.Events = require('./events');
@@ -854,7 +854,7 @@ module.exports = components;
 
 }});
 
-require.define({'pieces/components/textinput': function(exports, require, module) {
+require.define({'pieces-core/components/textinput': function(exports, require, module) {
   'use strict';
 var Base, BaseInput, Events, Klass, TextInput, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -921,7 +921,7 @@ module.exports = TextInput;
 
 }});
 
-require.define({'pieces/components/utils/guesser': function(exports, require, module) {
+require.define({'pieces-core/components/utils/guesser': function(exports, require, module) {
   'use strict';
 var Guesser, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -1046,7 +1046,7 @@ module.exports = Guesser;
 
 }});
 
-require.define({'pieces/components/utils/initializer': function(exports, require, module) {
+require.define({'pieces-core/components/utils/initializer': function(exports, require, module) {
   'use strict';
 var ComponentBuilder, Components, Config, Guesser, Initializer, Nod, utils, _event_re;
 
@@ -1167,7 +1167,7 @@ module.exports = Initializer;
 
 }});
 
-require.define({'pieces/components/utils/klass': function(exports, require, module) {
+require.define({'pieces-core/components/utils/klass': function(exports, require, module) {
   'use strict';
 var klass;
 
@@ -1187,7 +1187,7 @@ module.exports = klass;
 
 }});
 
-require.define({'pieces/components/utils/setup': function(exports, require, module) {
+require.define({'pieces-core/components/utils/setup': function(exports, require, module) {
   'use strict';
 var $, App, Compiler, EventDispatcher, Initializer, Klass, Nod, find, piecify, utils;
 
@@ -1258,7 +1258,7 @@ module.exports = $;
 
 }});
 
-require.define({'pieces/components/utils/validator': function(exports, require, module) {
+require.define({'pieces-core/components/utils/validator': function(exports, require, module) {
   'use strict';
 var Validator, utils, _type_rxp;
 
@@ -1321,7 +1321,7 @@ module.exports = Validator;
 
 }});
 
-require.define({'pieces/controllers/base': function(exports, require, module) {
+require.define({'pieces-core/controllers/base': function(exports, require, module) {
   'use strict';
 var Base, Context, utils,
   __hasProp = {}.hasOwnProperty,
@@ -1400,7 +1400,7 @@ module.exports = Base;
 
 }});
 
-require.define({'pieces/controllers/context': function(exports, require, module) {
+require.define({'pieces-core/controllers/context': function(exports, require, module) {
   'use strict';
 var Context, Core, History, Strategy, utils, _ref, _ref1, _ref2,
   __hasProp = {}.hasOwnProperty,
@@ -1736,7 +1736,7 @@ module.exports = Context;
 
 }});
 
-require.define({'pieces/controllers/index': function(exports, require, module) {
+require.define({'pieces-core/controllers/index': function(exports, require, module) {
   'use strict'
 var controllers = {}
 
@@ -1748,7 +1748,7 @@ module.exports = controllers;
 
 }});
 
-require.define({'pieces/controllers/initializer': function(exports, require, module) {
+require.define({'pieces-core/controllers/initializer': function(exports, require, module) {
   'use strict';
 var BaseView, Compiler, ControllerBuilder, Controllers, Initializer, Page, Views, utils, _mod_rxp;
 
@@ -1832,7 +1832,7 @@ module.exports = ControllerBuilder;
 
 }});
 
-require.define({'pieces/controllers/page': function(exports, require, module) {
+require.define({'pieces-core/controllers/page': function(exports, require, module) {
   'use strict';
 var Compiler, Config, Context, Page, utils,
   __hasProp = {}.hasOwnProperty,
@@ -1875,7 +1875,7 @@ module.exports = Page;
 
 }});
 
-require.define({'pieces/core/app': function(exports, require, module) {
+require.define({'pieces-core/core/app': function(exports, require, module) {
   'use strict';
 var App, Nod, Page, utils;
 
@@ -1925,7 +1925,7 @@ module.exports = App;
 
 }});
 
-require.define({'pieces/core/config': function(exports, require, module) {
+require.define({'pieces-core/core/config': function(exports, require, module) {
   'use strict';
 var config;
 
@@ -1936,7 +1936,7 @@ module.exports = config;
 
 }});
 
-require.define({'pieces/core/core': function(exports, require, module) {
+require.define({'pieces-core/core/core': function(exports, require, module) {
   'use strict';
 var Core, utils,
   __slice = [].slice;
@@ -2127,7 +2127,7 @@ module.exports = Core;
 
 }});
 
-require.define({'pieces/core/events/aliases': function(exports, require, module) {
+require.define({'pieces-core/core/events/aliases': function(exports, require, module) {
   'use strict';
 var Browser, NodEvent;
 
@@ -2142,7 +2142,7 @@ if (!!Browser.info().gecko) {
 
 }});
 
-;require.define({'pieces/core/events/events': function(exports, require, module) {
+;require.define({'pieces-core/core/events/events': function(exports, require, module) {
   'use strict';
 var Core, Event, EventDispatcher, EventListener, exports, utils, _types,
   __hasProp = {}.hasOwnProperty,
@@ -2401,14 +2401,14 @@ module.exports = exports;
 
 }});
 
-require.define({'pieces/core/events/index': function(exports, require, module) {
+require.define({'pieces-core/core/events/index': function(exports, require, module) {
   'use strict'
 module.exports = require('./events');
 
 
 }});
 
-require.define({'pieces/core/events/resize_delegate': function(exports, require, module) {
+require.define({'pieces-core/core/events/resize_delegate': function(exports, require, module) {
   'use strict';
 var Core, EventListener, Nod, NodEvent, ResizeDelegate, ResizeListener, utils,
   __hasProp = {}.hasOwnProperty,
@@ -2523,7 +2523,7 @@ module.exports = ResizeDelegate;
 
 }});
 
-require.define({'pieces/core/former/former': function(exports, require, module) {
+require.define({'pieces-core/core/former/former': function(exports, require, module) {
   'use strict';
 var Former, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -2856,7 +2856,7 @@ module.exports = Former;
 
 }});
 
-require.define({'pieces/core/index': function(exports, require, module) {
+require.define({'pieces-core/core/index': function(exports, require, module) {
   'use strict'
 var pi = {}
 
@@ -2910,7 +2910,7 @@ module.exports = pi;
 
 }});
 
-require.define({'pieces/core/nod': function(exports, require, module) {
+require.define({'pieces-core/core/nod': function(exports, require, module) {
   'use strict';
 var Event, EventDispatcher, KeyEvent, MouseEvent, Nod, NodEvent, NodEventDispatcher, d, exports, utils, _body, _caf, _data_reg, _dataset, _fn, _fn1, _fragment, _from_dataCase, _geometry_styles, _i, _j, _key_regexp, _len, _len1, _mouse_regexp, _node, _prepare_event, _prop_hash, _raf, _ref, _ref1, _selector, _selector_regexp, _store, _win,
   __hasProp = {}.hasOwnProperty,
@@ -4034,7 +4034,7 @@ module.exports = exports;
 
 }});
 
-require.define({'pieces/core/utils/arr': function(exports, require, module) {
+require.define({'pieces-core/core/utils/arr': function(exports, require, module) {
   'use strict';
 var Arr, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -4103,7 +4103,7 @@ module.exports = Arr;
 
 }});
 
-require.define({'pieces/core/utils/base': function(exports, require, module) {
+require.define({'pieces-core/core/utils/base': function(exports, require, module) {
   'use strict';
 var method, utils, _fn, _i, _len, _ref, _uniq_id,
   __hasProp = {}.hasOwnProperty,
@@ -4532,7 +4532,7 @@ module.exports = utils;
 
 }});
 
-require.define({'pieces/core/utils/browser': function(exports, require, module) {
+require.define({'pieces-core/core/utils/browser': function(exports, require, module) {
   'use strict';
 var browser, _android_version_rxp, _ios_rxp, _ios_version_rxp, _mac_os_version_rxp, _win_version, _win_version_rxp;
 
@@ -4638,7 +4638,7 @@ module.exports = browser;
 
 }});
 
-require.define({'pieces/core/utils/func': function(exports, require, module) {
+require.define({'pieces-core/core/utils/func': function(exports, require, module) {
   'use strict';
 var Func, utils,
   __slice = [].slice;
@@ -4716,7 +4716,7 @@ module.exports = Func;
 
 }});
 
-require.define({'pieces/core/utils/history': function(exports, require, module) {
+require.define({'pieces-core/core/utils/history': function(exports, require, module) {
   'use strict';
 var History;
 
@@ -4772,7 +4772,7 @@ module.exports = History;
 
 }});
 
-require.define({'pieces/core/utils/index': function(exports, require, module) {
+require.define({'pieces-core/core/utils/index': function(exports, require, module) {
   'use strict'
 var utils = require('./base');
 
@@ -4793,7 +4793,7 @@ module.exports = utils;
 
 }});
 
-require.define({'pieces/core/utils/logger': function(exports, require, module) {
+require.define({'pieces-core/core/utils/logger': function(exports, require, module) {
   'use strict';
 var info, level, utils, val, _formatter, _log_levels, _show_log,
   __slice = [].slice;
@@ -4863,7 +4863,7 @@ module.exports = utils.log;
 
 }});
 
-require.define({'pieces/core/utils/matchers': function(exports, require, module) {
+require.define({'pieces-core/core/utils/matchers': function(exports, require, module) {
   'use strict';
 var Matchers, utils, _key_operand, _operands,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -5015,7 +5015,7 @@ module.exports = Matchers;
 
 }});
 
-require.define({'pieces/core/utils/obj': function(exports, require, module) {
+require.define({'pieces-core/core/utils/obj': function(exports, require, module) {
   'use strict';
 var Obj, utils;
 
@@ -5095,7 +5095,7 @@ module.exports = Obj;
 
 }});
 
-require.define({'pieces/core/utils/promise': function(exports, require, module) {
+require.define({'pieces-core/core/utils/promise': function(exports, require, module) {
   'use strict';
 var PromiseUtils, utils;
 
@@ -5152,7 +5152,7 @@ module.exports = PromiseUtils;
 
 }});
 
-require.define({'pieces/core/utils/time': function(exports, require, module) {
+require.define({'pieces-core/core/utils/time': function(exports, require, module) {
   'use strict';
 var Time, _formatter, _pad, _reg;
 
@@ -5303,7 +5303,7 @@ module.exports = Time;
 
 }});
 
-require.define({'pieces/grammar/compiler': function(exports, require, module) {
+require.define({'pieces-core/grammar/compiler': function(exports, require, module) {
   'use strict';
 var CompiledFun, Compiler, parser, utils, _error, _operators, _view_context_mdf,
   __slice = [].slice;
@@ -5490,7 +5490,7 @@ module.exports = Compiler;
 
 }});
 
-require.define({'pieces/grammar/pi_grammar': function(exports, require, module) {
+require.define({'pieces-core/grammar/pi_grammar': function(exports, require, module) {
   /* parser generated by jison 0.4.15 */
 /*
   Returns a Parser object of the following structure:
@@ -6209,7 +6209,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }});
 
-;require.define({'pieces/index': function(exports, require, module) {
+;require.define({'pieces-core/index': function(exports, require, module) {
   'use strict'
 var pi = require('./core');
 
@@ -6255,7 +6255,7 @@ module.exports = (window.pi = pi);
 
 }});
 
-require.define({'pieces/net/iframe.upload': function(exports, require, module) {
+require.define({'pieces-core/net/iframe.upload': function(exports, require, module) {
   'use strict';
 var IframeUpload, Nod, utils;
 
@@ -6342,14 +6342,14 @@ module.exports = IframeUpload;
 
 }});
 
-require.define({'pieces/net/index': function(exports, require, module) {
+require.define({'pieces-core/net/index': function(exports, require, module) {
   'use strict'
 module.exports = require('./net');
 
 
 }});
 
-require.define({'pieces/net/net': function(exports, require, module) {
+require.define({'pieces-core/net/net': function(exports, require, module) {
   'use strict';
 var IframeUpload, Net, Nod, method, utils, _i, _len, _ref,
   __hasProp = {}.hasOwnProperty;
@@ -6612,7 +6612,7 @@ module.exports = Net;
 
 }});
 
-require.define({'pieces/plugins/base/index': function(exports, require, module) {
+require.define({'pieces-core/plugins/base/index': function(exports, require, module) {
   'use strict'
 require('./selectable');
 require('./renderable');
@@ -6620,7 +6620,7 @@ require('./restful');
 
 }});
 
-require.define({'pieces/plugins/base/renderable': function(exports, require, module) {
+require.define({'pieces-core/plugins/base/renderable': function(exports, require, module) {
   'use strict';
 var Base, Plugin, Renderers, utils, _ref, _renderer_reg,
   __hasProp = {}.hasOwnProperty,
@@ -6702,7 +6702,7 @@ module.exports = Base.Renderable;
 
 }});
 
-require.define({'pieces/plugins/base/restful': function(exports, require, module) {
+require.define({'pieces-core/plugins/base/restful': function(exports, require, module) {
   'use strict';
 var Base, Compiler, Plugin, Renderable, ResourceEvent, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -6799,7 +6799,7 @@ module.exports = Base.Restful;
 
 }});
 
-require.define({'pieces/plugins/base/selectable': function(exports, require, module) {
+require.define({'pieces-core/plugins/base/selectable': function(exports, require, module) {
   'use strict';
 var Base, Events, Klass, Plugin, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -6859,7 +6859,7 @@ module.exports = Base.Selectable;
 
 }});
 
-require.define({'pieces/plugins/index': function(exports, require, module) {
+require.define({'pieces-core/plugins/index': function(exports, require, module) {
   'use strict'
 var plugin = require('./plugin');
 require('./base');
@@ -6868,7 +6868,7 @@ module.exports = plugin;
 
 }});
 
-require.define({'pieces/plugins/plugin': function(exports, require, module) {
+require.define({'pieces-core/plugins/plugin': function(exports, require, module) {
   'use strict';
 var Core, Plugin, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -6918,7 +6918,7 @@ module.exports = Plugin;
 
 }});
 
-require.define({'pieces/renderers/base': function(exports, require, module) {
+require.define({'pieces-core/renderers/base': function(exports, require, module) {
   'use strict';
 var Base, BaseComponent, Nod, utils;
 
@@ -6960,7 +6960,7 @@ module.exports = Base;
 
 }});
 
-require.define({'pieces/renderers/index': function(exports, require, module) {
+require.define({'pieces-core/renderers/index': function(exports, require, module) {
   'use strict'
 var Renderers = {};
 Renderers.Base = require('./base');
@@ -6970,7 +6970,7 @@ module.exports = Renderers;
 
 }});
 
-require.define({'pieces/renderers/simple': function(exports, require, module) {
+require.define({'pieces-core/renderers/simple': function(exports, require, module) {
   'use strict';
 var Base, Nod, Simple, utils, _escape_rxp, _escapes, _reg_partials, _reg_simple,
   __hasProp = {}.hasOwnProperty,
@@ -7111,7 +7111,7 @@ module.exports = Simple;
 
 }});
 
-require.define({'pieces/resources/association': function(exports, require, module) {
+require.define({'pieces-core/resources/association': function(exports, require, module) {
   'use strict';
 var Association, Base, ResourceEvent, View, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7270,7 +7270,7 @@ module.exports = Association;
 
 }});
 
-require.define({'pieces/resources/base': function(exports, require, module) {
+require.define({'pieces-core/resources/base': function(exports, require, module) {
   'use strict';
 var Base, EventDispatcher, ResourceEvent, utils, _singular,
   __hasProp = {}.hasOwnProperty,
@@ -7654,7 +7654,7 @@ module.exports = Base;
 
 }});
 
-require.define({'pieces/resources/events': function(exports, require, module) {
+require.define({'pieces-core/resources/events': function(exports, require, module) {
   'use strict';
 var ResourceEvent;
 
@@ -7670,7 +7670,7 @@ module.exports = ResourceEvent;
 
 }});
 
-require.define({'pieces/resources/index': function(exports, require, module) {
+require.define({'pieces-core/resources/index': function(exports, require, module) {
   'use strict'
 
 var utils = require('../core/utils');
@@ -7688,7 +7688,7 @@ module.exports = resources;
 
 }});
 
-require.define({'pieces/resources/modules/has_many': function(exports, require, module) {
+require.define({'pieces-core/resources/modules/has_many': function(exports, require, module) {
   'use strict';
 var Association, Base, Core, HasMany, ResourceEvent, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -7822,7 +7822,7 @@ module.exports = HasMany;
 
 }});
 
-require.define({'pieces/resources/modules/has_one': function(exports, require, module) {
+require.define({'pieces-core/resources/modules/has_one': function(exports, require, module) {
   'use strict';
 var Base, Core, HasOne, ResourceEvent, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -7956,7 +7956,7 @@ module.exports = HasOne;
 
 }});
 
-require.define({'pieces/resources/modules/index': function(exports, require, module) {
+require.define({'pieces-core/resources/modules/index': function(exports, require, module) {
   'use strict'
 var modules = {};
 modules.HasMany = require('./has_many');
@@ -7966,7 +7966,7 @@ module.exports = modules;
 
 }});
 
-require.define({'pieces/resources/rest': function(exports, require, module) {
+require.define({'pieces-core/resources/rest': function(exports, require, module) {
   'use strict';
 var Base, EventDispatcher, Net, REST, ResourceEvent, utils, _double_slashes_reg, _path_reg, _ref, _tailing_slash_reg,
   __hasProp = {}.hasOwnProperty,
@@ -8315,7 +8315,7 @@ module.exports = REST;
 
 }});
 
-require.define({'pieces/resources/view': function(exports, require, module) {
+require.define({'pieces-core/resources/view': function(exports, require, module) {
   'use strict';
 var Base, EventDispatcher, ResourceEvent, View, ViewItem, utils,
   __hasProp = {}.hasOwnProperty,
@@ -8522,7 +8522,7 @@ module.exports = View;
 
 }});
 
-require.define({'pieces/views/base': function(exports, require, module) {
+require.define({'pieces-core/views/base': function(exports, require, module) {
   'use strict';
 var Base, BaseComponent, utils, _ref,
   __hasProp = {}.hasOwnProperty,
@@ -8599,7 +8599,7 @@ module.exports = Base;
 
 }});
 
-require.define({'pieces/views/index': function(exports, require, module) {
+require.define({'pieces-core/views/index': function(exports, require, module) {
   'use strict'
 var views = {};
 views.Base = require('./base');
