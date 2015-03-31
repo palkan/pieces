@@ -2,7 +2,8 @@
   "author": "Vlad Dem <palkan>",
   "name": "js-pieces",
   "description": "JS library and framework",
-  "version": "0.3.12",
+  "version": "0.3.19",
+  "private": true,
   "license": "MIT",
   "homepage": "",
   "repository": {
