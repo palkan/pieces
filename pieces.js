@@ -7212,8 +7212,9 @@ Base = (function(superClass) {
       data[this.resource_name] = this.build(data[this.resource_name]);
     }
     if (data[this.resources_name] != null) {
-      return data[this.resources_name] = this.load(data[this.resources_name]);
+      data[this.resources_name] = this.load(data[this.resources_name]);
     }
+    return data;
   };
 
   Base.clear_all = function() {
@@ -8019,7 +8020,7 @@ REST = (function(superClass) {
     })(this));
   };
 
-  REST.error = function(action, message) {
+  REST.on_error = function(action, message) {
     return EventDispatcher.Global.trigger("net_error", {
       resource: this.resources_name,
       action: action,
@@ -8034,25 +8035,19 @@ REST = (function(superClass) {
     }), target);
     return Net[method].call(null, path, params)["catch"]((function(_this) {
       return function(error) {
-        _this.error(error.message);
+        _this.on_error(error.message);
         throw error;
       };
     })(this));
   };
 
   REST.on_all = function(data) {
-    if (data[this.resources_name] != null) {
-      data[this.resources_name] = this.load(data[this.resources_name]);
-    }
-    return data;
+    return this.from_data(data);
   };
 
   REST.on_show = function(data) {
-    var el;
-    if (data[this.resource_name] != null) {
-      el = this.build(data[this.resource_name]);
-      return el;
-    }
+    this.from_data(data);
+    return data[this.resource_name];
   };
 
   REST.find = function(id) {
@@ -8112,17 +8107,9 @@ REST = (function(superClass) {
     params = data[this.constructor.resource_name];
     if (params != null) {
       this.set(params);
-      return this;
+      data[this.constructor.resource_name] = this;
     }
-  };
-
-  REST.prototype.on_create = function(data) {
-    var params;
-    params = data[this.constructor.resource_name];
-    if (params != null) {
-      this.set(params);
-      return this;
-    }
+    return data;
   };
 
   REST.prototype.attributes = function() {
@@ -8174,10 +8161,7 @@ REST = (function(superClass) {
   };
 
   REST.prototype._wrap = function(attributes) {
-    var data;
-    data = {};
-    data[this.constructor.resource_name] = attributes;
-    return data;
+    return utils.obj.wrap(this.constructor.resource_name, attributes);
   };
 
   return REST;

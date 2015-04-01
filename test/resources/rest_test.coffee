@@ -78,8 +78,8 @@ describe "Resources", ->
 
       it "create item", (done) ->
         Testo.create({type:"sugar"}).then(
-          (item) ->
-            expect(Testo.get(item.id).type).to.eq "sugar"
+          (data) ->
+            expect(Testo.get(data.testo.id).type).to.eq "sugar"
             done()
         )
 

@@ -47,6 +47,7 @@ class Base extends EventDispatcher
       data[@resource_name] = @build data[@resource_name]
     if data[@resources_name]?
       data[@resources_name] = @load(data[@resources_name])
+    data
 
   # Remove all cached resources
   @clear_all: ->

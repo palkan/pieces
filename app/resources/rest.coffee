@@ -125,7 +125,7 @@ class REST extends Base
       vars[part] ? target?[part] ? @_globals[part]
     )
 
-  @error: (action, message) ->
+  @on_error: (action, message) ->
     EventDispatcher.Global.trigger "net_error", resource: @resources_name, action: action, message: message
 
   @_request: (path, method, params, target) ->
@@ -133,20 +133,17 @@ class REST extends Base
 
     Net[method].call(null, path, params)
     .catch( (error) =>  
-        @error error.message 
+        @on_error error.message 
         throw error # rethrow it to the top!
     )
 
   @on_all: (data) ->
-    if data[@resources_name]?
-      data[@resources_name] = @load(data[@resources_name])
-    data
+    @from_data data
 
   @on_show: (data) ->
-    if data[@resource_name]?
-      el = @build data[@resource_name]
-      el
-
+    @from_data data
+    data[@resource_name]
+    
   # Find element by id
   @find: (id) ->
     el = @get(id)
@@ -183,7 +180,6 @@ class REST extends Base
     else
       utils.promise.resolved(@remove())
 
-
   on_destroy: (data) ->
     @constructor.remove @
     data
@@ -194,13 +190,8 @@ class REST extends Base
     params = data[@constructor.resource_name]
     if params?
       @set params
-      @
-  
-  on_create: (data) ->
-    params = data[@constructor.resource_name]
-    if params?
-      @set params
-      @
+      data[@constructor.resource_name] = @
+    data
 
   attributes: ->
     if @__attributes__changed__
@@ -235,8 +226,6 @@ class REST extends Base
     @constructor.path(name, params, @)
 
   _wrap: (attributes) ->
-    data = {}
-    data[@constructor.resource_name] = attributes
-    data
+    utils.obj.wrap(@constructor.resource_name, attributes)
 
 module.exports = REST
