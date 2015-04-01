@@ -33,9 +33,9 @@ _operators =
 class CompiledFun
   constructor: (@target={}, @fun_str) ->
     try
-      @_parsed = parser.parse(fun_str)
+      @_parsed = parser.parse(@fun_str)
     catch e
-      @_compiled = utils.curry(_error, [fun_str])
+      @_compiled = utils.curry(_error, [@fun_str])
 
   call: (ths, args...) ->
     @apply(ths, args)

@@ -10,8 +10,8 @@ class Association extends View
     super
     @_only_update = false
     @owner = @options.owner
-    if options.belongs_to is true
-      if options.owner._persisted
+    if @options.belongs_to is true
+      if @options.owner._persisted
         @owner_name_id = @options.key
       else
         @_only_update = true # flag to indicate that association cannot handle create/load events, because it isn't persisted

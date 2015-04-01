@@ -5,7 +5,6 @@ branches:
   except:
     - /^cis-.*$/
 before_script:
-  - 'gem install sass --version "=3.4.6"'
   - "npm install -g mocha-phantomjs"
   - "npm start &"
   - "sleep 20"

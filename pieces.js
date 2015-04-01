@@ -5236,10 +5236,10 @@ CompiledFun = (function() {
     this.target = target1 != null ? target1 : {};
     this.fun_str = fun_str1;
     try {
-      this._parsed = parser.parse(fun_str);
+      this._parsed = parser.parse(this.fun_str);
     } catch (_error) {
       e = _error;
-      this._compiled = utils.curry(_error, [fun_str]);
+      this._compiled = utils.curry(_error, [this.fun_str]);
     }
   }
 
@@ -7006,14 +7006,14 @@ utils = require('../core/utils');
 Association = (function(superClass) {
   extend(Association, superClass);
 
-  function Association(resources, scope, options1) {
+  function Association(resources, scope, options) {
     this.resources = resources;
-    this.options = options1 != null ? options1 : {};
+    this.options = options != null ? options : {};
     Association.__super__.constructor.apply(this, arguments);
     this._only_update = false;
     this.owner = this.options.owner;
-    if (options.belongs_to === true) {
-      if (options.owner._persisted) {
+    if (this.options.belongs_to === true) {
+      if (this.options.owner._persisted) {
         this.owner_name_id = this.options.key;
       } else {
         this._only_update = true;
