@@ -8,15 +8,11 @@ _error = (fun_str) ->
 
 _operators = 
   # more
-  ">": (a, b) ->
-        a > b
+  ">": ">"
   #less
-  "<": (a, b) ->
-        a < b
+  "<": "<"
   #equals (non strict)
-  "=": (a, b) ->
-        a == b
-  "bool": (a) -> !!a
+  "=": "=="
 
 # parse function string and convert fun tree to callable
 # possible node codes:
@@ -48,53 +44,87 @@ class CompiledFun
     @_compiled ||= @_compile_fun()
 
   _compile_fun: ->
-    =>
-      @["_get_#{@_parsed.code}"](@_parsed)
+    source = @["_get_#{@_parsed.code}"](@_parsed, '__ref = ')
 
-  _get_chain: (data) ->
+    source = """
+    var __ref;
+    #{source};
+    return __ref;
+    //# sourceURL=/pi_compiled/source_#{@fun_str}";\n
+    """
+    new Function(source)
+
+  _get_chain: (data, source='') ->
     frst = data.value[0]
-    _target = 
+    source += 
       switch frst.name 
-        when 'this' then @target 
-        when 'app' then pi.app
-        when 'host' then @target.host 
-        when 'view' then @target.view?()     
-        else 
-          @["_get_#{frst.code}"](frst, @call_ths) || (@target.scoped && @["_get_#{frst.code}"](frst, @target.scope)) || @["_get_#{frst.code}"](frst,window)
+        when 'this' then 'this.target' 
+        when 'app' then 'pi.app'
+        when 'host' then 'this.target.host' 
+        when 'view' then 'this.target.view()'     
+        else
+          """
+            (
+              (#{@["_get_#{frst.code}"](frst, 'this.call_ths')})
+              || (this.target.scoped && (#{@["_get_#{frst.code}"](frst, 'this.target.scope')}))
+              || (#{@["_get_#{frst.code}"](frst,'window')})
+            )
+          """
     i = 1
     while(i<data.value.length)
       step = data.value[i++]
-      _target = @["_get_#{step.code}"](step,_target)
-    _target
+      source = @["_get_#{step.code}"](step, source, data.value[i-1])
+    source
 
-  _get_res: (data, from = {}) ->
-    from[data.name] || window.pi.resources[data.name]
+  _get_res: (data, source='', prev_step) ->
+    if prev_step?.code is 'res'
+      source+".#{data.name}"
+    else
+      "window.pi.resources.#{data.name}"
 
-  _get_prop: (data, from) ->
-    from[data.name]
+  _get_prop: (data, source='') ->
+    source+".#{data.name}"
 
-  _get_call: (data, from) ->
-    from[data.name].apply(from, @_get_args(data.args))
+  _get_call: (data, source='') ->
+    source+".#{data.name}(#{@_get_args(data.args).join(', ')})"
 
   _get_args: (args) ->
     @["_get_#{arg.code}"](arg) for arg in args
 
-  _get_if: (data) ->
-    _left = data.cond.left
-    _right = data.cond.right
+  _get_op: (data, source='') ->
+    _left = data.left
+    _right = data.right
+
+    _type = if data.type is '=' then '==' else data.type
+
+    source+="(#{@["_get_#{_left.code}"](_left)}) #{_type} (#{@["_get_#{_right.code}"](_right)})"
+
+  _get_if: (data, source='') ->
+    source+='(function(){'
+
+    source+="if(#{@["_get_#{data.cond.code}"](data.cond)})"
     
-    _left = @["_get_#{_left.code}"](_left)
-    _right = @["_get_#{_right.code}"](_right) if _right?
+    source+="""
+      {
+        return (#{@["_get_#{data.left.code}"](data.left)});
+      }
+      """
 
-    if _operators[data.cond.type](_left,_right)
-      @["_get_#{data.left.code}"](data.left)
-    else if data.right?
-      @["_get_#{data.right.code}"](data.right)
+    if data.right?
+      source+="else{ return (#{@["_get_#{data.right.code}"](data.right)});}"
+    
+    source+="}).call(this);"
+
+  _get_simple: (data, source='') ->
+    source+@_quote(data.value)
+
+  _quote: (val) ->
+    if typeof val is 'string'
+      "'#{val}'"
+    else if val && (typeof val is 'object')
+      "JSON.parse('#{JSON.stringify(val)}')"
     else
-      false  
-
-  _get_simple: (data) ->
-    data.value
+      val
 
 class Compiler
   @modifiers: []

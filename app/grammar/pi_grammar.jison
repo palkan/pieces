@@ -20,9 +20,7 @@
 [A-Z][\w\d]*          return 'RES'
 \w[\w\d]*             return 'KEY'
 "."                   return '.'
-\s*"="\s*             return 'EQL'
-\s*">"\s*             return 'MORE'
-\s*"<"\s*             return 'LESS'
+\s*("="|">="|">"|"<"|"<="|"+"|"-"|"/"|"*")\s* return 'OP'
 <<EOF>>               return 'EOF'
 .                     return 'INVALID'
 
@@ -52,6 +50,8 @@ e
     : group_e
         {$$ = $1;}       
     | ternary
+        {$$ = $1;}
+    | cond
         {$$ = $1;}
     | simple_e
         {$$ = $1;}
@@ -138,22 +138,18 @@ val
     ;
 
 op
-    : 'EQL'
-        {$$ = yytext.replace(/(^\s+|\s+$)/g,'');}
-    | 'MORE'
-        {$$ = yytext.replace(/(^\s+|\s+$)/g,'');}
-    | 'LESS'
+    : 'OP'
         {$$ = yytext.replace(/(^\s+|\s+$)/g,'');}
     ;
 
 cond
     : simple_e op simple_e
-         {$$ = {left: $1, right: $3, type: $2};}
+         {$$ = {code: 'op', left: $1, right: $3, type: $2};}
     ;
 
 ternary
     : cond 'TIF' e 'TELSE' e
         {$$ = {code: 'if', cond: $1, left: $3, right: $5};}
     | simple_e 'TIF' e 'TELSE' e
-        {$$ = {code: 'if', cond: {left: $1, type: 'bool'}, left: $3, right: $5};}
+        {$$ = {code: 'if', cond: $1, left: $3, right: $5};}
     ;

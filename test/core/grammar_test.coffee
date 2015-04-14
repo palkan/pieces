@@ -51,6 +51,11 @@ describe "Compiler", ->
       expect(res.level).to.eq 'debug'
       expect(res.code).to.eq 1
 
+    it "parses simple operator", ->
+      expect(Compiler.compile_fun("1+3").call()).to.eq 4
+      expect(Compiler.compile_fun("100 / 10").call()).to.eq 10
+      expect(Compiler.compile_fun("'testo' > 'testa'").call()).to.be.true
+
     it "calls global (window) object", ->
       f = Compiler.str_to_fun("_abc_.fun()")
       expect(f.call()).to.be.true
@@ -72,14 +77,24 @@ describe "Compiler", ->
       obj = f.call()
       expect(obj.name).to.be.eq 'juju'
 
-    it "calls resources function", ->
-      R.build {id: 1, name: 'juju'}
-      f = Compiler.str_to_fun("PiCallTests.get(1)")
-      obj = f.call()
-      expect(obj.name).to.be.eq 'juju'
-
     it "calls namespaced resources function", ->
       R2.build {id: 1, name: 'jojo'}
       f = Compiler.str_to_fun("Test.Call.get(1)")
       obj = f.call()
       expect(obj.name).to.be.eq 'jojo'
+
+    it "calls conditional function", ->
+      window._abc_.flag = true
+      f = Compiler.str_to_fun("_abc_.flag ? _abc_.echo(flag: true) : 1")
+      obj = f.call()
+      expect(obj.flag).to.be.true
+      window._abc_.flag = false
+      obj = f.call()
+      expect(obj).to.eq 1
+
+    it "calls conditional function with operator", ->
+      window._abc_.flag = true
+      f = Compiler.str_to_fun("_abc_.chain().data.to_s() = 'data' ? true : false")
+      obj = f.call()
+      expect(obj).to.be.true
+
