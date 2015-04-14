@@ -14,6 +14,12 @@ class TextInput extends BaseInput
       e.cancel()
       @trigger Events.InputEvent.Change, @value()
 
+    @input.on 'input', (e) =>
+      e.cancel()
+      @val = @value()
+      @trigger Events.InputEvent.Input, @val
+
+
   @active_property @::, 'editable',
     type: 'bool',
     default: true,

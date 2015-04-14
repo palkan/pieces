@@ -59,7 +59,8 @@ class CompiledFun
         when 'app' then pi.app
         when 'host' then @target.host 
         when 'view' then @target.view?()     
-        else (@["_get_#{frst.code}"](frst, @call_ths) || @["_get_#{frst.code}"](frst,window))
+        else 
+          @["_get_#{frst.code}"](frst, @call_ths) || (@target.scoped && @["_get_#{frst.code}"](frst, @target.scope)) || @["_get_#{frst.code}"](frst,window)
     i = 1
     while(i<data.value.length)
       step = data.value[i++]

@@ -218,6 +218,18 @@ _geometry_styles = (sty) ->
       return
   return
 
+_settegetter = (prop) ->
+  if Array.isArray(prop)
+    name = prop[0]
+    prop = prop[1]
+  else
+    name = prop
+  Nod::[name] = (val) ->
+    if val?
+      @node[prop] = val
+      @
+    else
+      @node[prop]
 
 # generate document fragment from html string
 _fragment = (html) ->
@@ -474,6 +486,8 @@ class Nod extends NodEventDispatcher
         @node.removeChild @node.firstChild
     @
 
+  @alias 'empty', 'remove_children'
+
   # detach and dispose
   # return null
   remove: ->
@@ -481,11 +495,6 @@ class Nod extends NodEventDispatcher
     @remove_children()
     @dispose()
     null
-
-  # clear contents of node (equals html(''))
-  empty: ->
-    @html ''
-    @
 
   clone: ->
     c = document.createElement @node.nameNode
@@ -501,36 +510,8 @@ class Nod extends NodEventDispatcher
     @_disposed = true
     return
 
-  html: (val) ->
-    if val?
-      @node.innerHTML = val
-      @
-    else
-      @node.innerHTML
-
-  outerHTML: (val) ->
-    if val?
-      @node.outerHTML = val
-      @
-    else
-      @node.outerHTML
-
-  text: (val) ->
-    if val?
-      @node.textContent = val
-      @
-    else
-      @node.textContent
-
   name: ->
     @node.name || @data('name')
-
-  value: (val) ->
-    if val?
-      @node.value = val
-      @
-    else
-      @node.value
 
   addClass: () ->
     @node.classList.add(c) for c in arguments
@@ -664,6 +645,12 @@ _prop_hash(
 )
 
 _geometry_styles ["top", "left", "width", "height"]
+
+
+for prop in [['html','innerHTML'], 'outerHTML', ['text','textContent'], 'value']
+  do ->
+    _settegetter(prop)
+
 
 for d in ["width", "height"]
   do ->

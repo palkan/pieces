@@ -17,9 +17,13 @@ class BaseInput extends Base
     if @options.default_value? and !utils.serialize(@value())
       @value @options.default_value
 
+  # bindable property
+  @active_property @::, 'val'
+
   value: (val) ->
     if val? 
       @input.node.value=val
+      @val = @_serializer val
       @
     else
       @_serializer @input.node.value

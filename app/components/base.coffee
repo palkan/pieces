@@ -102,6 +102,7 @@ class Base extends Nod
           _toggle_class.call(@, val, options.class)
           _node_attr.call(@, val, options.node_attr)
           @trigger(options.event, val) if options.event?
+          @trigger("changed:#{name}")
         val
 
     # generate function aliases for boolean props
@@ -145,6 +146,11 @@ class Base extends Nod
     @__plugins__ = []
     @pid = @data('pid') || @attr('pid') || @node.id
     
+    # Init scope
+    @scope = {scope: @} if !!@options.scoped
+    @scope ||= @host.scope if @host?.scoped is true
+    @scoped = @scope?
+
     for own name, desc of @__prop_desc__
       do(name, desc) =>
         @__properties__[name] = desc.default
@@ -193,13 +199,7 @@ class Base extends Nod
     for node in @find_cut(".#{Klass.PI}")
       do (node) =>
         child = Nod.create(node).piecify(@)
-        if child?.pid
-          if _array_rxp.test(child.pid)
-            arr = (@[child.pid[..-3]]||=[])
-            arr.push(child) unless arr.indexOf(child)>-1
-          else
-            @[child.pid] = child
-          @__components__.push child
+        @add_component(child) if child?.pid
     return
 
   # Add event handlers from options
@@ -275,13 +275,27 @@ class Base extends Nod
     super
     @trigger Events.Destroyed, true, false
 
+  add_component: (child) ->
+    if _array_rxp.test(child.pid)
+      arr_name = child.pid[..-3]
+      arr = (@[arr_name]||=[])
+      @scope[arr_name] = arr if @scoped is true
+      arr.push(child) unless arr.indexOf(child)>-1
+    else
+      @[child.pid] = child
+      @scope[child.pid] = child if @scoped is true
+    @__components__.push child
+
   # Remove all references to child (called when child is disposed)
   remove_component: (child) ->
     return unless child.pid
-    if _array_rxp.test(child.pid)
-      delete @["#{child.pid[..-3]}"] if @["#{child.pid[..-3]}"]
-    else
-      delete @[child.pid]
+
+    name = child.pid
+    name = child.pid[..-3] if _array_rxp.test(child.pid)
+      
+    delete @[name]
+    delete @scope[name] if @scoped is true
+
     @__components__.splice(@__components__.indexOf(child),1)
 
   # Override Nod#remove_children to handle components first

@@ -38,7 +38,7 @@ class Base.Renderable extends Plugin
       if klass?
         return new klass(param)
     else if (tpl = @target.find('.pi-renderer'))
-      renderer = new Renderers.Simple(tpl)
+      renderer = new Renderers.Simple(tpl, @target.options.tpl_tag || tpl.data('tag'))
       tpl.remove()
       return renderer
     new Renderers.Base()

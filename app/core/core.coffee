@@ -2,6 +2,15 @@
 utils = require './utils'
 
 class Core
+  @getter: (name, fun) ->
+    Object.defineProperties(
+      @::,
+      utils.wrap(
+        name,
+        get: fun
+      )
+    )
+
   # extend class prototype with mixin methods
   @include: (mixins...) ->
     for mixin in mixins

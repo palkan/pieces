@@ -21,8 +21,8 @@ _escapes =
 # [Renderer]
 # Simple template from html with a little bit of logic
 class Simple extends Base
-  constructor: (nod) ->
-    @create_templater(nod.html())
+  constructor: (nod, wrap_tag = 'div') ->
+    @create_templater("<#{wrap_tag}>#{nod.html()}</#{wrap_tag}>")
 
   create_templater: (text) ->
     source = @_funstr(text, source)

@@ -164,3 +164,73 @@ describe "Calls", ->
     it "should work with view call", ->
       h.clickElement example.btn.node
       expect(example.log.text()).to.eq 'bla'
+
+  describe "scoped", ->
+    test_div = example = nested = null
+
+    beforeEach ->
+      test_div = h.test_cont root, '''
+        <div>
+          <div class="pi test" data-pid="test" data-scoped="true">
+            <div class="pi controls" pid="controls">
+              <div class="pi" pid="enable_btn" data-on-click="scope.disable()"></div>
+              <div class="pi" pid="subs_btn" data-on-click="subs.a.hide()"></div>
+              <div class="pi message" pid="message">Message</div>
+            </div>
+
+            <div class="pi" pid="other_controls">
+              <div class="pi" pid="hide_btn" data-on-click="message.hide()"></div>
+              <div class="pi nested" pid="subs" data-scoped="true">
+                <span class="pi a" pid="a" data-on-click="b.text('ABC')">A</span>
+                <span class="pi b" pid="b" data-on-click="a.text('XYZ')">B</span>
+              </div>
+          </div>
+        </div>
+        '''
+      pi.app.view.piecify()
+      example = test_div.find('.test')
+      nested = test_div.find('.nested')
+
+    it "init scope", ->
+      expect(example.scope.controls).to.not.be.undefined
+      expect(example.scope.message).to.not.be.undefined
+      expect(example.scope.subs_btn).to.not.be.undefined
+      expect(example.scope.enable_btn).to.not.be.undefined
+      expect(example.scope.other_controls).to.not.be.undefined
+      expect(example.scope.subs).to.not.be.undefined
+      expect(example.scope.subs.scope.a).to.not.be.undefined
+      expect(example.scope.subs.scope.b).to.not.be.undefined
+
+    it "call by pid", ->
+      h.clickElement example.other_controls.hide_btn.node
+      expect(example.find('.is-hidden')).to.eq example.controls.message
+
+    it "call to host", ->
+      h.clickElement example.controls.enable_btn.node
+      expect(example.enabled).to.be.false
+
+    it "call within nested scope", ->
+      h.clickElement nested.a.node
+      expect(nested.find('.b').text()).to.eq 'ABC'
+
+      h.clickElement nested.b.node
+      expect(nested.find('.a').text()).to.eq 'XYZ'
+
+    it "call to nested scope", ->
+      h.clickElement example.controls.subs_btn.node
+      expect(nested.find('.is-hidden')).to.eq nested.a
+
+    it "remove from scope", ->
+      test_div.find('.message').remove()
+      expect(example.scope.message).to.be.undefined
+
+    it "remove from scope (with nested items)", ->
+      test_div.find('.controls').remove()
+      expect(example.scope.controls).to.be.undefined
+      expect(example.scope.message).to.be.undefined
+      expect(example.scope.subs_btn).to.be.undefined
+      expect(example.scope.enable_btn).to.be.undefined
+
+    it "remove from nested scope", ->
+      test_div.find('.nested .a').remove()
+      expect(nested.scope.a).to.be.undefined

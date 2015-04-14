@@ -11,19 +11,20 @@ describe "Base.Renderable", ->
   test_div = example = null
   
   beforeEach  ->
-    test_div = h.test_cont root, '''<div><div class="pi test" data-plugins="renderable" data-pid="test" data-id="2">
-                        <div>John
-                          <span class="author">Green</span>
-                          <button class="pi" pid="some_btn">Button</button>
-                        </div>
-                        <script class="pi-renderer" type="text/html">
-                          <div>{{ name }}
-                            <span class='author'>{{ author }}</span>
-                            <button class='pi' pid='some_btn'>Button</button>
-                          </div>
-                        </script>
-                        </div>
-                      </div>'''
+    test_div = h.test_cont root, '''
+    <div>
+      <div class="pi test" data-plugins="renderable" data-pid="test" data-id="2">
+        <div>John
+          <span class="author">Green</span>
+          <button class="pi" pid="some_btn">Button</button>
+        </div>
+        <script class="pi-renderer" type="text/html">
+          {{ name }}
+          <span class='author'>{{ author }}</span>
+          <button class='pi' pid='some_btn'>Button</button>
+        </script>
+      </div>
+    </div>'''
     pi.app.view.piecify()
     example = test_div.find('.test')
 

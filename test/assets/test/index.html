@@ -17,6 +17,7 @@
     <script>
       require('pieces-core');
       window.require.list().filter(function (name) {return /test\//.test(name);}).forEach(require);
+      pi.utils.log_level = 'debug'
       pi.app.initialize();
       // allow to set _nod on window
       mocha.setup({globals:['_nod']});
