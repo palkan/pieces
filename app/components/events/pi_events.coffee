@@ -1,6 +1,7 @@
 'use strict'
 module.exports = 
   Initialized: 'initialized'
+  ChildAdded: 'child_added'
   Created: 'creation_complete'
   Destroyed: 'destroyed'
   Enabled: 'enabled' 

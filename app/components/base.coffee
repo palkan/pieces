@@ -102,7 +102,7 @@ class Base extends Nod
           _toggle_class.call(@, val, options.class)
           _node_attr.call(@, val, options.node_attr)
           @trigger(options.event, val) if options.event?
-          @trigger("changed:#{name}")
+          @trigger("change:#{name}")
         val
 
     # generate function aliases for boolean props
@@ -199,7 +199,7 @@ class Base extends Nod
     for node in @find_cut(".#{Klass.PI}")
       do (node) =>
         child = Nod.create(node).piecify(@)
-        @add_component(child) if child?.pid
+        @add_component(child)
     return
 
   # Add event handlers from options
@@ -228,7 +228,7 @@ class Base extends Nod
   ## event dispatcher ##
 
   trigger: (event, data, bubbles) ->
-    if @_initialized && (@enabled or event is Events.Enabled)
+    if (@_initialized && (@enabled or (event is Events.Enabled)) || event is Events.Destroyed)
       super event, data, bubbles
 
   bubble_event: (event) ->
@@ -272,19 +272,21 @@ class Base extends Nod
     @__plugins__.length = 0
     @__components__.length = 0
     @__properties__ = {}
-    super
     @trigger Events.Destroyed, true, false
+    super
 
   add_component: (child) ->
-    if _array_rxp.test(child.pid)
-      arr_name = child.pid[..-3]
-      arr = (@[arr_name]||=[])
-      @scope[arr_name] = arr if @scoped is true
-      arr.push(child) unless arr.indexOf(child)>-1
-    else
-      @[child.pid] = child
-      @scope[child.pid] = child if @scoped is true
+    if child?.pid
+      if _array_rxp.test(child.pid)
+        arr_name = child.pid[..-3]
+        arr = (@[arr_name]||=[])
+        @scope[arr_name] = arr if @scoped is true
+        arr.push(child) unless arr.indexOf(child)>-1
+      else
+        @[child.pid] = child
+        @scope[child.pid] = child if @scoped is true
     @__components__.push child
+    @trigger Events.ChildAdded, child, false
 
   # Remove all references to child (called when child is disposed)
   remove_component: (child) ->

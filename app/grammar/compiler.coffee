@@ -29,9 +29,23 @@ _operators =
 class CompiledFun
   constructor: (@target={}, @fun_str) ->
     try
-      @_parsed = parser.parse(@fun_str)
+      @_parsed = @constructor.parse(@fun_str)
     catch e
       @_compiled = utils.curry(_error, [@fun_str])
+
+  @parse: (str) ->
+    parser.parse(str)
+
+  @compile: (ast) ->
+    source = @["_get_#{ast.code}"](ast, '__ref = ')
+
+    source = """
+    var __ref;
+    #{source};
+    return __ref;
+    //# sourceURL=/pi_compiled/source_#{@fun_str}_#{utils.uid()}";\n
+    """
+    new Function(source)
 
   call: (ths, args...) ->
     @apply(ths, args)
@@ -41,20 +55,9 @@ class CompiledFun
     @compiled().apply(@, args)
 
   compiled: ->
-    @_compiled ||= @_compile_fun()
+    @_compiled ||= @constructor.compile(@_parsed)
 
-  _compile_fun: ->
-    source = @["_get_#{@_parsed.code}"](@_parsed, '__ref = ')
-
-    source = """
-    var __ref;
-    #{source};
-    return __ref;
-    //# sourceURL=/pi_compiled/source_#{@fun_str}";\n
-    """
-    new Function(source)
-
-  _get_chain: (data, source='') ->
+  @_get_chain: (data, source='') ->
     frst = data.value[0]
     source += 
       switch frst.name 
@@ -76,22 +79,22 @@ class CompiledFun
       source = @["_get_#{step.code}"](step, source, data.value[i-1])
     source
 
-  _get_res: (data, source='', prev_step) ->
+  @_get_res: (data, source='', prev_step) ->
     if prev_step?.code is 'res'
       source+".#{data.name}"
     else
       "window.pi.resources.#{data.name}"
 
-  _get_prop: (data, source='') ->
+  @_get_prop: (data, source='') ->
     source+".#{data.name}"
 
-  _get_call: (data, source='') ->
+  @_get_call: (data, source='') ->
     source+".#{data.name}(#{@_get_args(data.args).join(', ')})"
 
-  _get_args: (args) ->
+  @_get_args: (args) ->
     @["_get_#{arg.code}"](arg) for arg in args
 
-  _get_op: (data, source='') ->
+  @_get_op: (data, source='') ->
     _left = data.left
     _right = data.right
 
@@ -99,7 +102,7 @@ class CompiledFun
 
     source+="(#{@["_get_#{_left.code}"](_left)}) #{_type} (#{@["_get_#{_right.code}"](_right)})"
 
-  _get_if: (data, source='') ->
+  @_get_if: (data, source='') ->
     source+='(function(){'
 
     source+="if(#{@["_get_#{data.cond.code}"](data.cond)})"
@@ -115,10 +118,10 @@ class CompiledFun
     
     source+="}).call(this);"
 
-  _get_simple: (data, source='') ->
+  @_get_simple: (data, source='') ->
     source+@_quote(data.value)
 
-  _quote: (val) ->
+  @_quote: (val) ->
     if typeof val is 'string'
       "'#{val}'"
     else if val && (typeof val is 'object')
@@ -128,6 +131,21 @@ class CompiledFun
 
 class Compiler
   @modifiers: []
+
+  @parse: (str) ->
+    parser.parse(str)
+
+  @compile: (ast) ->
+    CompiledFun.compile(ast)
+
+  @traverse: (ast, callback, leaves = true) ->
+    callback.call(null, ast) unless leaves
+    if (ast.code is 'op') || (ast.code is 'if')
+      @traverse(ast.left, callback, leaves)
+      @traverse(ast.right, callback, leaves)
+      @traverse(ast.cond, callback, leaves) if ast.code is 'if'
+    else
+      callback.call(null, ast)
 
   @process_modifiers: (str) ->
     for fun in @modifiers

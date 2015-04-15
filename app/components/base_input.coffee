@@ -18,7 +18,7 @@ class BaseInput extends Base
       @value @options.default_value
 
   # bindable property
-  @active_property @::, 'val'
+  @active_property @::, 'val', default: ''
 
   value: (val) ->
     if val? 
