@@ -7,9 +7,16 @@ pi.components = require('./components');
 
 pi.export(pi.components, "$c");
 
+var BaseComponent = require('./components/base');
+var Renderable = require('./components/modules/renderable');
+
+BaseComponent.include(Renderable);
+
 pi.klass = require('./components/utils/klass');
 
 pi.renderers = require('./renderers');
+
+
 
 pi.Plugin = require('./plugins');
 

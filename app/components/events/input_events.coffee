@@ -3,7 +3,7 @@
 module.exports =
   InputEvent:
     Change: 'changed'
-    Input: 'input'
+    Input: 'user_input'
     Clear: 'cleared'
     Editable: 'editable'
   FormEvent:

@@ -25,14 +25,13 @@ describe "Base.Restful", ->
     TestUsers.clear_all()
     TestUsers.off()
 
-  it "bind app resource on init", (done) ->
+  it "bind app resource on init", ->
     pi.app.user = TestUsers.build({name: 'Lee', age: 44})
     test_div.append """
-      <div class="pi" pid="test" data-plugins="restful" data-rest="app.user">
+      <div class="pi" pid="test" data-bind-render="app.user">
         <script type="text/html" class="pi-renderer">
-          <div class='item'>{{ name }}
-            <span class='age'>{{ age }}</span>
-          </div>
+          {{ name }}
+          <span class='age'>{{ age }}</span>
         </script>
       </div>
     """
@@ -40,17 +39,15 @@ describe "Base.Restful", ->
     test_div.piecify()
 
     example = test_div.find('.pi') 
-    utils.after 100, ->
-      expect(example.restful.resource).to.eq pi.app.user
-      done()
+    expect(example.find('.age').text()).to.eq '44'
+    expect(example.text()).to.contain 'Lee'
 
   it "bind resource after init", ->
     test_div.append """
-      <div class="pi" pid="test" data-plugins="restful">
+      <div class="pi" pid="test">
         <script type="text/html" class="pi-renderer">
-          <div class='item'>{{ name }}
-            <span class='age'>{{ age }}</span>
-          </div>
+          {{ name }}
+          <span class='age'>{{ age }}</span>
         </script>
       </div>
     """
@@ -59,28 +56,49 @@ describe "Base.Restful", ->
     example = test_div.find('.pi') 
 
     pi.app.user = TestUsers.build({name: 'Lee', age: 44})
-    example.restful.bind pi.app.user, true
+    example.bind 'render', 'pi.app.user'
 
     expect(example.find('.age').text()).to.eq '44'
+    expect(example.text()).to.contain 'Lee'
 
     pi.app.user.set age: 45
     expect(example.find('.age').text()).to.eq '45'
 
-  it "bind remote resource", (done) ->
+  it "bind resource by id", ->
+    TestUsers.build id: 2, name: 'Karl', age: 12
     test_div.append """
-      <div class="pi" pid="test" data-plugins="restful" data-rest="TestUsers.find(2)">
+      <div class="pi" pid="test" data-bind-render="TestUsers(2)">
         <script type="text/html" class="pi-renderer">
-          <div class='item'>{{ name }}
-            <span class='age'>{{ age }}</span>
-          </div>
+          {{ name }}
+          <span class='age'>{{ age }}</span>
         </script>
       </div>
     """
     test_div.piecify()
     example = test_div.find('.pi') 
 
-    utils.after 300, ->
-      expect(example.find('.age').text()).to.eq '12'
-      TestUsers.get(2).set age: 13
-      expect(example.find('.age').text()).to.eq '13'
-      done()
+    expect(example.find('.age').text()).to.eq '12'
+    expect(example.text()).to.contain 'Karl'
+    
+    TestUsers.get(2).set age: 13
+    expect(example.find('.age').text()).to.eq '13'
+
+  it "unbinds and clears contents", ->
+    pi.app.user = TestUsers.build({name: 'Lee', age: 44})
+    test_div.append """
+      <div class="pi" pid="test" data-bind-render="app.user">
+        <script type="text/html" class="pi-renderer">
+          {{ name }}
+          <span class='age'>{{ age }}</span>
+        </script>
+      </div>
+    """
+    
+    test_div.piecify()
+
+    example = test_div.find('.pi') 
+    expect(example.find('.age').text()).to.eq '44'
+    expect(example.text()).to.contain 'Lee'
+
+    example.unbind('render', 'app.user')
+    expect(example.text().trim()).to.eq ''

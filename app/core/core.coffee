@@ -2,14 +2,21 @@
 utils = require './utils'
 
 class Core
-  @getter: (name, fun) ->
+  @getset: (name, getter, setter, klass = false) ->
+    target = if klass then @ else @::
+    prop = {}
+    prop.get = getter if getter?
+    prop.set = setter if setter?
     Object.defineProperties(
-      @::,
-      utils.wrap(
+      target,
+      utils.obj.wrap(
         name,
-        get: fun
+        prop
       )
     )
+
+  @getter: (name, fun, klass) -> @getset(name, fun, null, klass)
+  @setter: (name, fun, klass) -> @getset(name, null, fun, klass)
 
   # extend class prototype with mixin methods
   @include: (mixins...) ->

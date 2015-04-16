@@ -29,10 +29,6 @@ class Base extends BaseComponent
 
 # Extend Base component
 utils.extend BaseComponent::,
-  # return view for component
-  view: ->
-    (@__view__ ||= @_find_view())
-  
   # return context (controller) for component
   context: ->
     (@__controller__ ||= @view()?.controller)
@@ -43,5 +39,8 @@ utils.extend BaseComponent::,
       if comp.is_view is true
         return comp
       comp = comp.host
+
+BaseComponent.getter 'view', ->
+  (@__view__ ||= @_find_view())
 
 module.exports = Base

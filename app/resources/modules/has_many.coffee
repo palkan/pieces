@@ -27,7 +27,7 @@ class HasMany extends Core
       _update_filter = utils.truthy
 
     # add assoc method
-    @::[name] = ->
+    @getter(name, ( ->
       unless @["__#{name}__"]?
         options = name: name, owner: @
         if params.belongs_to is true
@@ -50,6 +50,7 @@ class HasMany extends Core
             @trigger_assoc_event(name, e.data.type, data) if _update_filter(e.data.type,data)
         ) if params.update_if
       @["__#{name}__"]
+    ))
 
     # add route and handler
     if params.route is true
@@ -57,28 +58,28 @@ class HasMany extends Core
       @::["on_load_#{name}"] = (data) ->
         @["#{name}_loaded"] = true
         if data[name]?
-          @[name]().load data[name]
+          @[name].load data[name]
 
     # add callbacks
     @after_update (data) ->
       return if data instanceof Base
       if data[name]
         @["#{name}_loaded"] = true
-        @[name]().load data[name]
+        @[name].load data[name]
 
     @after_initialize ->
-      @[name]() # just call association on init to load already created resources
+      @[name] # just call association on init to load already created resources
 
     if params.destroy is true
       @before_destroy ->
-        @[name]().clear_all(true)
+        @[name].clear_all(true)
 
     # hack attributes
     if params.attribute is true
       _old = @::attributes
       @::attributes = ->
         data = _old.call(@)
-        data[name] = @[name]().serialize()
+        data[name] = @[name].serialize()
         data
 
 module.exports = HasMany

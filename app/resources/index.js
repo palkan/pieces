@@ -10,4 +10,6 @@ resources.REST = require('./rest');
 
 utils.extend(resources, require('./modules'));
 
+require('./utils/binding');
+
 module.exports = resources;

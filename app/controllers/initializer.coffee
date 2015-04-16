@@ -64,7 +64,7 @@ class ControllerBuilder
     view = new vklass(nod.node, host, options)
     controller.set_view view 
 
-    host_context = if (_view = host.view()) then _view.controller else Page.instance
+    host_context = if (_view = host.view) then _view.controller else Page.instance
     host_context.add_context controller, as: view.pid
     view
 

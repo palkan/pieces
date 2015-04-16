@@ -46,4 +46,6 @@ pi.Events.NodEvent.register_delegate('resize', new pi.Events.ResizeDelegate());
 // setup event aliases
 require('./events/aliases');
 
+pi.bindings = require('./binding');
+
 module.exports = pi;

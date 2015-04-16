@@ -4,6 +4,7 @@ Events = require './events'
 utils = require '../core/utils'
 Nod = require('../core/nod').Nod
 Compiler = require '../grammar/compiler'
+Bindable = require('../core/binding').Bindable
 
 _array_rxp = /\[\]$/
 
@@ -40,6 +41,8 @@ _node_attr = (val, node_attr) ->
     @attr(node_attr.name, null)
 
 class Base extends Nod
+  @include Bindable
+
   @include_plugins: (plugins...) ->
     plugin.included(@) for plugin in plugins
 
@@ -137,6 +140,7 @@ class Base extends Nod
     @init_children()
     @setup_events()
     @postinitialize()
+    @setup_bindings()
 
   # Define instance vars here and active properties defaults
   preinitialize: ->
@@ -204,7 +208,7 @@ class Base extends Nod
 
   # Add event handlers from options
   setup_events: ->
-    for event, handlers of @options.events
+    for own event, handlers of @options.events
       for handler in handlers.split(/;\s*/)
         @on event, Compiler.str_to_event_handler(handler, this)
     delete @options.events
@@ -215,6 +219,10 @@ class Base extends Nod
     @trigger Events.Created, true, false
 
   @register_callback 'postinitialize', as: 'create' 
+
+  setup_bindings: ->
+    for own method, expr of @options.bindings
+      @bind method, expr 
 
   # re-init children (grandchildren and so on)
   # = init_children() + __components__.all -> piecify()

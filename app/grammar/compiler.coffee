@@ -27,22 +27,27 @@ _operators =
 #  _get_[...] methods return result
 
 class CompiledFun
-  constructor: (@target={}, @fun_str) ->
-    try
-      @_parsed = @constructor.parse(@fun_str)
-    catch e
-      @_compiled = utils.curry(_error, [@fun_str])
+  constructor: (@target={}, fun_str) ->
+    if typeof fun_str is 'string'
+      @fun_str = fun_str
+      try
+        @_parsed = @constructor.parse(@fun_str)
+      catch e
+        @_compiled = utils.curry(_error, [@fun_str])
+    else
+      @fun_str = 'parsed'
+      @_parsed = fun_str
 
   @parse: (str) ->
     parser.parse(str)
 
   @compile: (ast) ->
-    source = @["_get_#{ast.code}"](ast, '__ref = ')
+    source = @["_get_#{ast.code}"](ast, '__res = ')
 
     source = """
-    var __ref;
+    var _ref, __res;
     #{source};
-    return __ref;
+    return __res;
     //# sourceURL=/pi_compiled/source_#{@fun_str}_#{utils.uid()}";\n
     """
     new Function(source)
@@ -60,18 +65,21 @@ class CompiledFun
   @_get_chain: (data, source='') ->
     frst = data.value[0]
     source += 
-      switch frst.name 
-        when 'this' then 'this.target' 
-        when 'app' then 'pi.app'
-        when 'host' then 'this.target.host' 
-        when 'view' then 'this.target.view()'     
+      switch 
+        when frst.name is 'this' then 'this.target' 
+        when frst.name is 'app' then 'pi.app'
+        when frst.name is 'host' then 'this.target.host' 
+        when (frst.code is 'prop' && frst.name is 'view') then 'this.target.view'     
         else
           """
-            (
-              (#{@["_get_#{frst.code}"](frst, 'this.call_ths')})
-              || (this.target.scoped && (#{@["_get_#{frst.code}"](frst, 'this.target.scope')}))
-              || (#{@["_get_#{frst.code}"](frst,'window')})
-            )
+          (function(){
+            _ref = (#{@["_get_#{frst.code}"](frst, 'this.call_ths')});
+            if(!(_ref == void 0)) return _ref;
+            _ref = this.target.scoped && (#{@["_get_#{frst.code}"](frst, 'this.target.scope')});
+            if(this.target.scoped && !(_ref == void 0)) return _ref;
+
+            return (#{@["_get_#{frst.code}"](frst,'window')});
+          }).call(this)
           """
     i = 1
     while(i<data.value.length)
@@ -133,7 +141,7 @@ class Compiler
   @modifiers: []
 
   @parse: (str) ->
-    parser.parse(str)
+    parser.parse(@process_modifiers(str))
 
   @compile: (ast) ->
     CompiledFun.compile(ast)
@@ -153,7 +161,7 @@ class Compiler
     str
 
   @compile_fun: (callstr, target) ->
-    callstr = @process_modifiers(callstr)
+    callstr = @process_modifiers(callstr) if typeof callstr is 'string'
     new CompiledFun(target, callstr)
 
   @str_to_fun: @compile_fun

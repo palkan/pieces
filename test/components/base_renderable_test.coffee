@@ -13,7 +13,7 @@ describe "Base.Renderable", ->
   beforeEach  ->
     test_div = h.test_cont root, '''
     <div>
-      <div class="pi test" data-plugins="renderable" data-pid="test" data-id="2">
+      <div class="pi test" data-pid="test" data-id="2">
         <div>John
           <span class="author">Green</span>
           <button class="pi" pid="some_btn">Button</button>
@@ -30,6 +30,9 @@ describe "Base.Renderable", ->
 
   afterEach ->
     test_div.remove()
+
+  after ->
+    root.remove()
 
   it "has render function", ->
     expect(example.render).to.be.an 'function'

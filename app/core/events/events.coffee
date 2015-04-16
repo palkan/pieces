@@ -46,7 +46,7 @@ class EventListener extends Core
       event.captured = true
     @dispose() if @disposable
 
-  dispose: () ->
+  dispose: ->
     @handler = @context = @conditions = null 
     @disposed = true
 

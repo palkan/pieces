@@ -115,4 +115,6 @@ class View extends EventDispatcher
   off: (callback) ->
     super "update", callback
 
+View.ViewItem = ViewItem
+
 module.exports = View

@@ -6,6 +6,7 @@ Components = require '../'
 utils = require '../../core/utils'
 
 _event_re = /^on_(.+)/i
+_bind_re = /^bind_(.+)/i
 
 class Initializer
   # List of builders (ComponentBuilder, ControllerBuilder, etc)
@@ -42,10 +43,14 @@ class Initializer
 
     opts.plugins = if opts.plugins? then opts.plugins.split(/\s+/) else null
     opts.events = {}
+    opts.bindings = {}
 
     for key,val of opts
       if matches = key.match _event_re
         opts.events[matches[1]] = val
+      if matches = key.match _bind_re
+        opts.bindings[matches[1]] = val
+
     # merge options with defaults
     utils.merge((utils.obj.get_path(Config, config_name)||{}), opts)
 

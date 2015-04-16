@@ -146,6 +146,12 @@ class Base extends EventDispatcher
   @second: ->
     @__all__[1]
 
+  @last: ->
+    @__all__[@__all__.length - 1]
+
+  @count: ->
+    @__all__.length
+
   # use utils.object_ext to retrieve cached items 
   @where: (params) ->
     el for el in @__all__ when utils.matchers.object_ext(params)(el)

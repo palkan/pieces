@@ -1,4 +1,5 @@
 ## 0.4.0
+* Bindings
 * Scoped component
 * BaseInput is listening for 'input' event to update 'val'
 * Move components to their own namespace (`pi.components`).
