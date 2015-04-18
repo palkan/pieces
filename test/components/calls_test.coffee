@@ -173,7 +173,7 @@ describe "Calls", ->
         <div>
           <div class="pi test" data-pid="test" data-scoped="true">
             <div class="pi controls" pid="controls">
-              <div class="pi" pid="enable_btn" data-on-click="scope.disable()"></div>
+              <div class="pi" pid="enable_btn" data-on-click="disable()"></div>
               <div class="pi" pid="subs_btn" data-on-click="subs.a.hide()"></div>
               <div class="pi message" pid="message">Message</div>
             </div>

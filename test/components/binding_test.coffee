@@ -10,6 +10,10 @@ describe "Binding", ->
   Eater = pi.Eater
 
   window.__bindme__ = {}
+  window.__sum__ = (args...) ->
+    acc = 0
+    (acc+=(arg|0)) for arg in args
+    acc
 
   root = Nod.create 'div'
   Nod.body.append root.node
@@ -125,13 +129,22 @@ describe "Binding", ->
     it 'binds complex expression (with several bindables) and only one exists', ->
       sum = example2.find('.sum')
       example2.input.remove()
-      new Binding(sum, 'text', 'host.input.val + input2.val')
+      new Binding(sum, 'text', 'input.val + input2.val')
       expect(sum.text()).to.eq ''
       example2.input2.value '5'
       expect(sum.text()).to.eq ''
       example2.append '<input pid="input" type="text" class="pi" data-component="text_input" data-serialize="true"/>'
       example2.piecify()
       example2.input.value '3'
+      expect(sum.text()).to.eq '8'
+
+    it 'binds arguments', ->
+      sum = example2.find('.sum')
+      new Binding(sum, 'text', '__sum__(input.val,input2.val)')
+      expect(sum.text()).to.eq '0'
+      example2.input.value '3'
+      expect(sum.text()).to.eq '3'
+      example2.input2.value '5'
       expect(sum.text()).to.eq '8'
 
     it "disposed when target is disposed", ->

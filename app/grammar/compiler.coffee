@@ -20,6 +20,7 @@ _operators =
 #   prop - get object property ('app')
 #   call - call object fun ('hide(true)')
 #   if - get conditinal call res ('e.data ? show() : hide()')
+#   op - operator ('1+1')
 #   res - get resource ('User')
 #   simple - constant value
 #
@@ -64,23 +65,38 @@ class CompiledFun
 
   @_get_chain: (data, source='') ->
     frst = data.value[0]
-    source += 
-      switch 
-        when frst.name is 'this' then 'this.target' 
-        when frst.name is 'app' then 'pi.app'
-        when frst.name is 'host' then 'this.target.host' 
-        when (frst.code is 'prop' && frst.name is 'view') then 'this.target.view'     
-        else
-          """
-          (function(){
-            _ref = (#{@["_get_#{frst.code}"](frst, 'this.call_ths')});
-            if(!(_ref == void 0)) return _ref;
-            _ref = this.target.scoped && (#{@["_get_#{frst.code}"](frst, 'this.target.scope')});
-            if(this.target.scoped && !(_ref == void 0)) return _ref;
+    if frst.code is 'prop' || frst.code is 'res'
+      source += 
+        switch frst.name
+          when 'this' then 'this.target' 
+          when 'app' then 'pi.app'
+          when 'host' then 'this.target.host' 
+          when 'view' then 'this.target.view'
+          when 'window' then 'window'
+          else
+            """
+            (function(){
+              _ref = (#{@["_get_#{frst.code}"](frst, 'this.call_ths')});
+              if(!(_ref == void 0)) return _ref;
+              _ref = this.target.scoped && (#{@["_get_#{frst.code}"](frst, 'this.target.scope')});
+              if(this.target.scoped && !(_ref == void 0)) return _ref;
 
-            return (#{@["_get_#{frst.code}"](frst,'window')});
-          }).call(this)
-          """
+              return (#{@["_get_#{frst.code}"](frst,'window')});
+            }).call(this)
+            """
+    # otherwise it's a call
+    else
+      source+= """
+        (function(){
+          _ref = #{@_get_safe_call(frst, 'this.call_ths')};
+          if(!(_ref == void 0)) return _ref;
+          _ref = this.target.scoped && #{@_get_safe_call(frst, 'this.target.scope.scope')};
+          if(this.target.scoped && !(_ref == void 0)) return _ref;
+          _ref = this.target.scoped && #{@_get_safe_call(frst, 'this.target')};
+          if(!(_ref == void 0)) return _ref;
+          return #{@_get_safe_call(frst,'window')};
+        }).call(this)
+      """
     i = 1
     while(i<data.value.length)
       step = data.value[i++]
@@ -98,6 +114,12 @@ class CompiledFun
 
   @_get_call: (data, source='') ->
     source+".#{data.name}(#{@_get_args(data.args).join(', ')})"
+
+  @_get_safe_call: (data, source='') ->
+    method = "#{source}['#{data.name}']"
+    """
+      ((typeof #{method} === 'function') ? #{method}(#{@_get_args(data.args).join(', ')}) : null)
+    """
 
   @_get_args: (args) ->
     @["_get_#{arg.code}"](arg) for arg in args
@@ -146,14 +168,16 @@ class Compiler
   @compile: (ast) ->
     CompiledFun.compile(ast)
 
-  @traverse: (ast, callback, leaves = true) ->
-    callback.call(null, ast) unless leaves
+  @traverse: (ast, callback) ->
+    callback.call(null, ast)
     if (ast.code is 'op') || (ast.code is 'if')
-      @traverse(ast.left, callback, leaves)
-      @traverse(ast.right, callback, leaves)
-      @traverse(ast.cond, callback, leaves) if ast.code is 'if'
-    else
-      callback.call(null, ast)
+      @traverse(ast.left, callback)
+      @traverse(ast.right, callback)
+      @traverse(ast.cond, callback) if ast.code is 'if'
+    else if ast.code is 'chain'
+      @traverse(val, callback) for val in ast.value
+    else if ast.code is 'call'
+      @traverse(val, callback) for val in ast.args
 
   @process_modifiers: (str) ->
     for fun in @modifiers

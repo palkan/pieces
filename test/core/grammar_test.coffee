@@ -56,6 +56,11 @@ describe "Compiler", ->
       expect(Compiler.compile_fun("100 / 10").call()).to.eq 10
       expect(Compiler.compile_fun("'testo' > 'testa'").call()).to.be.true
 
+    it "several operators", ->
+      expect(Compiler.compile_fun("1+3/3").call()).to.eq 2
+      expect(Compiler.compile_fun("100 / 10*2").call()).to.eq 20
+      expect(Compiler.compile_fun("'testo' > 'test' + 'a'").call()).to.be.true
+
     it "calls global (window) object", ->
       f = Compiler.str_to_fun("_abc_.fun()")
       expect(f.call()).to.be.true

@@ -20,7 +20,9 @@
 [A-Z][\w\d]*          return 'RES'
 \w[\w\d]*             return 'KEY'
 "."                   return '.'
-\s*("="|">="|">"|"<"|"<="|"+"|"-"|"/"|"*")\s* return 'OP'
+\s*("="|">="|">"|"<"|"<=")\s* return 'OP'
+\s*("+"|"-")\s* return 'OP2'
+\s*("/"|"*")\s* return 'OP3'
 <<EOF>>               return 'EOF'
 .                     return 'INVALID'
 
@@ -35,6 +37,9 @@
   };
 %}
 
+%left 'OP'
+%left 'OP2'
+%left 'OP3'
 %left 'TIF'
 
 %start expressions
@@ -71,6 +76,13 @@ simple_e
         {$$ = {code: 'chain', value: $1};}
     | val
         {$$ = {code: 'simple', value: $1};}
+
+    | simple_e 'OP' simple_e
+         {$$ = {code: 'op', left: $1, right: $3, type: $2.trim()};}
+    | simple_e 'OP2' simple_e
+         {$$ = {code: 'op', left: $1, right: $3, type: $2.trim()};}
+    | simple_e 'OP3' simple_e
+         {$$ = {code: 'op', left: $1, right: $3, type: $2.trim()};}
     ;
 
 method_chain
@@ -137,19 +149,9 @@ val
          {$$ = yytext.replace(/(^['"]|['"]$)/g,'');}
     ;
 
-op
-    : 'OP'
-        {$$ = yytext.replace(/(^\s+|\s+$)/g,'');}
-    ;
-
-cond
-    : simple_e op simple_e
-         {$$ = {code: 'op', left: $1, right: $3, type: $2};}
-    ;
 
 ternary
-    : cond 'TIF' e 'TELSE' e
-        {$$ = {code: 'if', cond: $1, left: $3, right: $5};}
-    | simple_e 'TIF' e 'TELSE' e
+
+    : simple_e 'TIF' e 'TELSE' e
         {$$ = {code: 'if', cond: $1, left: $3, right: $5};}
     ;
