@@ -7195,8 +7195,8 @@ Simple = (function(_super) {
 
   function Simple(nod) {
     var _html;
-    _html = nod.html();
-    if (!_html.match(/^<.*>$/)) {
+    _html = nod.html().trim();
+    if (!(_html.match(/^</) && _html.match(/>$/m))) {
       _html = "<div>" + _html + "</div>";
     }
     this.create_templater(_html);

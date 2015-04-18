@@ -22,8 +22,8 @@ _escapes =
 # Simple template from html with a little bit of logic
 class Simple extends Base
   constructor: (nod) ->
-    _html = nod.html()
-    _html = "<div>#{_html}</div>" unless _html.match(/^<.*>$/)
+    _html = nod.html().trim()
+    _html = "<div>#{_html}</div>" unless (_html.match(/^</) && _html.match(/>$/m))
     @create_templater(_html)
 
   create_templater: (text) ->
