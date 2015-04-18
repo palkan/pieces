@@ -92,7 +92,7 @@
 })();
 require.define({'pieces-core/components/base': function(exports, require, module) {
   'use strict';
-var Base, Compiler, Events, Klass, Nod, utils, _array_rxp, _node_attr, _prop_setter, _proper, _toggle_class,
+var Base, Bindable, Compiler, Events, Klass, Nod, utils, _array_rxp, _node_attr, _prop_setter, _proper, _toggle_class,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   __slice = [].slice;
@@ -106,6 +106,8 @@ utils = require('../core/utils');
 Nod = require('../core/nod').Nod;
 
 Compiler = require('../grammar/compiler');
+
+Bindable = require('../core/binding').Bindable;
 
 _array_rxp = /\[\]$/;
 
@@ -157,6 +159,8 @@ _node_attr = function(val, node_attr) {
 
 Base = (function(_super) {
   __extends(Base, _super);
+
+  Base.include(Bindable);
 
   Base.include_plugins = function() {
     var plugin, plugins, _i, _len, _results;
@@ -223,6 +227,7 @@ Base = (function(_super) {
           if (options.event != null) {
             this.trigger(options.event, val);
           }
+          this.trigger("change:" + name);
         }
         return val;
       };
@@ -267,24 +272,35 @@ Base = (function(_super) {
     this.init_children();
     this.setup_events();
     this.postinitialize();
+    this.setup_bindings();
   }
 
   Base.prototype.preinitialize = function() {
-    var desc, name, _ref, _results,
-      _this = this;
+    var desc, name, _ref, _ref1, _results;
     Nod.store(this, true);
     this.__properties__ = {};
     this.__components__ = [];
     this.__plugins__ = [];
     this.pid = this.data('pid') || this.attr('pid') || this.node.id;
-    _ref = this.__prop_desc__;
+    if (!!this.options.scoped) {
+      this.scope = {
+        scope: this
+      };
+    }
+    if (((_ref = this.host) != null ? _ref.scoped : void 0) === true) {
+      this.scope || (this.scope = this.host.scope);
+    }
+    this.scoped = this.scope != null;
+    _ref1 = this.__prop_desc__;
     _results = [];
-    for (name in _ref) {
-      if (!__hasProp.call(_ref, name)) continue;
-      desc = _ref[name];
-      _results.push((function(name, desc) {
-        return _this.__properties__[name] = desc["default"];
-      })(name, desc));
+    for (name in _ref1) {
+      if (!__hasProp.call(_ref1, name)) continue;
+      desc = _ref1[name];
+      _results.push((function(_this) {
+        return function(name, desc) {
+          return _this.__properties__[name] = desc["default"];
+        };
+      })(this)(name, desc));
     }
     return _results;
   };
@@ -325,24 +341,15 @@ Base = (function(_super) {
   };
 
   Base.prototype.init_children = function() {
-    var node, _fn, _i, _len, _ref,
-      _this = this;
+    var node, _fn, _i, _len, _ref;
     _ref = this.find_cut("." + Klass.PI);
-    _fn = function(node) {
-      var arr, child, _name;
-      child = Nod.create(node).piecify(_this);
-      if (child != null ? child.pid : void 0) {
-        if (_array_rxp.test(child.pid)) {
-          arr = (_this[_name = child.pid.slice(0, -2)] || (_this[_name] = []));
-          if (!(arr.indexOf(child) > -1)) {
-            arr.push(child);
-          }
-        } else {
-          _this[child.pid] = child;
-        }
-        return _this.__components__.push(child);
-      }
-    };
+    _fn = (function(_this) {
+      return function(node) {
+        var child;
+        child = Nod.create(node).piecify(_this);
+        return _this.add_component(child);
+      };
+    })(this);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       node = _ref[_i];
       _fn(node);
@@ -353,6 +360,7 @@ Base = (function(_super) {
     var event, handler, handlers, _i, _len, _ref, _ref1;
     _ref = this.options.events;
     for (event in _ref) {
+      if (!__hasProp.call(_ref, event)) continue;
       handlers = _ref[event];
       _ref1 = handlers.split(/;\s*/);
       for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
@@ -371,6 +379,18 @@ Base = (function(_super) {
     as: 'create'
   });
 
+  Base.prototype.setup_bindings = function() {
+    var expr, method, _ref, _results;
+    _ref = this.options.bindings;
+    _results = [];
+    for (method in _ref) {
+      if (!__hasProp.call(_ref, method)) continue;
+      expr = _ref[method];
+      _results.push(this.bind(method, expr));
+    }
+    return _results;
+  };
+
   Base.prototype.piecify = function() {
     var c, _i, _len, _ref;
     this.__components__.length = 0;
@@ -384,7 +404,7 @@ Base = (function(_super) {
   };
 
   Base.prototype.trigger = function(event, data, bubbles) {
-    if (this._initialized && (this.enabled || event === Events.Enabled)) {
+    if (this._initialized && (this.enabled || (event === Events.Enabled)) || event === Events.Destroyed) {
       return Base.__super__.trigger.call(this, event, data, bubbles);
     }
   };
@@ -445,20 +465,45 @@ Base = (function(_super) {
     this.__plugins__.length = 0;
     this.__components__.length = 0;
     this.__properties__ = {};
-    Base.__super__.dispose.apply(this, arguments);
-    return this.trigger(Events.Destroyed, true, false);
+    this.trigger(Events.Destroyed, true, false);
+    return Base.__super__.dispose.apply(this, arguments);
+  };
+
+  Base.prototype.add_component = function(child) {
+    var arr, arr_name;
+    if (child != null ? child.pid : void 0) {
+      if (_array_rxp.test(child.pid)) {
+        arr_name = child.pid.slice(0, -2);
+        arr = (this[arr_name] || (this[arr_name] = []));
+        if (this.scoped === true) {
+          this.scope[arr_name] = arr;
+        }
+        if (!(arr.indexOf(child) > -1)) {
+          arr.push(child);
+        }
+      } else {
+        this[child.pid] = child;
+        if (this.scoped === true) {
+          this.scope[child.pid] = child;
+        }
+      }
+    }
+    this.__components__.push(child);
+    return this.trigger(Events.ChildAdded, child, false);
   };
 
   Base.prototype.remove_component = function(child) {
+    var name;
     if (!child.pid) {
       return;
     }
+    name = child.pid;
     if (_array_rxp.test(child.pid)) {
-      if (this["" + child.pid.slice(0, -2)]) {
-        delete this["" + child.pid.slice(0, -2)];
-      }
-    } else {
-      delete this[child.pid];
+      name = child.pid.slice(0, -2);
+    }
+    delete this[name];
+    if (this.scoped === true) {
+      delete this.scope[name];
     }
     return this.__components__.splice(this.__components__.indexOf(child), 1);
   };
@@ -480,12 +525,11 @@ Base = (function(_super) {
 
 module.exports = Base;
 
-
 }});
 
-require.define({'pieces-core/components/base_input': function(exports, require, module) {
+;require.define({'pieces-core/components/base_input': function(exports, require, module) {
   'use strict';
-var Base, BaseInput, Events, utils, _pass, _ref, _serialize,
+var Base, BaseInput, Events, utils, _pass, _serialize,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -507,8 +551,7 @@ BaseInput = (function(_super) {
   __extends(BaseInput, _super);
 
   function BaseInput() {
-    _ref = BaseInput.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return BaseInput.__super__.constructor.apply(this, arguments);
   }
 
   BaseInput.prototype.postinitialize = function() {
@@ -523,9 +566,14 @@ BaseInput = (function(_super) {
     }
   };
 
+  BaseInput.active_property(BaseInput.prototype, 'val', {
+    "default": ''
+  });
+
   BaseInput.prototype.value = function(val) {
     if (val != null) {
       this.input.node.value = val;
+      this.val = this._serializer(val);
       return this;
     } else {
       return this._serializer(this.input.node.value);
@@ -552,10 +600,9 @@ BaseInput = (function(_super) {
 
 module.exports = BaseInput;
 
-
 }});
 
-require.define({'pieces-core/components/events/index': function(exports, require, module) {
+;require.define({'pieces-core/components/events/index': function(exports, require, module) {
   var events = require('./pi_events'),
     utils = require('../../core/utils');
 
@@ -570,6 +617,7 @@ require.define({'pieces-core/components/events/input_events': function(exports, 
 module.exports = {
   InputEvent: {
     Change: 'changed',
+    Input: 'user_input',
     Clear: 'cleared',
     Editable: 'editable'
   },
@@ -580,13 +628,13 @@ module.exports = {
   }
 };
 
-
 }});
 
-require.define({'pieces-core/components/events/pi_events': function(exports, require, module) {
+;require.define({'pieces-core/components/events/pi_events': function(exports, require, module) {
   'use strict';
 module.exports = {
   Initialized: 'initialized',
+  ChildAdded: 'child_added',
   Created: 'creation_complete',
   Destroyed: 'destroyed',
   Enabled: 'enabled',
@@ -596,12 +644,11 @@ module.exports = {
   Update: 'update'
 };
 
-
 }});
 
-require.define({'pieces-core/components/form': function(exports, require, module) {
+;require.define({'pieces-core/components/form': function(exports, require, module) {
   'use strict';
-var Base, BaseInput, Events, Form, Former, Klass, Nod, Validator, utils, _array_name, _ref,
+var Base, BaseInput, Events, Form, Former, Klass, Nod, Validator, utils, _array_name,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -629,38 +676,42 @@ Form = (function(_super) {
   __extends(Form, _super);
 
   function Form() {
-    _ref = Form.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return Form.__super__.constructor.apply(this, arguments);
   }
 
   Form.prototype.postinitialize = function() {
-    var _this = this;
     Form.__super__.postinitialize.apply(this, arguments);
     this._cache = {};
     this._value = {};
     this._invalids = [];
     this.former = new Former(this.node, this.options);
     this.read_values();
-    this.on(Events.InputEvent.Change, function(e) {
-      e.cancel();
-      if (_this.validate_nod(e.target)) {
-        return _this.update_value(e.target.name(), e.data);
-      }
-    });
-    this.on('change', function(e) {
-      if (!utils.is_input(e.target.node)) {
-        return;
-      }
-      if (_this.validate_nod(e.target)) {
-        return _this.update_value(e.target.node.name, _this.former._parse_nod_value(e.target.node));
-      }
-    });
+    this.on(Events.InputEvent.Change, (function(_this) {
+      return function(e) {
+        e.cancel();
+        if (_this.validate_nod(e.target)) {
+          return _this.update_value(e.target.name(), e.data);
+        }
+      };
+    })(this));
+    this.on('change', (function(_this) {
+      return function(e) {
+        if (!utils.is_input(e.target.node)) {
+          return;
+        }
+        if (_this.validate_nod(e.target)) {
+          return _this.update_value(e.target.node.name, _this.former._parse_nod_value(e.target.node));
+        }
+      };
+    })(this));
     this.form = this.node.nodeName === 'FORM' ? this : this.find('form');
     if (this.form != null) {
-      return this.form.on('submit', function(e) {
-        e.cancel();
-        return _this.submit();
-      });
+      return this.form.on('submit', (function(_this) {
+        return function(e) {
+          e.cancel();
+          return _this.submit();
+        };
+      })(this));
     }
   };
 
@@ -672,12 +723,13 @@ Form = (function(_super) {
   };
 
   Form.prototype.value = function(val) {
-    var _this = this;
     if (val != null) {
       this._value = {};
-      this.former.traverse_nodes(this.node, function(node) {
-        return _this.fill_value(node, val);
-      });
+      this.former.traverse_nodes(this.node, (function(_this) {
+        return function(node) {
+          return _this.fill_value(node, val);
+        };
+      })(this));
       this.read_values();
       return this;
     } else {
@@ -686,14 +738,15 @@ Form = (function(_super) {
   };
 
   Form.prototype.clear = function(silent) {
-    var _this = this;
     if (silent == null) {
       silent = false;
     }
     this._value = {};
-    this.former.traverse_nodes(this.node, function(node) {
-      return _this.clear_value(node);
-    });
+    this.former.traverse_nodes(this.node, (function(_this) {
+      return function(node) {
+        return _this.clear_value(node);
+      };
+    })(this));
     if (this.former.options.clear_hidden === false) {
       this.read_values();
     }
@@ -703,29 +756,30 @@ Form = (function(_super) {
   };
 
   Form.prototype.read_values = function() {
-    var _name_values,
-      _this = this;
+    var _name_values;
     _name_values = [];
-    this.former.traverse_nodes(this.node, function(node) {
-      var nod;
-      if (((nod = Nod.fetch(node._nod)) instanceof BaseInput) && nod.name()) {
-        if (!_array_name(name)) {
-          _this._cache[nod.name()] = nod;
+    this.former.traverse_nodes(this.node, (function(_this) {
+      return function(node) {
+        var nod;
+        if (((nod = Nod.fetch(node._nod)) instanceof BaseInput) && nod.name()) {
+          if (!_array_name(name)) {
+            _this._cache[nod.name()] = nod;
+          }
+          return _name_values.push({
+            name: nod.name(),
+            value: nod.value()
+          });
+        } else if (utils.is_input(node) && node.name) {
+          if (!_array_name(node.name)) {
+            _this._cache[node.name] = Nod.create(node);
+          }
+          return _name_values.push({
+            name: node.name,
+            value: _this.former._parse_nod_value(node)
+          });
         }
-        return _name_values.push({
-          name: nod.name(),
-          value: nod.value()
-        });
-      } else if (utils.is_input(node) && node.name) {
-        if (!_array_name(node.name)) {
-          _this._cache[node.name] = Nod.create(node);
-        }
-        return _name_values.push({
-          name: node.name,
-          value: _this.former._parse_nod_value(node)
-        });
-      }
-    });
+      };
+    })(this));
     return this._value = this.former.process_name_values(_name_values);
   };
 
@@ -754,10 +808,11 @@ Form = (function(_super) {
   };
 
   Form.prototype.validate = function() {
-    var _this = this;
-    this.former.traverse_nodes(this.node, function(node) {
-      return _this.validate_value(node);
-    });
+    this.former.traverse_nodes(this.node, (function(_this) {
+      return function(node) {
+        return _this.validate_value(node);
+      };
+    })(this));
     if (this._invalids.length) {
       this.trigger(Events.FormEvent.Invalid, this._invalids);
       return false;
@@ -774,12 +829,12 @@ Form = (function(_super) {
   };
 
   Form.prototype.validate_nod = function(nod) {
-    var flag, type, types, _i, _len, _ref1;
+    var flag, type, types, _i, _len, _ref;
     if ((types = nod.data('validates'))) {
       flag = true;
-      _ref1 = types.split(" ");
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        type = _ref1[_i];
+      _ref = types.split(" ");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        type = _ref[_i];
         if (!Validator.validate(type, nod, this)) {
           nod.addClass(Klass.INVALID);
           flag = false;
@@ -838,25 +893,94 @@ Form = (function(_super) {
 
 module.exports = Form;
 
-
 }});
 
-require.define({'pieces-core/components/index': function(exports, require, module) {
+;require.define({'pieces-core/components/index': function(exports, require, module) {
   'use strict'
 var components = {};
 components.Events = require('./events');
 components.Base = require('./base');
+require('./utils/binding');
 components.BaseInput = require('./base_input');
-components.TextInput = require('./textinput');
+components.TextInput = require('./text_input');
 components.Form = require('./form')
 module.exports = components;
 
 
 }});
 
-require.define({'pieces-core/components/textinput': function(exports, require, module) {
+require.define({'pieces-core/components/modules/renderable': function(exports, require, module) {
   'use strict';
-var Base, BaseInput, Events, Klass, TextInput, utils, _ref,
+var Core, Nod, Renderable, Renderers, utils,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+utils = require('../../core/utils');
+
+Nod = require('../../core/nod').Nod;
+
+Core = require('../../core/core');
+
+Renderers = require('../../renderers');
+
+Renderable = (function(_super) {
+  __extends(Renderable, _super);
+
+  function Renderable() {
+    return Renderable.__super__.constructor.apply(this, arguments);
+  }
+
+  Renderable.included = function(base) {
+    return base.getset('renderer', (function() {
+      return this.__renderer__ || (this.__renderer__ = this._find_renderer());
+    }), (function(val) {
+      return this.__renderer__ = val;
+    }));
+  };
+
+  Renderable.prototype.render = function(data) {
+    var nod, tpl;
+    tpl = this.renderer;
+    this.remove_children();
+    if (data != null) {
+      nod = tpl.render(data, false);
+      if (nod != null) {
+        this.append(nod);
+        this.piecify();
+      } else {
+        utils.error("failed to render data for: " + this.pid + "}", data);
+      }
+    }
+    return this;
+  };
+
+  Renderable.prototype._find_renderer = function() {
+    var klass, name, param, renderer, tpl, _, _ref;
+    if ((this.options.renderer != null) && _renderer_reg.test(this.options.renderer)) {
+      _ref = this.options.renderer.match(_renderer_reg), _ = _ref[0], name = _ref[1], param = _ref[2];
+      klass = Renderers[utils.camelCase(name)];
+      if (klass != null) {
+        return new klass(param);
+      }
+    } else if ((tpl = this.find('.pi-renderer'))) {
+      renderer = new Renderers.Simple(tpl, this.options.tpl_tag || tpl.data('tag'));
+      tpl.remove();
+      return renderer;
+    }
+    return new Renderers.Base();
+  };
+
+  return Renderable;
+
+})(Core);
+
+module.exports = Renderable;
+
+}});
+
+;require.define({'pieces-core/components/text_input': function(exports, require, module) {
+  'use strict';
+var Base, BaseInput, Events, Klass, TextInput, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -874,21 +998,28 @@ TextInput = (function(_super) {
   __extends(TextInput, _super);
 
   function TextInput() {
-    _ref = TextInput.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return TextInput.__super__.constructor.apply(this, arguments);
   }
 
   TextInput.prototype.postinitialize = function() {
-    var _this = this;
     TextInput.__super__.postinitialize.apply(this, arguments);
     this.editable = true;
     if (this.options.readonly || this.hasClass(Klass.READONLY)) {
       this.readonly();
     }
-    return this.input.on('change', function(e) {
-      e.cancel();
-      return _this.trigger(Events.InputEvent.Change, _this.value());
-    });
+    this.input.on('change', (function(_this) {
+      return function(e) {
+        e.cancel();
+        return _this.trigger(Events.InputEvent.Change, _this.value());
+      };
+    })(this));
+    return this.input.on('input', (function(_this) {
+      return function(e) {
+        e.cancel();
+        _this.val = _this.value();
+        return _this.trigger(Events.InputEvent.Input, _this.val);
+      };
+    })(this));
   };
 
   TextInput.active_property(TextInput.prototype, 'editable', {
@@ -918,10 +1049,99 @@ TextInput = (function(_super) {
 
 module.exports = TextInput;
 
+}});
+
+;require.define({'pieces-core/components/utils/binding': function(exports, require, module) {
+  'use strict';
+var Base, BindListener, ComponentBind, Core, Events, func_utils, utils,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+utils = require('../../core/utils');
+
+func_utils = require('../../core/utils/func');
+
+BindListener = require('../../core/binding').BindListener;
+
+Events = require('../events');
+
+Base = require('../base');
+
+Core = require('../../core/core');
+
+ComponentBind = (function(_super) {
+  __extends(ComponentBind, _super);
+
+  function ComponentBind() {
+    return ComponentBind.__super__.constructor.apply(this, arguments);
+  }
+
+  ComponentBind.included = function(base) {
+    return base.prototype._check_target = func_utils.prepend(base.prototype._check_target, this.prototype.handle_root, {
+      break_with: false
+    });
+  };
+
+  ComponentBind.prototype.handle_component = function(target, name, root, last) {
+    utils.debug('component', target, name, root, last);
+    if (root) {
+      this.listeners.push.apply(this.listeners, target.on(Events.Destroyed, (function(_this) {
+        return function() {
+          return _this.dispose();
+        };
+      })(this)));
+    } else {
+      if (target != null) {
+        this.listeners.push.apply(this.listeners, target.on(Events.Destroyed, this._disable));
+      }
+    }
+    if (last) {
+      return true;
+    }
+    if (target.__prop_desc__[name]) {
+      utils.debug('bindable', target, name);
+      this.listeners.push.apply(this.listeners, target.on("change:" + name, this._update));
+    } else if (target[name] == null) {
+      utils.debug('create', target, name);
+      this.listeners.push.apply(this.listeners, target.on(Events.ChildAdded, this._init, target, function(e) {
+        return e.data.pid === name;
+      }));
+      this.failed++;
+      return;
+    }
+    return true;
+  };
+
+  ComponentBind.prototype.handle_root = function(_target, _name, root, _last) {
+    var name, target;
+    if (!(root && (_target == null) && (this.target instanceof Base) && this.target.scoped)) {
+      return;
+    }
+    name = this.steps[0].name;
+    target = this.target.scope.scope;
+    utils.debug('create scoped', name);
+    this.listeners.push.apply(this.listeners, target.on(Events.ChildAdded, this._init, target, function(e) {
+      return e.data.pid === name;
+    }));
+    this.failed++;
+    return func_utils.BREAK;
+  };
+
+  return ComponentBind;
+
+})(Core);
+
+BindListener.prepend_type('component', function(target) {
+  return target instanceof Base;
+});
+
+BindListener.include(ComponentBind);
+
+module.exports = BindListener;
 
 }});
 
-require.define({'pieces-core/components/utils/guesser': function(exports, require, module) {
+;require.define({'pieces-core/components/utils/guesser': function(exports, require, module) {
   'use strict';
 var Guesser, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -980,8 +1200,7 @@ Guesser = (function() {
   };
 
   Guesser.find = function(nod) {
-    var el, m, match, matches, resolver, tag, tmatches, _i, _j, _len, _len1, _match, _ref, _ref1,
-      _this = this;
+    var el, m, match, matches, resolver, tag, tmatches, _i, _j, _len, _len1, _match, _ref, _ref1;
     matches = [];
     if (this.klass_reg && (_match = nod.node.className.match(this.klass_reg))) {
       matches = utils.arr.uniq(_match);
@@ -989,9 +1208,11 @@ Guesser = (function() {
         return this.klass_to_component[matches[0]];
       }
     }
-    matches = matches.map(function(klass) {
-      return _this.klass_to_component[klass];
-    });
+    matches = matches.map((function(_this) {
+      return function(klass) {
+        return _this.klass_to_component[klass];
+      };
+    })(this));
     tag = nod.node.nodeName.toLowerCase();
     if (tag === 'input') {
       tag += "[" + nod.node.type + "]";
@@ -1043,12 +1264,11 @@ Guesser = (function() {
 
 module.exports = Guesser;
 
-
 }});
 
-require.define({'pieces-core/components/utils/initializer': function(exports, require, module) {
+;require.define({'pieces-core/components/utils/initializer': function(exports, require, module) {
   'use strict';
-var ComponentBuilder, Components, Config, Guesser, Initializer, Nod, utils, _event_re;
+var ComponentBuilder, Components, Config, Guesser, Initializer, Nod, utils, _bind_re, _event_re;
 
 Guesser = require('./guesser');
 
@@ -1061,6 +1281,8 @@ Components = require('../');
 utils = require('../../core/utils');
 
 _event_re = /^on_(.+)/i;
+
+_bind_re = /^bind_(.+)/i;
 
 Initializer = (function() {
   function Initializer() {}
@@ -1113,10 +1335,14 @@ Initializer = (function() {
     opts = utils.clone(el.data());
     opts.plugins = opts.plugins != null ? opts.plugins.split(/\s+/) : null;
     opts.events = {};
+    opts.bindings = {};
     for (key in opts) {
       val = opts[key];
       if (matches = key.match(_event_re)) {
         opts.events[matches[1]] = val;
+      }
+      if (matches = key.match(_bind_re)) {
+        opts.bindings[matches[1]] = val;
       }
     }
     return utils.merge(utils.obj.get_path(Config, config_name) || {}, opts);
@@ -1164,10 +1390,9 @@ Initializer.append_builder(ComponentBuilder);
 
 module.exports = Initializer;
 
-
 }});
 
-require.define({'pieces-core/components/utils/klass': function(exports, require, module) {
+;require.define({'pieces-core/components/utils/klass': function(exports, require, module) {
   'use strict';
 var klass;
 
@@ -1184,10 +1409,9 @@ klass = {
 
 module.exports = klass;
 
-
 }});
 
-require.define({'pieces-core/components/utils/setup': function(exports, require, module) {
+;require.define({'pieces-core/components/utils/setup': function(exports, require, module) {
   'use strict';
 var $, App, Compiler, EventDispatcher, Initializer, Klass, Nod, find, piecify, utils;
 
@@ -1255,10 +1479,9 @@ $ = function(q) {
 
 module.exports = $;
 
-
 }});
 
-require.define({'pieces-core/components/utils/validator': function(exports, require, module) {
+;require.define({'pieces-core/components/utils/validator': function(exports, require, module) {
   'use strict';
 var Validator, utils, _type_rxp;
 
@@ -1318,10 +1541,9 @@ Validator = (function() {
 
 module.exports = Validator;
 
-
 }});
 
-require.define({'pieces-core/controllers/base': function(exports, require, module) {
+;require.define({'pieces-core/controllers/base': function(exports, require, module) {
   'use strict';
 var Base, Context, utils,
   __hasProp = {}.hasOwnProperty,
@@ -1397,12 +1619,11 @@ Base = (function(_super) {
 
 module.exports = Base;
 
-
 }});
 
-require.define({'pieces-core/controllers/context': function(exports, require, module) {
+;require.define({'pieces-core/controllers/context': function(exports, require, module) {
   'use strict';
-var Context, Core, History, Strategy, utils, _ref, _ref1, _ref2,
+var Context, Core, History, Strategy, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1506,8 +1727,7 @@ Strategy.OneForAll = (function(_super) {
   __extends(OneForAll, _super);
 
   function OneForAll() {
-    _ref = OneForAll.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return OneForAll.__super__.constructor.apply(this, arguments);
   }
 
   OneForAll.mixedin = function(owner) {
@@ -1515,32 +1735,36 @@ Strategy.OneForAll = (function(_super) {
   };
 
   OneForAll.load = function(context) {
-    var id,
-      _this = this;
+    var id;
     this.context = context;
     if (this.context.context || this.__loading) {
       return;
     }
     if ((id = this.context.options["default"] || "main") && this.context.has_context(id)) {
-      return this.context.__loading_promise = this.context.switch_to(id).then((function() {
-        _this.context.context = _this.context._contexts[id];
-        _this.context.context_id = id;
-        return delete _this.context.__loading_promise;
-      }), (function(e) {
-        delete _this.context.__loading_promise;
-        utils.error(e);
-        throw e;
-      }));
+      return this.context.__loading_promise = this.context.switch_to(id).then(((function(_this) {
+        return function() {
+          _this.context.context = _this.context._contexts[id];
+          _this.context.context_id = id;
+          return delete _this.context.__loading_promise;
+        };
+      })(this)), ((function(_this) {
+        return function(e) {
+          delete _this.context.__loading_promise;
+          utils.error(e);
+          throw e;
+        };
+      })(this)));
     }
   };
 
   OneForAll.unload = function(context) {
-    var _this = this;
     this.context = context;
-    return (this.context.__loading_promise || utils.promise.resolved()).then(function() {
-      var _ref1;
-      return (_ref1 = _this.context.context) != null ? _ref1.unload() : void 0;
-    });
+    return (this.context.__loading_promise || utils.promise.resolved()).then((function(_this) {
+      return function() {
+        var _ref;
+        return (_ref = _this.context.context) != null ? _ref.unload() : void 0;
+      };
+    })(this));
   };
 
   OneForAll.dispose = function(context) {
@@ -1552,8 +1776,7 @@ Strategy.OneForAll = (function(_super) {
   };
 
   OneForAll.prototype.switch_to = function(to, params, history) {
-    var data, preloader, target, _ref1,
-      _this = this;
+    var data, preloader, target, _ref;
     if (history == null) {
       history = false;
     }
@@ -1565,19 +1788,21 @@ Strategy.OneForAll = (function(_super) {
       params: params
     };
     target = this._contexts[to];
-    preloader = (_ref1 = typeof target.preload === "function" ? target.preload() : void 0) != null ? _ref1 : utils.promise.resolved();
-    return preloader.then(function() {
-      var _ref2;
-      if ((_ref2 = _this.context) != null) {
-        _ref2.unload();
-      }
-      target.load(data);
-      if (!history) {
-        _this._history.push(to);
-      }
-      _this.context = target;
-      return _this.context_id = to;
-    });
+    preloader = (_ref = typeof target.preload === "function" ? target.preload() : void 0) != null ? _ref : utils.promise.resolved();
+    return preloader.then((function(_this) {
+      return function() {
+        var _ref1;
+        if ((_ref1 = _this.context) != null) {
+          _ref1.unload();
+        }
+        target.load(data);
+        if (!history) {
+          _this._history.push(to);
+        }
+        _this.context = target;
+        return _this.context_id = to;
+      };
+    })(this));
   };
 
   OneForAll.prototype.switch_back = function(data) {
@@ -1606,13 +1831,11 @@ Strategy.OneByOne = (function(_super) {
   __extends(OneByOne, _super);
 
   function OneByOne() {
-    _ref1 = OneByOne.__super__.constructor.apply(this, arguments);
-    return _ref1;
+    return OneByOne.__super__.constructor.apply(this, arguments);
   }
 
   OneByOne.prototype.switch_to = function(to_data, params, history, up) {
-    var data, preloader, target, to, _ref2, _ref3,
-      _this = this;
+    var data, preloader, target, to, _ref, _ref1;
     if (history == null) {
       history = false;
     }
@@ -1622,35 +1845,37 @@ Strategy.OneByOne = (function(_super) {
     if (!to_data || (typeof to_data === 'string' && !this._contexts[to_data])) {
       return utils.promise.rejected("Undefined target context: " + to_data);
     }
-    _ref2 = typeof to_data === 'object' ? [to_data.id, to_data.up] : [to_data, up], to = _ref2[0], up = _ref2[1];
+    _ref = typeof to_data === 'object' ? [to_data.id, to_data.up] : [to_data, up], to = _ref[0], up = _ref[1];
     data = {
       from: this.context_id,
       params: params
     };
     target = this._contexts[to];
-    preloader = (_ref3 = typeof target.preload === "function" ? target.preload() : void 0) != null ? _ref3 : utils.promise.resolved();
-    return preloader.then(function() {
-      var _ref4, _ref5;
-      if (up) {
-        if ((_ref4 = _this.context) != null) {
-          _ref4.deactivate();
+    preloader = (_ref1 = typeof target.preload === "function" ? target.preload() : void 0) != null ? _ref1 : utils.promise.resolved();
+    return preloader.then((function(_this) {
+      return function() {
+        var _ref2, _ref3;
+        if (up) {
+          if ((_ref2 = _this.context) != null) {
+            _ref2.deactivate();
+          }
+          target.load(data);
+        } else {
+          if ((_ref3 = _this.context) != null) {
+            _ref3.unload();
+          }
+          target.activate(data);
         }
-        target.load(data);
-      } else {
-        if ((_ref5 = _this.context) != null) {
-          _ref5.unload();
+        if (!history) {
+          _this._history.push({
+            id: to,
+            up: up
+          });
         }
-        target.activate(data);
-      }
-      if (!history) {
-        _this._history.push({
-          id: to,
-          up: up
-        });
-      }
-      _this.context = target;
-      return _this.context_id = to;
-    });
+        _this.context = target;
+        return _this.context_id = to;
+      };
+    })(this));
   };
 
   OneByOne.prototype.switch_up = function(to, data) {
@@ -1683,31 +1908,30 @@ Strategy.AllForOne = (function(_super) {
   __extends(AllForOne, _super);
 
   function AllForOne() {
-    _ref2 = AllForOne.__super__.constructor.apply(this, arguments);
-    return _ref2;
+    return AllForOne.__super__.constructor.apply(this, arguments);
   }
 
   AllForOne.load = function(context) {
-    var ctx, _, _ref3, _results;
+    var ctx, _, _ref, _results;
     this.context = context;
-    _ref3 = this.context._contexts;
+    _ref = this.context._contexts;
     _results = [];
-    for (_ in _ref3) {
-      if (!__hasProp.call(_ref3, _)) continue;
-      ctx = _ref3[_];
+    for (_ in _ref) {
+      if (!__hasProp.call(_ref, _)) continue;
+      ctx = _ref[_];
       _results.push(ctx.load());
     }
     return _results;
   };
 
   AllForOne.unload = function(context) {
-    var ctx, _, _ref3, _results;
+    var ctx, _, _ref, _results;
     this.context = context;
-    _ref3 = this.context._contexts;
+    _ref = this.context._contexts;
     _results = [];
-    for (_ in _ref3) {
-      if (!__hasProp.call(_ref3, _)) continue;
-      ctx = _ref3[_];
+    for (_ in _ref) {
+      if (!__hasProp.call(_ref, _)) continue;
+      ctx = _ref[_];
       _results.push(ctx.unload());
     }
     return _results;
@@ -1733,10 +1957,9 @@ Strategy.register('all_for_one', Strategy.AllForOne);
 
 module.exports = Context;
 
-
 }});
 
-require.define({'pieces-core/controllers/index': function(exports, require, module) {
+;require.define({'pieces-core/controllers/index': function(exports, require, module) {
   'use strict'
 var controllers = {}
 
@@ -1796,7 +2019,7 @@ ControllerBuilder = (function() {
     utils.extend(options.modules, this.parse_modules(v_options.slice(1)), true);
     view = new vklass(nod.node, host, options);
     controller.set_view(view);
-    host_context = (_view = host.view()) ? _view.controller : Page.instance;
+    host_context = (_view = host.view) ? _view.controller : Page.instance;
     host_context.add_context(controller, {
       as: view.pid
     });
@@ -1829,10 +2052,9 @@ Initializer.insert_builder_at(ControllerBuilder, 0);
 
 module.exports = ControllerBuilder;
 
-
 }});
 
-require.define({'pieces-core/controllers/page': function(exports, require, module) {
+;require.define({'pieces-core/controllers/page': function(exports, require, module) {
   'use strict';
 var Compiler, Config, Context, Page, utils,
   __hasProp = {}.hasOwnProperty,
@@ -1872,10 +2094,9 @@ Compiler.modifiers.push(function(str) {
 
 module.exports = Page;
 
-
 }});
 
-require.define({'pieces-core/core/app': function(exports, require, module) {
+;require.define({'pieces-core/core/app': function(exports, require, module) {
   'use strict';
 var App, Nod, Page, utils;
 
@@ -1922,10 +2143,343 @@ App = (function() {
 
 module.exports = App;
 
+}});
+
+;require.define({'pieces-core/core/binding': function(exports, require, module) {
+  'use strict';
+var BindListener, Bindable, Binding, Compiler, Core, EventDispatcher, exports, utils,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+utils = require('./utils');
+
+Core = require('./core');
+
+Compiler = require('../grammar/compiler');
+
+EventDispatcher = require('./events').EventDispatcher;
+
+exports = {};
+
+Binding = (function() {
+  function Binding(target, method, expression) {
+    this.target = target;
+    this.expression = expression;
+    if (typeof this.target[method] === 'function') {
+      this.callback = this.target[method].bind(this.target);
+    } else {
+      this.callback = (function(_this) {
+        return function(val) {
+          return _this.target[method] = val;
+        };
+      })(this);
+    }
+    this.compiled = Compiler.compile_fun(this.expression, this.target);
+    this.ast = this.compiled._parsed;
+    this.initialized = false;
+    this._disposed = false;
+    this.listeners = [];
+    this.initialize();
+    this.invalidate();
+  }
+
+  Binding.prototype.initialize = function() {
+    var chain, chains, _i, _len;
+    if (this._disposed) {
+      return;
+    }
+    chains = [];
+    Compiler.traverse(this.ast, function(node) {
+      if (node.code === 'chain') {
+        return chains.push(node);
+      }
+    });
+    for (_i = 0, _len = chains.length; _i < _len; _i++) {
+      chain = chains[_i];
+      this.process_chain(chain.value);
+    }
+    return this.initialized = true;
+  };
+
+  Binding.prototype.process_chain = function(parts) {
+    return this.listeners.push(new BindListener(this, this.target, parts));
+  };
+
+  Binding.prototype.invalidate = function() {
+    var bindable, flag, _i, _len, _ref;
+    if (!this.initialized) {
+      return;
+    }
+    flag = true;
+    _ref = this.listeners;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      bindable = _ref[_i];
+      if (bindable._disposed) {
+        return this.dispose();
+      }
+      flag = flag && bindable.enabled;
+    }
+    if (flag || (flag !== this.enabled)) {
+      this.update(!flag);
+    }
+    return this.enabled = flag;
+  };
+
+  Binding.prototype.update = function(nullify) {
+    var val;
+    if (nullify == null) {
+      nullify = false;
+    }
+    if (!this.initialized) {
+      return;
+    }
+    val = nullify ? '' : this.compiled.call(this.target);
+    return this.callback.call(null, val);
+  };
+
+  Binding.prototype.dispose = function() {
+    var bindable, _i, _len, _ref;
+    if (this._disposed) {
+      return;
+    }
+    this._disposed = true;
+    _ref = this.listeners;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      bindable = _ref[_i];
+      bindable.dispose();
+    }
+    this.listeners.length = 0;
+    this.update(true);
+    this.initialized = false;
+    this.target = null;
+    return this.callback = null;
+  };
+
+  return Binding;
+
+})();
+
+exports.Binding = Binding;
+
+BindListener = (function(_super) {
+  __extends(BindListener, _super);
+
+  BindListener.types = [
+    {
+      name: 'object',
+      fun: function(val) {
+        return (typeof val === 'object') || (typeof val === 'function');
+      }
+    }, {
+      name: 'simple',
+      fun: function(val) {
+        return !(typeof val === 'object');
+      }
+    }
+  ];
+
+  BindListener.prepend_type = function(type, fun) {
+    return this.types.splice(0, 0, {
+      name: type,
+      fun: fun
+    });
+  };
+
+  BindListener.append_type = function(type, fun) {
+    return this.types.push({
+      name: type,
+      fun: fun
+    });
+  };
+
+  function BindListener(binding, target, steps) {
+    this.binding = binding;
+    this.target = target;
+    this.steps = this._build_list(steps);
+    this.enabled = this._disposed = false;
+    this.listeners = [];
+    this._init = this.initialize.bind(this);
+    this._disable = this.disable.bind(this);
+    this._update = this.update.bind(this);
+    this.initialize();
+  }
+
+  BindListener.prototype.initialize = function() {
+    var i, size, target, _ref;
+    if (this._disposed) {
+      return;
+    }
+    this.remove_listeners();
+    if (this.target._disposed) {
+      return this.dispose();
+    }
+    i = 0;
+    target = this.target;
+    this.failed = 0;
+    size = this.steps.length;
+    while (i < this.steps.length) {
+      this.steps[i].fun.target = target;
+      target = this.steps[i].fun.apply(target);
+      if (!this._check_target(target, (_ref = this.steps[i + 1]) != null ? _ref.name : void 0, i === 0, i === (size - 1))) {
+        break;
+      }
+      i++;
+    }
+    this.enabled = this.failed === 0;
+    return this.binding.invalidate();
+  };
+
+  BindListener.prototype.dispose = function() {
+    if (this._disposed) {
+      return;
+    }
+    this.remove_listeners();
+    this._disposed = true;
+    this.enabled = false;
+    this.binding.invalidate();
+    this.binding = null;
+    return this.target = null;
+  };
+
+  BindListener.prototype.disable = function() {
+    if (!this.enabled) {
+      return;
+    }
+    return utils.after(0, (function(_this) {
+      return function() {
+        return _this.initialize();
+      };
+    })(this));
+  };
+
+  BindListener.prototype.update = function() {
+    if (!this.enabled) {
+      return;
+    }
+    utils.debug('update');
+    return this.binding.invalidate();
+  };
+
+  BindListener.prototype.remove_listeners = function() {
+    var listener, _i, _len, _ref;
+    _ref = this.listeners;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      listener = _ref[_i];
+      listener.dispose();
+    }
+    return this.listeners.length = 0;
+  };
+
+  BindListener.prototype._build_list = function(steps) {
+    var step, _i, _len;
+    for (_i = 0, _len = steps.length; _i < _len; _i++) {
+      step = steps[_i];
+      step.fun = Compiler.compile_fun(this._to_chain(step));
+    }
+    return steps;
+  };
+
+  BindListener.prototype._to_chain = function(data) {
+    return {
+      code: 'chain',
+      value: [data]
+    };
+  };
+
+  BindListener.prototype._check_target = function(target, name, root, last) {
+    var type, _name;
+    if (!(last || (target != null))) {
+      return this.dispose();
+    }
+    type = this._detect_type(target);
+    return typeof this[_name = "handle_" + type] === "function" ? this[_name](target, name, root, last) : void 0;
+  };
+
+  BindListener.prototype._detect_type = function(target) {
+    var probe, _i, _len, _ref;
+    _ref = this.constructor.types;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      probe = _ref[_i];
+      if (probe.fun.call(null, target)) {
+        return probe.name;
+      }
+    }
+    return '';
+  };
+
+  BindListener.prototype.handle_object = function(target, name, _root, last) {
+    if (!(last || (target[name] != null))) {
+      this.failed++;
+      return;
+    }
+    return true;
+  };
+
+  BindListener.prototype.handle_simple = function() {
+    return true;
+  };
+
+  return BindListener;
+
+})(Core);
+
+exports.BindListener = BindListener;
+
+Bindable = (function(_super) {
+  __extends(Bindable, _super);
+
+  function Bindable() {
+    return Bindable.__super__.constructor.apply(this, arguments);
+  }
+
+  Bindable.included = function(base) {
+    return base.extend(this);
+  };
+
+  Bindable.prototype.bind = function(to, expression) {
+    var _base, _name;
+    return (_base = (this.__bindings__ || (this.__bindings__ = {})))[_name = "" + to + "::" + expression] || (_base[_name] = new Binding(this, to, expression));
+  };
+
+  Bindable.prototype.unbind = function(to, expression) {
+    var k, match, _i, _len, _ref, _results;
+    if (to == null) {
+      to = '';
+    }
+    if (expression == null) {
+      expression = '';
+    }
+    if (this.__bindings__ == null) {
+      return;
+    }
+    match = "" + to;
+    if (expression) {
+      match += "::" + expression;
+    }
+    _ref = Object.keys(this.__bindings__);
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      k = _ref[_i];
+      if (!(k.indexOf(match) === 0)) {
+        continue;
+      }
+      this.__bindings__[k].dispose();
+      _results.push(delete this.__bindings__[k]);
+    }
+    return _results;
+  };
+
+  return Bindable;
+
+})(Core);
+
+exports.Bindable = Bindable;
+
+module.exports = exports;
 
 }});
 
-require.define({'pieces-core/core/config': function(exports, require, module) {
+;require.define({'pieces-core/core/config': function(exports, require, module) {
   'use strict';
 var config;
 
@@ -1933,10 +2487,9 @@ config = {};
 
 module.exports = config;
 
-
 }});
 
-require.define({'pieces-core/core/core': function(exports, require, module) {
+;require.define({'pieces-core/core/core': function(exports, require, module) {
   'use strict';
 var Core, utils,
   __slice = [].slice;
@@ -1945,6 +2498,30 @@ utils = require('./utils');
 
 Core = (function() {
   var _after, _before;
+
+  Core.getset = function(name, getter, setter, klass) {
+    var prop, target;
+    if (klass == null) {
+      klass = false;
+    }
+    target = klass ? this : this.prototype;
+    prop = {};
+    if (getter != null) {
+      prop.get = getter;
+    }
+    if (setter != null) {
+      prop.set = setter;
+    }
+    return Object.defineProperties(target, utils.obj.wrap(name, prop));
+  };
+
+  Core.getter = function(name, fun, klass) {
+    return this.getset(name, fun, null, klass);
+  };
+
+  Core.setter = function(name, fun, klass) {
+    return this.getset(name, null, fun, klass);
+  };
 
   Core.include = function() {
     var mixin, mixins, _i, _len, _results;
@@ -1989,23 +2566,24 @@ Core = (function() {
   Core.mixedin = utils.truthy;
 
   Core.register_callback = function(method, options) {
-    var callback_name, types, _fn, _i, _len, _when,
-      _this = this;
+    var callback_name, types, _fn, _i, _len, _when;
     if (options == null) {
       options = {};
     }
     callback_name = options.as || method;
     types = options.only || ["before", "after"];
     types = utils.to_a(types);
-    _fn = function(_when) {
-      return _this["" + _when + "_" + callback_name] = function(callback) {
-        var _base, _name;
-        if (this.prototype["_" + _when + "_" + callback_name] && !this.prototype.hasOwnProperty("_" + _when + "_" + callback_name)) {
-          this.prototype["_" + _when + "_" + callback_name] = this.prototype["_" + _when + "_" + callback_name].slice();
-        }
-        return ((_base = this.prototype)[_name = "_" + _when + "_" + callback_name] || (_base[_name] = [])).push(callback);
+    _fn = (function(_this) {
+      return function(_when) {
+        return _this["" + _when + "_" + callback_name] = function(callback) {
+          var _base, _name;
+          if (this.prototype["_" + _when + "_" + callback_name] && !this.prototype.hasOwnProperty("_" + _when + "_" + callback_name)) {
+            this.prototype["_" + _when + "_" + callback_name] = this.prototype["_" + _when + "_" + callback_name].slice();
+          }
+          return ((_base = this.prototype)[_name = "_" + _when + "_" + callback_name] || (_base[_name] = [])).push(callback);
+        };
       };
-    };
+    })(this);
     for (_i = 0, _len = types.length; _i < _len; _i++) {
       _when = types[_i];
       _fn(_when);
@@ -2077,12 +2655,13 @@ Core = (function() {
   };
 
   function Core() {
-    var method, _fn, _i, _len, _ref,
-      _this = this;
+    var method, _fn, _i, _len, _ref;
     _ref = this.constructor.callbacked || [];
-    _fn = function(method) {
-      return _this[method] = _this["__" + method];
-    };
+    _fn = (function(_this) {
+      return function(method) {
+        return _this[method] = _this["__" + method];
+      };
+    })(this);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       method = _ref[_i];
       _fn(method);
@@ -2101,17 +2680,18 @@ Core = (function() {
   };
 
   Core.prototype.delegate_to = function() {
-    var method, methods, to, _fn, _i, _len,
-      _this = this;
+    var method, methods, to, _fn, _i, _len;
     to = arguments[0], methods = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
     to = typeof to === 'string' ? this[to] : to;
-    _fn = function(method) {
-      return _this[method] = function() {
-        var args;
-        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return to[method].apply(to, args);
+    _fn = (function(_this) {
+      return function(method) {
+        return _this[method] = function() {
+          var args;
+          args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+          return to[method].apply(to, args);
+        };
       };
-    };
+    })(this);
     for (_i = 0, _len = methods.length; _i < _len; _i++) {
       method = methods[_i];
       _fn(method);
@@ -2124,10 +2704,9 @@ Core = (function() {
 
 module.exports = Core;
 
-
 }});
 
-require.define({'pieces-core/core/events/aliases': function(exports, require, module) {
+;require.define({'pieces-core/core/events/aliases': function(exports, require, module) {
   'use strict';
 var Browser, NodEvent;
 
@@ -2138,7 +2717,6 @@ Browser = require('../utils/browser');
 if (!!Browser.info().gecko) {
   NodEvent.register_alias('mousewheel', 'DOMMouseScroll');
 }
-
 
 }});
 
@@ -2398,10 +2976,9 @@ exports.EventDispatcher = EventDispatcher;
 
 module.exports = exports;
 
-
 }});
 
-require.define({'pieces-core/core/events/index': function(exports, require, module) {
+;require.define({'pieces-core/core/events/index': function(exports, require, module) {
   'use strict'
 module.exports = require('./events');
 
@@ -2428,21 +3005,22 @@ ResizeListener = (function(_super) {
   __extends(ResizeListener, _super);
 
   function ResizeListener(nod, handler) {
-    var _filter,
-      _this = this;
+    var _filter;
     this.nod = nod;
     this.handler = handler;
     this._w = this.nod.width();
     this._h = this.nod.height();
-    _filter = function(e) {
-      if (_this._w !== e.width || _this._h !== e.height) {
-        _this._w = e.width;
-        _this._h = e.height;
-        return true;
-      } else {
-        return false;
-      }
-    };
+    _filter = (function(_this) {
+      return function(e) {
+        if (_this._w !== e.width || _this._h !== e.height) {
+          _this._w = e.width;
+          _this._h = e.height;
+          return true;
+        } else {
+          return false;
+        }
+      };
+    })(this);
     ResizeListener.__super__.constructor.call(this, 'resize', this.handler, this.nod, false, _filter);
   }
 
@@ -2520,10 +3098,9 @@ ResizeDelegate = (function(_super) {
 
 module.exports = ResizeDelegate;
 
-
 }});
 
-require.define({'pieces-core/core/former/former': function(exports, require, module) {
+;require.define({'pieces-core/core/former/former': function(exports, require, module) {
   'use strict';
 var Former, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -2559,75 +3136,78 @@ Former = (function() {
   };
 
   Former.prototype.fill = function(data) {
-    var _this = this;
-    return this.traverse_nodes(this.nod, function(nod) {
-      return _this._fill_nod(nod, data);
-    });
+    return this.traverse_nodes(this.nod, (function(_this) {
+      return function(nod) {
+        return _this._fill_nod(nod, data);
+      };
+    })(this));
   };
 
   Former.prototype.clear = function() {
-    var _this = this;
-    return this.traverse_nodes(this.nod, function(nod) {
-      return _this._clear_nod(nod);
-    });
+    return this.traverse_nodes(this.nod, (function(_this) {
+      return function(nod) {
+        return _this._clear_nod(nod);
+      };
+    })(this));
   };
 
   Former.prototype.process_name_values = function(name_values) {
-    var item, _arrays, _fn, _i, _len, _result,
-      _this = this;
+    var item, _arrays, _fn, _i, _len, _result;
     _result = {};
     _arrays = {};
-    _fn = function(item) {
-      var i, len, name, name_part, value, _arr_fullname, _current, _j, _len1, _name_parts, _results;
-      name = item.name, value = item.value;
-      if (_this.options.skip_empty && (value === '' || value === null)) {
-        return;
-      }
-      _arr_fullname = '';
-      _current = _result;
-      name = _this.transform_name(name, false);
-      value = _this.transform_value(value);
-      _name_parts = name.split(".");
-      len = _name_parts.length;
-      _results = [];
-      for (i = _j = 0, _len1 = _name_parts.length; _j < _len1; i = ++_j) {
-        name_part = _name_parts[i];
-        _results.push((function(name_part) {
-          var _arr_len, _arr_name, _array_item, _next_field;
-          if (name_part.indexOf('[]') > -1) {
-            _arr_name = name_part.substr(0, name_part.indexOf('['));
-            _arr_fullname += _arr_name;
-            _current[_arr_name] || (_current[_arr_name] = []);
-            if (i === (len - 1)) {
-              return _current[_arr_name].push(value);
-            } else {
-              _next_field = _name_parts[i + 1];
-              _arrays[_arr_fullname] || (_arrays[_arr_fullname] = []);
-              _arr_len = _arrays[_arr_fullname].length;
-              if (_current[_arr_name].length > 0) {
-                _array_item = _current[_arr_name][_current[_arr_name].length - 1];
+    _fn = (function(_this) {
+      return function(item) {
+        var i, len, name, name_part, value, _arr_fullname, _current, _j, _len1, _name_parts, _results;
+        name = item.name, value = item.value;
+        if (_this.options.skip_empty && (value === '' || value === null)) {
+          return;
+        }
+        _arr_fullname = '';
+        _current = _result;
+        name = _this.transform_name(name, false);
+        value = _this.transform_value(value);
+        _name_parts = name.split(".");
+        len = _name_parts.length;
+        _results = [];
+        for (i = _j = 0, _len1 = _name_parts.length; _j < _len1; i = ++_j) {
+          name_part = _name_parts[i];
+          _results.push((function(name_part) {
+            var _arr_len, _arr_name, _array_item, _next_field;
+            if (name_part.indexOf('[]') > -1) {
+              _arr_name = name_part.substr(0, name_part.indexOf('['));
+              _arr_fullname += _arr_name;
+              _current[_arr_name] || (_current[_arr_name] = []);
+              if (i === (len - 1)) {
+                return _current[_arr_name].push(value);
+              } else {
+                _next_field = _name_parts[i + 1];
+                _arrays[_arr_fullname] || (_arrays[_arr_fullname] = []);
+                _arr_len = _arrays[_arr_fullname].length;
+                if (_current[_arr_name].length > 0) {
+                  _array_item = _current[_arr_name][_current[_arr_name].length - 1];
+                }
+                if (!_arr_len || ((__indexOf.call(_arrays[_arr_fullname], _next_field) >= 0) && !(_next_field.indexOf('[]') > -1 || !((_array_item[_next_field] != null) && (i + 1 === len - 1))))) {
+                  _array_item = {};
+                  _current[_arr_name].push(_array_item);
+                  _arrays[_arr_fullname] = [];
+                }
+                _arrays[_arr_fullname].push(_next_field);
+                return _current = _array_item;
               }
-              if (!_arr_len || ((__indexOf.call(_arrays[_arr_fullname], _next_field) >= 0) && !(_next_field.indexOf('[]') > -1 || !((_array_item[_next_field] != null) && (i + 1 === len - 1))))) {
-                _array_item = {};
-                _current[_arr_name].push(_array_item);
-                _arrays[_arr_fullname] = [];
-              }
-              _arrays[_arr_fullname].push(_next_field);
-              return _current = _array_item;
-            }
-          } else {
-            _arr_fullname += name_part;
-            if (i < (len - 1)) {
-              _current[name_part] || (_current[name_part] = {});
-              return _current = _current[name_part];
             } else {
-              return _current[name_part] = value;
+              _arr_fullname += name_part;
+              if (i < (len - 1)) {
+                _current[name_part] || (_current[name_part] = {});
+                return _current = _current[name_part];
+              } else {
+                return _current[name_part] = value;
+              }
             }
-          }
-        })(name_part));
-      }
-      return _results;
-    };
+          })(name_part));
+        }
+        return _results;
+      };
+    })(this);
     for (_i = 0, _len = name_values.length; _i < _len; _i++) {
       item = name_values[_i];
       _fn(item);
@@ -2636,10 +3216,11 @@ Former = (function() {
   };
 
   Former.prototype.collect_name_values = function() {
-    var _this = this;
-    return this.traverse_nodes(this.nod, function(nod) {
-      return _this._parse_nod(nod);
-    });
+    return this.traverse_nodes(this.nod, (function(_this) {
+      return function(nod) {
+        return _this._parse_nod(nod);
+      };
+    })(this));
   };
 
   Former.prototype.traverse_nodes = function(nod, callback) {
@@ -2853,10 +3434,9 @@ Former = (function() {
 
 module.exports = Former;
 
-
 }});
 
-require.define({'pieces-core/core/index': function(exports, require, module) {
+;require.define({'pieces-core/core/index': function(exports, require, module) {
   'use strict'
 var pi = {}
 
@@ -2905,6 +3485,8 @@ pi.Events.NodEvent.register_delegate('resize', new pi.Events.ResizeDelegate());
 // setup event aliases
 require('./events/aliases');
 
+pi.bindings = require('./binding');
+
 module.exports = pi;
 
 
@@ -2912,7 +3494,7 @@ module.exports = pi;
 
 require.define({'pieces-core/core/nod': function(exports, require, module) {
   'use strict';
-var Event, EventDispatcher, KeyEvent, MouseEvent, Nod, NodEvent, NodEventDispatcher, d, exports, utils, _body, _caf, _data_reg, _dataset, _fn, _fn1, _fragment, _from_dataCase, _geometry_styles, _i, _j, _key_regexp, _len, _len1, _mouse_regexp, _node, _prepare_event, _prop_hash, _raf, _ref, _ref1, _selector, _selector_regexp, _store, _win,
+var Event, EventDispatcher, KeyEvent, MouseEvent, Nod, NodEvent, NodEventDispatcher, d, exports, prop, utils, _body, _caf, _data_reg, _dataset, _fn, _fn1, _fn2, _fragment, _from_dataCase, _geometry_styles, _i, _j, _k, _key_regexp, _len, _len1, _len2, _mouse_regexp, _node, _prepare_event, _prop_hash, _raf, _ref, _ref1, _ref2, _selector, _selector_regexp, _settegetter, _store, _win,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   __slice = [].slice;
@@ -3099,11 +3681,12 @@ NodEventDispatcher = (function(_super) {
   __extends(NodEventDispatcher, _super);
 
   function NodEventDispatcher() {
-    var _this = this;
     NodEventDispatcher.__super__.constructor.apply(this, arguments);
-    this.native_event_listener = function(event) {
-      return _this.trigger(_prepare_event(event));
-    };
+    this.native_event_listener = (function(_this) {
+      return function(event) {
+        return _this.trigger(_prepare_event(event));
+      };
+    })(this);
   }
 
   NodEventDispatcher.prototype.listen = function(selector, event, callback, context) {
@@ -3147,16 +3730,17 @@ NodEventDispatcher = (function(_super) {
   };
 
   NodEventDispatcher.prototype.remove_all = function() {
-    var list, type, _fn, _ref,
-      _this = this;
+    var list, type, _fn, _ref;
     _ref = this.listeners;
-    _fn = function() {
-      if (NodEvent.has_alias(type)) {
-        return _this.remove_native_listener(NodEvent.aliases[type]);
-      } else {
-        return _this.remove_native_listener(type);
-      }
-    };
+    _fn = (function(_this) {
+      return function() {
+        if (NodEvent.has_alias(type)) {
+          return _this.remove_native_listener(NodEvent.aliases[type]);
+        } else {
+          return _this.remove_native_listener(type);
+        }
+      };
+    })(this);
     for (type in _ref) {
       if (!__hasProp.call(_ref, type)) continue;
       list = _ref[type];
@@ -3191,16 +3775,17 @@ _geometry_styles = function(sty) {
     var name;
     name = s;
     Nod.prototype[name] = function(val) {
-      var _this = this;
       if (val === void 0) {
         return this.node["offset" + (utils.capitalize(name))];
       }
-      this._with_raf(name, function() {
-        _this.node.style[name] = val + "px";
-        if (name === 'width' || name === 'height') {
-          return _this.trigger('resize');
-        }
-      });
+      this._with_raf(name, (function(_this) {
+        return function() {
+          _this.node.style[name] = val + "px";
+          if (name === 'width' || name === 'height') {
+            return _this.trigger('resize');
+          }
+        };
+      })(this));
       return this;
     };
   };
@@ -3208,6 +3793,24 @@ _geometry_styles = function(sty) {
     s = sty[_i];
     _fn();
   }
+};
+
+_settegetter = function(prop) {
+  var name;
+  if (Array.isArray(prop)) {
+    name = prop[0];
+    prop = prop[1];
+  } else {
+    name = prop;
+  }
+  return Nod.prototype[name] = function(val) {
+    if (val != null) {
+      this.node[prop] = val;
+      return this;
+    } else {
+      return this.node[prop];
+    }
+  };
 };
 
 _fragment = function(html) {
@@ -3538,16 +4141,13 @@ Nod = (function(_super) {
     return this;
   };
 
+  Nod.alias('empty', 'remove_children');
+
   Nod.prototype.remove = function() {
     this.detach();
     this.remove_children();
     this.dispose();
     return null;
-  };
-
-  Nod.prototype.empty = function() {
-    this.html('');
-    return this;
   };
 
   Nod.prototype.clone = function() {
@@ -3567,44 +4167,8 @@ Nod = (function(_super) {
     this._disposed = true;
   };
 
-  Nod.prototype.html = function(val) {
-    if (val != null) {
-      this.node.innerHTML = val;
-      return this;
-    } else {
-      return this.node.innerHTML;
-    }
-  };
-
-  Nod.prototype.outerHTML = function(val) {
-    if (val != null) {
-      this.node.outerHTML = val;
-      return this;
-    } else {
-      return this.node.outerHTML;
-    }
-  };
-
-  Nod.prototype.text = function(val) {
-    if (val != null) {
-      this.node.textContent = val;
-      return this;
-    } else {
-      return this.node.textContent;
-    }
-  };
-
   Nod.prototype.name = function() {
     return this.node.name || this.data('name');
-  };
-
-  Nod.prototype.value = function(val) {
-    if (val != null) {
-      this.node.value = val;
-      return this;
-    } else {
-      return this.node.value;
-    }
   };
 
   Nod.prototype.addClass = function() {
@@ -3675,13 +4239,14 @@ Nod = (function(_super) {
   };
 
   Nod.prototype.move = function(x, y) {
-    var _this = this;
-    return this._with_raf('move', function() {
-      return _this.style({
-        left: "" + x + "px",
-        top: "" + y + "px"
-      });
-    });
+    return this._with_raf('move', (function(_this) {
+      return function() {
+        return _this.style({
+          left: "" + x + "px",
+          top: "" + y + "px"
+        });
+      };
+    })(this));
   };
 
   Nod.prototype.moveX = function(x) {
@@ -3693,17 +4258,19 @@ Nod = (function(_super) {
   };
 
   Nod.prototype.scrollX = function(x) {
-    var _this = this;
-    return this._with_raf('scrollX', function() {
-      return _this.node.scrollLeft = x;
-    });
+    return this._with_raf('scrollX', (function(_this) {
+      return function() {
+        return _this.node.scrollLeft = x;
+      };
+    })(this));
   };
 
   Nod.prototype.scrollY = function(y) {
-    var _this = this;
-    return this._with_raf('scrollY', function() {
-      return _this.node.scrollTop = y;
-    });
+    return this._with_raf('scrollY', (function(_this) {
+      return function() {
+        return _this.node.scrollTop = y;
+      };
+    })(this));
   };
 
   Nod.prototype.position = function() {
@@ -3721,7 +4288,6 @@ Nod = (function(_super) {
   };
 
   Nod.prototype.size = function(width, height) {
-    var _this = this;
     if (width == null) {
       width = null;
     }
@@ -3740,11 +4306,13 @@ Nod = (function(_super) {
     if (height == null) {
       height = this.height();
     }
-    this._with_raf('size', function() {
-      _this.node.style.width = width + "px";
-      _this.node.style.height = height + "px";
-      return _this.trigger('resize');
-    });
+    this._with_raf('size', (function(_this) {
+      return function() {
+        _this.node.style.width = width + "px";
+        _this.node.style.height = height + "px";
+        return _this.trigger('resize');
+      };
+    })(this));
   };
 
   Nod.prototype.show = function() {
@@ -3808,23 +4376,18 @@ _prop_hash("attr", function(prop, val) {
 
 _geometry_styles(["top", "left", "width", "height"]);
 
-_ref = ["width", "height"];
+_ref = [['html', 'innerHTML'], 'outerHTML', ['text', 'textContent'], 'value'];
 _fn = function() {
-  var prop;
-  prop = "client" + (utils.capitalize(d));
-  return Nod.prototype[prop] = function() {
-    return this.node[prop];
-  };
+  return _settegetter(prop);
 };
 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-  d = _ref[_i];
+  prop = _ref[_i];
   _fn();
 }
 
-_ref1 = ["top", "left", "width", "height"];
+_ref1 = ["width", "height"];
 _fn1 = function() {
-  var prop;
-  prop = "scroll" + (utils.capitalize(d));
+  prop = "client" + (utils.capitalize(d));
   return Nod.prototype[prop] = function() {
     return this.node[prop];
   };
@@ -3832,6 +4395,18 @@ _fn1 = function() {
 for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
   d = _ref1[_j];
   _fn1();
+}
+
+_ref2 = ["top", "left", "width", "height"];
+_fn2 = function() {
+  prop = "scroll" + (utils.capitalize(d));
+  return Nod.prototype[prop] = function() {
+    return this.node[prop];
+  };
+};
+for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+  d = _ref2[_k];
+  _fn2();
 }
 
 exports.Nod = Nod;
@@ -3850,18 +4425,19 @@ Nod.Root = (function(_super) {
   }
 
   Root.prototype.initialize = function() {
-    var load_handler, ready_handler, _ready_state,
-      _this = this;
+    var load_handler, ready_handler, _ready_state;
     _ready_state = document.attachEvent ? 'complete' : 'interactive';
     this._loaded = document.readyState === 'complete';
     if (!this._loaded) {
       this._loaded_callbacks = [];
-      load_handler = function() {
-        utils.debug('DOM loaded');
-        _this._loaded = true;
-        _this.fire_all();
-        return NodEvent.remove(window, 'load', load_handler);
-      };
+      load_handler = (function(_this) {
+        return function() {
+          utils.debug('DOM loaded');
+          _this._loaded = true;
+          _this.fire_all();
+          return NodEvent.remove(window, 'load', load_handler);
+        };
+      })(this);
       NodEvent.add(window, 'load', load_handler);
     }
     if (!this._ready) {
@@ -3871,12 +4447,14 @@ Nod.Root = (function(_super) {
           return;
         }
         this._ready_callbacks = [];
-        ready_handler = function() {
-          utils.debug('DOM ready');
-          _this._ready = true;
-          _this.fire_ready();
-          return document.removeEventListener('DOMContentLoaded', ready_handler);
-        };
+        ready_handler = (function(_this) {
+          return function() {
+            utils.debug('DOM ready');
+            _this._ready = true;
+            _this.fire_ready();
+            return document.removeEventListener('DOMContentLoaded', ready_handler);
+          };
+        })(this);
         return document.addEventListener('DOMContentLoaded', ready_handler);
       } else {
         this._ready = document.readyState === _ready_state;
@@ -3884,14 +4462,16 @@ Nod.Root = (function(_super) {
           return;
         }
         this._ready_callbacks = [];
-        ready_handler = function() {
-          if (document.readyState === _ready_state) {
-            utils.debug('DOM ready');
-            _this._ready = true;
-            _this.fire_ready();
-            return document.detachEvent('onreadystatechange', ready_handler);
-          }
-        };
+        ready_handler = (function(_this) {
+          return function() {
+            if (document.readyState === _ready_state) {
+              utils.debug('DOM ready');
+              _this._ready = true;
+              _this.fire_ready();
+              return document.detachEvent('onreadystatechange', ready_handler);
+            }
+          };
+        })(this);
         return document.attachEvent('onreadystatechange', ready_handler);
       }
     }
@@ -3975,21 +4555,23 @@ Nod.Win = (function(_super) {
   }
 
   Win.prototype.scrollY = function(y) {
-    var x,
-      _this = this;
+    var x;
     x = this.scrollLeft();
-    return this._with_raf('scrollY', function() {
-      return _this.node.scrollTo(x, y);
-    });
+    return this._with_raf('scrollY', (function(_this) {
+      return function() {
+        return _this.node.scrollTo(x, y);
+      };
+    })(this));
   };
 
   Win.prototype.scrollX = function(x) {
-    var y,
-      _this = this;
+    var y;
     y = this.scrollTop();
-    return this._with_raf('scrollX', function() {
-      return _this.node.scrollTo(x, y);
-    });
+    return this._with_raf('scrollX', (function(_this) {
+      return function() {
+        return _this.node.scrollTo(x, y);
+      };
+    })(this));
   };
 
   Win.prototype.width = function() {
@@ -4031,10 +4613,9 @@ Object.defineProperties(Nod, {
 
 module.exports = exports;
 
-
 }});
 
-require.define({'pieces-core/core/utils/arr': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/arr': function(exports, require, module) {
   'use strict';
 var Arr, utils,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -4100,10 +4681,9 @@ Arr = (function() {
 
 module.exports = Arr;
 
-
 }});
 
-require.define({'pieces-core/core/utils/base': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/base': function(exports, require, module) {
   'use strict';
 var method, utils, _fn, _i, _len, _ref, _uniq_id,
   __hasProp = {}.hasOwnProperty,
@@ -4161,13 +4741,14 @@ utils = (function() {
   };
 
   utils.escapeHTML = function(str) {
-    var _this = this;
     if (!str) {
       return str;
     }
-    return ('' + str).replace(this.html_entities_rxp, function(match) {
-      return _this.html_entities[match];
-    });
+    return ('' + str).replace(this.html_entities_rxp, (function(_this) {
+      return function(match) {
+        return _this.html_entities[match];
+      };
+    })(this));
   };
 
   utils.is_digital = function(str) {
@@ -4277,18 +4858,19 @@ utils = (function() {
   };
 
   utils.keys_compare = function(a, b, params) {
-    var key, order, param, r, _fn, _i, _len,
-      _this = this;
+    var key, order, param, r, _fn, _i, _len;
     r = 0;
     for (_i = 0, _len = params.length; _i < _len; _i++) {
       param = params[_i];
-      _fn = function(key, order) {
-        var r_;
-        r_ = _this.key_compare(a, b, key, order);
-        if (r === 0) {
-          return r = r_;
-        }
-      };
+      _fn = (function(_this) {
+        return function(key, order) {
+          var r_;
+          r_ = _this.key_compare(a, b, key, order);
+          if (r === 0) {
+            return r = r_;
+          }
+        };
+      })(this);
       for (key in param) {
         if (!__hasProp.call(param, key)) continue;
         order = param[key];
@@ -4370,18 +4952,19 @@ utils = (function() {
   };
 
   utils.extract_to = function(data, source, param) {
-    var el, key, p, vals, _fn, _i, _j, _len, _len1,
-      _this = this;
+    var el, key, p, vals, _fn, _i, _j, _len, _len1;
     if (source == null) {
       return;
     }
     if (Array.isArray(source)) {
-      _fn = function(el) {
-        var el_data;
-        el_data = {};
-        _this.extract_to(el_data, el, param);
-        return data.push(el_data);
-      };
+      _fn = (function(_this) {
+        return function(el) {
+          var el_data;
+          el_data = {};
+          _this.extract_to(el_data, el, param);
+          return data.push(el_data);
+        };
+      })(this);
       for (_i = 0, _len = source.length; _i < _len; _i++) {
         el = source[_i];
         _fn(el);
@@ -4529,10 +5112,9 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
 
 module.exports = utils;
 
-
 }});
 
-require.define({'pieces-core/core/utils/browser': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/browser': function(exports, require, module) {
   'use strict';
 var browser, _android_version_rxp, _ios_rxp, _ios_version_rxp, _mac_os_version_rxp, _win_version, _win_version_rxp;
 
@@ -4635,10 +5217,9 @@ browser = (function() {
 
 module.exports = browser;
 
-
 }});
 
-require.define({'pieces-core/core/utils/func': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/func': function(exports, require, module) {
   'use strict';
 var Func, utils,
   __slice = [].slice;
@@ -4713,10 +5294,9 @@ Func = (function() {
 
 module.exports = Func;
 
-
 }});
 
-require.define({'pieces-core/core/utils/history': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/history': function(exports, require, module) {
   'use strict';
 var History;
 
@@ -4769,10 +5349,9 @@ History = (function() {
 
 module.exports = History;
 
-
 }});
 
-require.define({'pieces-core/core/utils/index': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/index': function(exports, require, module) {
   'use strict'
 var utils = require('./base');
 
@@ -4860,10 +5439,9 @@ for (level in _log_levels) {
 
 module.exports = utils.log;
 
-
 }});
 
-require.define({'pieces-core/core/utils/matchers': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/matchers': function(exports, require, module) {
   'use strict';
 var Matchers, utils, _key_operand, _operands,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -4915,24 +5493,25 @@ Matchers = (function() {
   function Matchers() {}
 
   Matchers.object = function(obj, all) {
-    var key, val, _fn,
-      _this = this;
+    var key, val, _fn;
     if (all == null) {
       all = true;
     }
-    _fn = function(key, val) {
-      if (val == null) {
-        return obj[key] = function(value) {
-          return !value;
-        };
-      } else if (typeof val === "object") {
-        return obj[key] = _this.object(val, all);
-      } else if (!(typeof val === 'function')) {
-        return obj[key] = function(value) {
-          return val === value;
-        };
-      }
-    };
+    _fn = (function(_this) {
+      return function(key, val) {
+        if (val == null) {
+          return obj[key] = function(value) {
+            return !value;
+          };
+        } else if (typeof val === "object") {
+          return obj[key] = _this.object(val, all);
+        } else if (!(typeof val === 'function')) {
+          return obj[key] = function(value) {
+            return val === value;
+          };
+        }
+      };
+    })(this);
     for (key in obj) {
       val = obj[key];
       _fn(key, val);
@@ -5012,10 +5591,9 @@ Matchers = (function() {
 
 module.exports = Matchers;
 
-
 }});
 
-require.define({'pieces-core/core/utils/obj': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/obj': function(exports, require, module) {
   'use strict';
 var Obj, utils;
 
@@ -5054,18 +5632,20 @@ Obj = (function() {
   };
 
   Obj.get_class_path = function(pckg, path) {
-    var _this = this;
-    path = path.split('.').map(function(p) {
-      return utils.camelCase(p);
-    }).join('.');
+    path = path.split('.').map((function(_this) {
+      return function(p) {
+        return utils.camelCase(p);
+      };
+    })(this)).join('.');
     return this.get_path(pckg, path);
   };
 
   Obj.set_class_path = function(pckg, path, val) {
-    var _this = this;
-    path = path.split('.').map(function(p) {
-      return utils.camelCase(p);
-    }).join('.');
+    path = path.split('.').map((function(_this) {
+      return function(p) {
+        return utils.camelCase(p);
+      };
+    })(this)).join('.');
     return this.set_path(pckg, path, val);
   };
 
@@ -5092,10 +5672,9 @@ Obj = (function() {
 
 module.exports = Obj;
 
-
 }});
 
-require.define({'pieces-core/core/utils/promise': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/promise': function(exports, require, module) {
   'use strict';
 var PromiseUtils, utils;
 
@@ -5149,10 +5728,9 @@ PromiseUtils = (function() {
 
 module.exports = PromiseUtils;
 
-
 }});
 
-require.define({'pieces-core/core/utils/time': function(exports, require, module) {
+;require.define({'pieces-core/core/utils/time': function(exports, require, module) {
   'use strict';
 var Time, _formatter, _pad, _reg;
 
@@ -5300,10 +5878,9 @@ Time = (function() {
 
 module.exports = Time;
 
-
 }});
 
-require.define({'pieces-core/grammar/compiler': function(exports, require, module) {
+;require.define({'pieces-core/grammar/compiler': function(exports, require, module) {
   'use strict';
 var CompiledFun, Compiler, parser, utils, _error, _operators, _view_context_mdf,
   __slice = [].slice;
@@ -5318,32 +5895,39 @@ _error = function(fun_str) {
 };
 
 _operators = {
-  ">": function(a, b) {
-    return a > b;
-  },
-  "<": function(a, b) {
-    return a < b;
-  },
-  "=": function(a, b) {
-    return a === b;
-  },
-  "bool": function(a) {
-    return !!a;
-  }
+  ">": ">",
+  "<": "<",
+  "=": "=="
 };
 
 CompiledFun = (function() {
   function CompiledFun(target, fun_str) {
     var e;
     this.target = target != null ? target : {};
-    this.fun_str = fun_str;
-    try {
-      this._parsed = parser.parse(fun_str);
-    } catch (_error) {
-      e = _error;
-      this._compiled = utils.curry(_error, [fun_str]);
+    if (typeof fun_str === 'string') {
+      this.fun_str = fun_str;
+      try {
+        this._parsed = this.constructor.parse(this.fun_str);
+      } catch (_error) {
+        e = _error;
+        this._compiled = utils.curry(_error, [this.fun_str]);
+      }
+    } else {
+      this.fun_str = 'parsed';
+      this._parsed = fun_str;
     }
   }
+
+  CompiledFun.parse = function(str) {
+    return parser.parse(str);
+  };
+
+  CompiledFun.compile = function(ast) {
+    var source;
+    source = this["_get_" + ast.code](ast, '__res = ');
+    source = "var _ref, __res;\n" + source + ";\nreturn __res;\n//# sourceURL=/pi_compiled/source_" + this.fun_str + "_" + (utils.uid()) + "\";\n";
+    return new Function(source);
+  };
 
   CompiledFun.prototype.call = function() {
     var args, ths;
@@ -5357,58 +5941,78 @@ CompiledFun = (function() {
   };
 
   CompiledFun.prototype.compiled = function() {
-    return this._compiled || (this._compiled = this._compile_fun());
+    return this._compiled || (this._compiled = this.constructor.compile(this._parsed));
   };
 
-  CompiledFun.prototype._compile_fun = function() {
-    var _this = this;
-    return function() {
-      return _this["_get_" + _this._parsed.code](_this._parsed);
-    };
-  };
-
-  CompiledFun.prototype._get_chain = function(data) {
-    var frst, i, step, _target;
+  CompiledFun._get_chain = function(data, source) {
+    var frst, i, step;
+    if (source == null) {
+      source = '';
+    }
     frst = data.value[0];
-    _target = (function() {
-      var _base;
-      switch (frst.name) {
-        case 'this':
-          return this.target;
-        case 'app':
-          return pi.app;
-        case 'host':
-          return this.target.host;
-        case 'view':
-          return typeof (_base = this.target).view === "function" ? _base.view() : void 0;
-        default:
-          return this["_get_" + frst.code](frst, this.call_ths) || this["_get_" + frst.code](frst, window);
-      }
-    }).call(this);
+    if (frst.code === 'prop' || frst.code === 'res') {
+      source += (function() {
+        switch (frst.name) {
+          case 'this':
+            return 'this.target';
+          case 'app':
+            return 'pi.app';
+          case 'host':
+            return 'this.target.host';
+          case 'view':
+            return 'this.target.view';
+          case 'window':
+            return 'window';
+          default:
+            return "(function(){\n  _ref = (" + (this["_get_" + frst.code](frst, 'this.call_ths')) + ");\n  if(!(_ref == void 0)) return _ref;\n  _ref = this.target.scoped && (" + (this["_get_" + frst.code](frst, 'this.target.scope')) + ");\n  if(this.target.scoped && !(_ref == void 0)) return _ref;\n\n  return (" + (this["_get_" + frst.code](frst, 'window')) + ");\n}).call(this)";
+        }
+      }).call(this);
+    } else {
+      source += "(function(){\n  _ref = " + (this._get_safe_call(frst, 'this.call_ths')) + ";\n  if(!(_ref == void 0)) return _ref;\n  _ref = this.target.scoped && " + (this._get_safe_call(frst, 'this.target.scope.scope')) + ";\n  if(this.target.scoped && !(_ref == void 0)) return _ref;\n  _ref = this.target.scoped && " + (this._get_safe_call(frst, 'this.target')) + ";\n  if(!(_ref == void 0)) return _ref;\n  return " + (this._get_safe_call(frst, 'window')) + ";\n}).call(this)";
+    }
     i = 1;
     while (i < data.value.length) {
       step = data.value[i++];
-      _target = this["_get_" + step.code](step, _target);
+      source = this["_get_" + step.code](step, source, data.value[i - 1]);
     }
-    return _target;
+    return source;
   };
 
-  CompiledFun.prototype._get_res = function(data, from) {
-    if (from == null) {
-      from = {};
+  CompiledFun._get_res = function(data, source, prev_step) {
+    if (source == null) {
+      source = '';
     }
-    return from[data.name] || window.pi.resources[data.name];
+    if ((prev_step != null ? prev_step.code : void 0) === 'res') {
+      return source + ("." + data.name);
+    } else {
+      return "window.pi.resources." + data.name;
+    }
   };
 
-  CompiledFun.prototype._get_prop = function(data, from) {
-    return from[data.name];
+  CompiledFun._get_prop = function(data, source) {
+    if (source == null) {
+      source = '';
+    }
+    return source + ("." + data.name);
   };
 
-  CompiledFun.prototype._get_call = function(data, from) {
-    return from[data.name].apply(from, this._get_args(data.args));
+  CompiledFun._get_call = function(data, source) {
+    if (source == null) {
+      source = '';
+    }
+    return source + ("." + data.name + "(" + (this._get_args(data.args).join(', ')) + ")");
   };
 
-  CompiledFun.prototype._get_args = function(args) {
+  CompiledFun._get_safe_call = function(data, source) {
+    var method;
+    if (source == null) {
+      source = '';
+    }
+    method = "" + source + "['" + data.name + "']";
+    return "((typeof " + method + " === 'function') ? " + method + "(" + (this._get_args(data.args).join(', ')) + ") : null)";
+  };
+
+  CompiledFun._get_args = function(args) {
     var arg, _i, _len, _results;
     _results = [];
     for (_i = 0, _len = args.length; _i < _len; _i++) {
@@ -5418,25 +6022,45 @@ CompiledFun = (function() {
     return _results;
   };
 
-  CompiledFun.prototype._get_if = function(data) {
-    var _left, _right;
-    _left = data.cond.left;
-    _right = data.cond.right;
-    _left = this["_get_" + _left.code](_left);
-    if (_right != null) {
-      _right = this["_get_" + _right.code](_right);
+  CompiledFun._get_op = function(data, source) {
+    var _left, _right, _type;
+    if (source == null) {
+      source = '';
     }
-    if (_operators[data.cond.type](_left, _right)) {
-      return this["_get_" + data.left.code](data.left);
-    } else if (data.right != null) {
-      return this["_get_" + data.right.code](data.right);
-    } else {
-      return false;
-    }
+    _left = data.left;
+    _right = data.right;
+    _type = data.type === '=' ? '==' : data.type;
+    return source += "(" + (this["_get_" + _left.code](_left)) + ") " + _type + " (" + (this["_get_" + _right.code](_right)) + ")";
   };
 
-  CompiledFun.prototype._get_simple = function(data) {
-    return data.value;
+  CompiledFun._get_if = function(data, source) {
+    if (source == null) {
+      source = '';
+    }
+    source += '(function(){';
+    source += "if(" + (this["_get_" + data.cond.code](data.cond)) + ")";
+    source += "{\n  return (" + (this["_get_" + data.left.code](data.left)) + ");\n}";
+    if (data.right != null) {
+      source += "else{ return (" + (this["_get_" + data.right.code](data.right)) + ");}";
+    }
+    return source += "}).call(this);";
+  };
+
+  CompiledFun._get_simple = function(data, source) {
+    if (source == null) {
+      source = '';
+    }
+    return source + this._quote(data.value);
+  };
+
+  CompiledFun._quote = function(val) {
+    if (typeof val === 'string') {
+      return "'" + val + "'";
+    } else if (val && (typeof val === 'object')) {
+      return "JSON.parse('" + (JSON.stringify(val)) + "')";
+    } else {
+      return val;
+    }
   };
 
   return CompiledFun;
@@ -5447,6 +6071,42 @@ Compiler = (function() {
   function Compiler() {}
 
   Compiler.modifiers = [];
+
+  Compiler.parse = function(str) {
+    return parser.parse(this.process_modifiers(str));
+  };
+
+  Compiler.compile = function(ast) {
+    return CompiledFun.compile(ast);
+  };
+
+  Compiler.traverse = function(ast, callback) {
+    var val, _i, _j, _len, _len1, _ref, _ref1, _results, _results1;
+    callback.call(null, ast);
+    if ((ast.code === 'op') || (ast.code === 'if')) {
+      this.traverse(ast.left, callback);
+      this.traverse(ast.right, callback);
+      if (ast.code === 'if') {
+        return this.traverse(ast.cond, callback);
+      }
+    } else if (ast.code === 'chain') {
+      _ref = ast.value;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        val = _ref[_i];
+        _results.push(this.traverse(val, callback));
+      }
+      return _results;
+    } else if (ast.code === 'call') {
+      _ref1 = ast.args;
+      _results1 = [];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        val = _ref1[_j];
+        _results1.push(this.traverse(val, callback));
+      }
+      return _results1;
+    }
+  };
 
   Compiler.process_modifiers = function(str) {
     var fun, _i, _len, _ref;
@@ -5459,7 +6119,9 @@ Compiler = (function() {
   };
 
   Compiler.compile_fun = function(callstr, target) {
-    callstr = this.process_modifiers(callstr);
+    if (typeof callstr === 'string') {
+      callstr = this.process_modifiers(callstr);
+    }
     return new CompiledFun(target, callstr);
   };
 
@@ -5487,11 +6149,10 @@ Compiler.modifiers.push(_view_context_mdf);
 
 module.exports = Compiler;
 
-
 }});
 
-require.define({'pieces-core/grammar/pi_grammar': function(exports, require, module) {
-  /* parser generated by jison 0.4.15 */
+;require.define({'pieces-core/grammar/pi_grammar': function(exports, require, module) {
+  /* parser generated by jison 0.4.13 */
 /*
   Returns a Parser object of the following structure:
 
@@ -5565,124 +6226,103 @@ require.define({'pieces-core/grammar/pi_grammar': function(exports, require, mod
   }
 */
 var parser = (function(){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,6],$V1=[1,16],$V2=[1,17],$V3=[1,11],$V4=[1,12],$V5=[1,13],$V6=[5,11,33],$V7=[2,2],$V8=[2,4],$V9=[1,21],$Va=[1,22],$Vb=[1,23],$Vc=[1,19],$Vd=[5,11,21,28,29,30,32,33],$Ve=[5,11,15,21,28,29,30,32,33],$Vf=[2,12],$Vg=[1,30],$Vh=[19,20,24,25,26],$Vi=[1,37],$Vj=[2,22];
-var parser = {trace: function trace() { },
+var parser = {trace: function trace(){},
 yy: {},
-symbols_: {"error":2,"expressions":3,"e":4,"EOF":5,"group_e":6,"ternary":7,"simple_e":8,"(":9,"object":10,")":11,"method_chain":12,"val":13,"method":14,".":15,"resource":16,"key":17,"args":18,"RES":19,"KEY":20,",":21,"key_val":22,":":23,"NUMBER":24,"BOOL":25,"STRING":26,"op":27,"EQL":28,"MORE":29,"LESS":30,"cond":31,"TIF":32,"TELSE":33,"$accept":0,"$end":1},
-terminals_: {2:"error",5:"EOF",9:"(",11:")",15:".",19:"RES",20:"KEY",21:",",23:":",24:"NUMBER",25:"BOOL",26:"STRING",28:"EQL",29:"MORE",30:"LESS",32:"TIF",33:"TELSE"},
-productions_: [0,[3,2],[4,1],[4,1],[4,1],[4,3],[6,3],[8,1],[8,1],[12,1],[12,3],[14,1],[14,1],[14,4],[16,4],[16,4],[16,1],[17,1],[18,3],[18,3],[18,1],[18,1],[18,0],[10,3],[10,1],[22,3],[13,1],[13,1],[13,1],[27,1],[27,1],[27,1],[31,3],[7,5],[7,5]],
-performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
+symbols_: {"error":2,"expressions":3,"e":4,"EOF":5,"group_e":6,"ternary":7,"cond":8,"simple_e":9,"(":10,"object":11,")":12,"method_chain":13,"val":14,"OP":15,"OP2":16,"OP3":17,"method":18,".":19,"resource":20,"key":21,"args":22,"RES":23,"KEY":24,",":25,"key_val":26,":":27,"NUMBER":28,"BOOL":29,"STRING":30,"TIF":31,"TELSE":32,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"EOF",8:"cond",10:"(",12:")",15:"OP",16:"OP2",17:"OP3",19:".",23:"RES",24:"KEY",25:",",27:":",28:"NUMBER",29:"BOOL",30:"STRING",31:"TIF",32:"TELSE"},
+productions_: [0,[3,2],[4,1],[4,1],[4,1],[4,1],[4,3],[6,3],[9,1],[9,1],[9,3],[9,3],[9,3],[13,1],[13,3],[18,1],[18,1],[18,4],[20,4],[20,4],[20,1],[21,1],[22,3],[22,3],[22,1],[22,1],[22,0],[11,3],[11,1],[26,3],[14,1],[14,1],[14,1],[7,5]],
+performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */
+/**/) {
 /* this == yyval */
 
 var $0 = $$.length - 1;
 switch (yystate) {
-case 1:
- return $$[$0-1]; 
+case 1: return $$[$0-1]; 
 break;
-case 2: case 3: case 4: case 9: case 11: case 24:
-this.$ = $$[$0];
+case 2:this.$ = $$[$0];
 break;
-case 5:
-this.$ = {code: 'simple', value: fn_arr_obj($$[$0-1])};
+case 3:this.$ = $$[$0];
 break;
-case 6:
-this.$ = $$[$0-1];
+case 4:this.$ = $$[$0];
 break;
-case 7:
-this.$ = {code: 'chain', value: $$[$0]};
+case 5:this.$ = $$[$0];
 break;
-case 8:
-this.$ = {code: 'simple', value: $$[$0]};
+case 6:this.$ = {code: 'simple', value: fn_arr_obj($$[$0-1])};
 break;
-case 10: case 23:
-this.$ = $$[$0-2].concat($$[$0]);
+case 7:this.$ = $$[$0-1];
 break;
-case 12:
-this.$ = [{code: 'prop', name: $$[$0]}];
+case 8:this.$ = {code: 'chain', value: $$[$0]};
 break;
-case 13:
-this.$ = [{code: 'call', name: $$[$0-3], args: $$[$0-1]}];
+case 9:this.$ = {code: 'simple', value: $$[$0]};
 break;
-case 14:
-this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'view', args: [{code: 'simple', value: fn_arr_obj($$[$0-1])}]}];
+case 10:this.$ = {code: 'op', left: $$[$0-2], right: $$[$0], type: $$[$0-1].trim()};
 break;
-case 15:
-this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'get', args: [{code: 'simple', value: $$[$0-1]}]}];
+case 11:this.$ = {code: 'op', left: $$[$0-2], right: $$[$0], type: $$[$0-1].trim()};
 break;
-case 16:
-this.$ = [{code: 'res', name: $$[$0]}];
+case 12:this.$ = {code: 'op', left: $$[$0-2], right: $$[$0], type: $$[$0-1].trim()};
 break;
-case 17:
-this.$ = yytext;
+case 13:this.$ = $$[$0];
 break;
-case 18: case 19:
-this.$ = [$$[$0-2]].concat($$[$0]);
+case 14:this.$ = $$[$0-2].concat($$[$0]);
 break;
-case 20:
-this.$ = [$$[$0]];
+case 15:this.$ = $$[$0];
 break;
-case 21:
-this.$ = [{code: 'simple', value: fn_arr_obj($$[$0])}];
+case 16:this.$ = [{code: 'prop', name: $$[$0]}];
 break;
-case 22:
-this.$ = [];
+case 17:this.$ = [{code: 'call', name: $$[$0-3], args: $$[$0-1]}];
 break;
-case 25:
-this.$ = [$$[$0-2],$$[$0]];
+case 18:this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'view', args: [{code: 'simple', value: fn_arr_obj($$[$0-1])}]}];
 break;
-case 26:
-this.$ = Number(yytext);
+case 19:this.$ = [{code: 'res', name: $$[$0-3]}, {code: 'call', name: 'get', args: [{code: 'simple', value: $$[$0-1]}]}];
 break;
-case 27:
-this.$ = yytext=="true";
+case 20:this.$ = [{code: 'res', name: $$[$0]}];
 break;
-case 28:
-this.$ = yytext.replace(/(^['"]|['"]$)/g,'');
+case 21:this.$ = yytext;
 break;
-case 29: case 30: case 31:
-this.$ = yytext.replace(/(^\s+|\s+$)/g,'');
+case 22:this.$ = [$$[$0-2]].concat($$[$0]);
 break;
-case 32:
-this.$ = {left: $$[$0-2], right: $$[$0], type: $$[$0-1]};
+case 23:this.$ = [$$[$0-2]].concat($$[$0]);
 break;
-case 33:
-this.$ = {code: 'if', cond: $$[$0-4], left: $$[$0-2], right: $$[$0]};
+case 24:this.$ = [$$[$0]];
 break;
-case 34:
-this.$ = {code: 'if', cond: {left: $$[$0-4], type: 'bool'}, left: $$[$0-2], right: $$[$0]};
+case 25:this.$ = [{code: 'simple', value: fn_arr_obj($$[$0])}];
+break;
+case 26:this.$ = [];
+break;
+case 27:this.$ = $$[$0-2].concat($$[$0]);
+break;
+case 28:this.$ = $$[$0];
+break;
+case 29:this.$ = [$$[$0-2],$$[$0]];
+break;
+case 30:this.$ = Number(yytext);
+break;
+case 31:this.$ = yytext=="true";
+break;
+case 32:this.$ = yytext.replace(/(^['"]|['"]$)/g,'');
+break;
+case 33:this.$ = {code: 'if', cond: $$[$0-4], left: $$[$0-2], right: $$[$0]};
 break;
 }
 },
-table: [{3:1,4:2,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{1:[3]},{5:[1,18]},o($V6,$V7),o($V6,[2,3]),o($V6,$V8,{27:20,28:$V9,29:$Va,30:$Vb,32:$Vc}),{4:25,6:3,7:4,8:5,9:$V0,10:24,12:8,13:9,14:10,16:14,17:27,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},{32:[1,28]},o($Vd,[2,7]),o($Vd,[2,8]),o($Vd,[2,9],{15:[1,29]}),o($Vd,[2,26]),o($Vd,[2,27]),o($Vd,[2,28]),o($Ve,[2,11]),o($Ve,$Vf,{9:$Vg}),o($Ve,[2,16],{9:[1,31]}),o([5,9,11,15,21,23,28,29,30,32,33],[2,17]),{1:[2,1]},{4:32,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{8:33,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5},o($Vh,[2,29]),o($Vh,[2,30]),o($Vh,[2,31]),{11:[1,34]},{11:[1,35]},{11:[2,24],21:[1,36]},o([11,15,21,28,29,30,32],$Vf,{9:$Vg,23:$Vi}),{4:38,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{12:39,14:10,16:14,17:15,19:$V1,20:$V2},{4:43,6:41,7:4,8:42,9:$V0,10:44,11:$Vj,12:8,13:9,14:10,16:14,17:27,18:40,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},{10:45,13:46,17:47,20:$V2,22:26,24:$V3,25:$V4,26:$V5},{33:[1,48]},{32:[2,32]},o($V6,[2,5]),o([5,11,21,33],[2,6]),{10:49,17:47,20:$V2,22:26},{13:50,24:$V3,25:$V4,26:$V5},{33:[1,51]},o($Vd,[2,10]),{11:[1,52]},{11:$V7,21:[1,53]},{11:$V8,21:[1,54],27:20,28:$V9,29:$Va,30:$Vb,32:$Vc},{11:[2,20]},{11:[2,21]},{11:[1,55]},{11:[1,56]},{23:$Vi},{4:57,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},{11:[2,23]},o([11,21],[2,25]),{4:58,6:3,7:4,8:5,9:$V0,12:8,13:9,14:10,16:14,17:15,19:$V1,20:$V2,24:$V3,25:$V4,26:$V5,31:7},o($Ve,[2,13]),{4:43,6:41,7:4,8:42,9:$V0,10:44,11:$Vj,12:8,13:9,14:10,16:14,17:27,18:59,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},{4:43,6:41,7:4,8:42,9:$V0,10:44,11:$Vj,12:8,13:9,14:10,16:14,17:27,18:60,19:$V1,20:$V2,22:26,24:$V3,25:$V4,26:$V5,31:7},o($Ve,[2,14]),o($Ve,[2,15]),o($V6,[2,34]),o($V6,[2,33]),{11:[2,18]},{11:[2,19]}],
-defaultActions: {18:[2,1],33:[2,32],43:[2,20],44:[2,21],49:[2,23],59:[2,18],60:[2,19]},
-parseError: function parseError(str, hash) {
-    if (hash.recoverable) {
-        this.trace(str);
-    } else {
-        throw new Error(str);
-    }
-},
+table: [{3:1,4:2,6:3,7:4,8:[1,5],9:6,10:[1,7],13:8,14:9,18:10,20:14,21:15,23:[1,16],24:[1,17],28:[1,11],29:[1,12],30:[1,13]},{1:[3]},{5:[1,18]},{5:[2,2],12:[2,2],32:[2,2]},{5:[2,3],12:[2,3],32:[2,3]},{5:[2,4],12:[2,4],32:[2,4]},{5:[2,5],12:[2,5],15:[1,20],16:[1,21],17:[1,22],31:[1,19],32:[2,5]},{4:24,6:3,7:4,8:[1,5],9:6,10:[1,7],11:23,13:8,14:9,18:10,20:14,21:26,23:[1,16],24:[1,17],26:25,28:[1,11],29:[1,12],30:[1,13]},{5:[2,8],12:[2,8],15:[2,8],16:[2,8],17:[2,8],25:[2,8],31:[2,8],32:[2,8]},{5:[2,9],12:[2,9],15:[2,9],16:[2,9],17:[2,9],25:[2,9],31:[2,9],32:[2,9]},{5:[2,13],12:[2,13],15:[2,13],16:[2,13],17:[2,13],19:[1,27],25:[2,13],31:[2,13],32:[2,13]},{5:[2,30],12:[2,30],15:[2,30],16:[2,30],17:[2,30],25:[2,30],31:[2,30],32:[2,30]},{5:[2,31],12:[2,31],15:[2,31],16:[2,31],17:[2,31],25:[2,31],31:[2,31],32:[2,31]},{5:[2,32],12:[2,32],15:[2,32],16:[2,32],17:[2,32],25:[2,32],31:[2,32],32:[2,32]},{5:[2,15],12:[2,15],15:[2,15],16:[2,15],17:[2,15],19:[2,15],25:[2,15],31:[2,15],32:[2,15]},{5:[2,16],10:[1,28],12:[2,16],15:[2,16],16:[2,16],17:[2,16],19:[2,16],25:[2,16],31:[2,16],32:[2,16]},{5:[2,20],10:[1,29],12:[2,20],15:[2,20],16:[2,20],17:[2,20],19:[2,20],25:[2,20],31:[2,20],32:[2,20]},{5:[2,21],10:[2,21],12:[2,21],15:[2,21],16:[2,21],17:[2,21],19:[2,21],25:[2,21],27:[2,21],31:[2,21],32:[2,21]},{1:[2,1]},{4:30,6:3,7:4,8:[1,5],9:6,10:[1,7],13:8,14:9,18:10,20:14,21:15,23:[1,16],24:[1,17],28:[1,11],29:[1,12],30:[1,13]},{9:31,13:8,14:9,18:10,20:14,21:15,23:[1,16],24:[1,17],28:[1,11],29:[1,12],30:[1,13]},{9:32,13:8,14:9,18:10,20:14,21:15,23:[1,16],24:[1,17],28:[1,11],29:[1,12],30:[1,13]},{9:33,13:8,14:9,18:10,20:14,21:15,23:[1,16],24:[1,17],28:[1,11],29:[1,12],30:[1,13]},{12:[1,34]},{12:[1,35]},{12:[2,28],25:[1,36]},{10:[1,28],12:[2,16],15:[2,16],16:[2,16],17:[2,16],19:[2,16],25:[2,16],27:[1,37],31:[2,16]},{13:38,18:10,20:14,21:15,23:[1,16],24:[1,17]},{4:42,6:40,7:4,8:[1,5],9:41,10:[1,7],11:43,12:[2,26],13:8,14:9,18:10,20:14,21:26,22:39,23:[1,16],24:[1,17],26:25,28:[1,11],29:[1,12],30:[1,13]},{11:44,14:45,21:46,24:[1,17],26:25,28:[1,11],29:[1,12],30:[1,13]},{32:[1,47]},{5:[2,10],12:[2,10],15:[2,10],16:[1,21],17:[1,22],25:[2,10],31:[2,10],32:[2,10]},{5:[2,11],12:[2,11],15:[2,11],16:[2,11],17:[1,22],25:[2,11],31:[2,11],32:[2,11]},{5:[2,12],12:[2,12],15:[2,12],16:[2,12],17:[2,12],25:[2,12],31:[2,12],32:[2,12]},{5:[2,6],12:[2,6],32:[2,6]},{5:[2,7],12:[2,7],25:[2,7],32:[2,7]},{11:48,21:46,24:[1,17],26:25},{14:49,28:[1,11],29:[1,12],30:[1,13]},{5:[2,14],12:[2,14],15:[2,14],16:[2,14],17:[2,14],25:[2,14],31:[2,14],32:[2,14]},{12:[1,50]},{12:[2,2],25:[1,51]},{12:[2,5],15:[1,20],16:[1,21],17:[1,22],25:[1,52],31:[1,19]},{12:[2,24]},{12:[2,25]},{12:[1,53]},{12:[1,54]},{27:[1,37]},{4:55,6:3,7:4,8:[1,5],9:6,10:[1,7],13:8,14:9,18:10,20:14,21:15,23:[1,16],24:[1,17],28:[1,11],29:[1,12],30:[1,13]},{12:[2,27]},{12:[2,29],25:[2,29]},{5:[2,17],12:[2,17],15:[2,17],16:[2,17],17:[2,17],19:[2,17],25:[2,17],31:[2,17],32:[2,17]},{4:42,6:40,7:4,8:[1,5],9:41,10:[1,7],11:43,12:[2,26],13:8,14:9,18:10,20:14,21:26,22:56,23:[1,16],24:[1,17],26:25,28:[1,11],29:[1,12],30:[1,13]},{4:42,6:40,7:4,8:[1,5],9:41,10:[1,7],11:43,12:[2,26],13:8,14:9,18:10,20:14,21:26,22:57,23:[1,16],24:[1,17],26:25,28:[1,11],29:[1,12],30:[1,13]},{5:[2,18],12:[2,18],15:[2,18],16:[2,18],17:[2,18],19:[2,18],25:[2,18],31:[2,18],32:[2,18]},{5:[2,19],12:[2,19],15:[2,19],16:[2,19],17:[2,19],19:[2,19],25:[2,19],31:[2,19],32:[2,19]},{5:[2,33],12:[2,33],32:[2,33]},{12:[2,22]},{12:[2,23]}],
+defaultActions: {18:[2,1],42:[2,24],43:[2,25],48:[2,27],56:[2,22],57:[2,23]},
+parseError: function parseError(str,hash){if(hash.recoverable){this.trace(str)}else{throw new Error(str)}},
 parse: function parse(input) {
-    var self = this, stack = [0], tstack = [], vstack = [null], lstack = [], table = this.table, yytext = '', yylineno = 0, yyleng = 0, recovering = 0, TERROR = 2, EOF = 1;
+    var self = this, stack = [0], vstack = [null], lstack = [], table = this.table, yytext = '', yylineno = 0, yyleng = 0, recovering = 0, TERROR = 2, EOF = 1;
     var args = lstack.slice.call(arguments, 1);
-    var lexer = Object.create(this.lexer);
-    var sharedState = { yy: {} };
-    for (var k in this.yy) {
-        if (Object.prototype.hasOwnProperty.call(this.yy, k)) {
-            sharedState.yy[k] = this.yy[k];
-        }
+    this.lexer.setInput(input);
+    this.lexer.yy = this.yy;
+    this.yy.lexer = this.lexer;
+    this.yy.parser = this;
+    if (typeof this.lexer.yylloc == 'undefined') {
+        this.lexer.yylloc = {};
     }
-    lexer.setInput(input, sharedState.yy);
-    sharedState.yy.lexer = lexer;
-    sharedState.yy.parser = this;
-    if (typeof lexer.yylloc == 'undefined') {
-        lexer.yylloc = {};
-    }
-    var yyloc = lexer.yylloc;
+    var yyloc = this.lexer.yylloc;
     lstack.push(yyloc);
-    var ranges = lexer.options && lexer.options.ranges;
-    if (typeof sharedState.yy.parseError === 'function') {
-        this.parseError = sharedState.yy.parseError;
+    var ranges = this.lexer.options && this.lexer.options.ranges;
+    if (typeof this.yy.parseError === 'function') {
+        this.parseError = this.yy.parseError;
     } else {
         this.parseError = Object.getPrototypeOf(this).parseError;
     }
@@ -5691,15 +6331,14 @@ parse: function parse(input) {
         vstack.length = vstack.length - n;
         lstack.length = lstack.length - n;
     }
-    _token_stack:
-        function lex() {
-            var token;
-            token = lexer.lex() || EOF;
-            if (typeof token !== 'number') {
-                token = self.symbols_[token] || token;
-            }
-            return token;
+    function lex() {
+        var token;
+        token = self.lexer.lex() || EOF;
+        if (typeof token !== 'number') {
+            token = self.symbols_[token] || token;
         }
+        return token;
+    }
     var symbol, preErrorSymbol, state, action, a, r, yyval = {}, p, len, newState, expected;
     while (true) {
         state = stack[stack.length - 1];
@@ -5719,15 +6358,15 @@ parse: function parse(input) {
                         expected.push('\'' + this.terminals_[p] + '\'');
                     }
                 }
-                if (lexer.showPosition) {
-                    errStr = 'Parse error on line ' + (yylineno + 1) + ':\n' + lexer.showPosition() + '\nExpecting ' + expected.join(', ') + ', got \'' + (this.terminals_[symbol] || symbol) + '\'';
+                if (this.lexer.showPosition) {
+                    errStr = 'Parse error on line ' + (yylineno + 1) + ':\n' + this.lexer.showPosition() + '\nExpecting ' + expected.join(', ') + ', got \'' + (this.terminals_[symbol] || symbol) + '\'';
                 } else {
                     errStr = 'Parse error on line ' + (yylineno + 1) + ': Unexpected ' + (symbol == EOF ? 'end of input' : '\'' + (this.terminals_[symbol] || symbol) + '\'');
                 }
                 this.parseError(errStr, {
-                    text: lexer.match,
+                    text: this.lexer.match,
                     token: this.terminals_[symbol] || symbol,
-                    line: lexer.yylineno,
+                    line: this.lexer.yylineno,
                     loc: yyloc,
                     expected: expected
                 });
@@ -5738,15 +6377,15 @@ parse: function parse(input) {
         switch (action[0]) {
         case 1:
             stack.push(symbol);
-            vstack.push(lexer.yytext);
-            lstack.push(lexer.yylloc);
+            vstack.push(this.lexer.yytext);
+            lstack.push(this.lexer.yylloc);
             stack.push(action[1]);
             symbol = null;
             if (!preErrorSymbol) {
-                yyleng = lexer.yyleng;
-                yytext = lexer.yytext;
-                yylineno = lexer.yylineno;
-                yyloc = lexer.yylloc;
+                yyleng = this.lexer.yyleng;
+                yytext = this.lexer.yytext;
+                yylineno = this.lexer.yylineno;
+                yyloc = this.lexer.yylloc;
                 if (recovering > 0) {
                     recovering--;
                 }
@@ -5774,7 +6413,7 @@ parse: function parse(input) {
                 yytext,
                 yyleng,
                 yylineno,
-                sharedState.yy,
+                this.yy,
                 action[1],
                 vstack,
                 lstack
@@ -5806,369 +6445,108 @@ parse: function parse(input) {
        tmp[arr[i]] = arr[i+1];
      return tmp;
   };
-/* generated by jison-lex 0.3.4 */
+/* generated by jison-lex 0.2.1 */
 var lexer = (function(){
-var lexer = ({
+var lexer = {
 
 EOF:1,
 
-parseError:function parseError(str, hash) {
-        if (this.yy.parser) {
-            this.yy.parser.parseError(str, hash);
-        } else {
-            throw new Error(str);
-        }
-    },
+parseError:function parseError(str,hash){if(this.yy.parser){this.yy.parser.parseError(str,hash)}else{throw new Error(str)}},
 
 // resets the lexer, sets new input
-setInput:function (input, yy) {
-        this.yy = yy || this.yy || {};
-        this._input = input;
-        this._more = this._backtrack = this.done = false;
-        this.yylineno = this.yyleng = 0;
-        this.yytext = this.matched = this.match = '';
-        this.conditionStack = ['INITIAL'];
-        this.yylloc = {
-            first_line: 1,
-            first_column: 0,
-            last_line: 1,
-            last_column: 0
-        };
-        if (this.options.ranges) {
-            this.yylloc.range = [0,0];
-        }
-        this.offset = 0;
-        return this;
-    },
+setInput:function (input){this._input=input;this._more=this._backtrack=this.done=false;this.yylineno=this.yyleng=0;this.yytext=this.matched=this.match="";this.conditionStack=["INITIAL"];this.yylloc={first_line:1,first_column:0,last_line:1,last_column:0};if(this.options.ranges){this.yylloc.range=[0,0]}this.offset=0;return this},
 
 // consumes and returns one char from the input
-input:function () {
-        var ch = this._input[0];
-        this.yytext += ch;
-        this.yyleng++;
-        this.offset++;
-        this.match += ch;
-        this.matched += ch;
-        var lines = ch.match(/(?:\r\n?|\n).*/g);
-        if (lines) {
-            this.yylineno++;
-            this.yylloc.last_line++;
-        } else {
-            this.yylloc.last_column++;
-        }
-        if (this.options.ranges) {
-            this.yylloc.range[1]++;
-        }
-
-        this._input = this._input.slice(1);
-        return ch;
-    },
+input:function (){var ch=this._input[0];this.yytext+=ch;this.yyleng++;this.offset++;this.match+=ch;this.matched+=ch;var lines=ch.match(/(?:\r\n?|\n).*/g);if(lines){this.yylineno++;this.yylloc.last_line++}else{this.yylloc.last_column++}if(this.options.ranges){this.yylloc.range[1]++}this._input=this._input.slice(1);return ch},
 
 // unshifts one char (or a string) into the input
-unput:function (ch) {
-        var len = ch.length;
-        var lines = ch.split(/(?:\r\n?|\n)/g);
-
-        this._input = ch + this._input;
-        this.yytext = this.yytext.substr(0, this.yytext.length - len);
-        //this.yyleng -= len;
-        this.offset -= len;
-        var oldLines = this.match.split(/(?:\r\n?|\n)/g);
-        this.match = this.match.substr(0, this.match.length - 1);
-        this.matched = this.matched.substr(0, this.matched.length - 1);
-
-        if (lines.length - 1) {
-            this.yylineno -= lines.length - 1;
-        }
-        var r = this.yylloc.range;
-
-        this.yylloc = {
-            first_line: this.yylloc.first_line,
-            last_line: this.yylineno + 1,
-            first_column: this.yylloc.first_column,
-            last_column: lines ?
-                (lines.length === oldLines.length ? this.yylloc.first_column : 0)
-                 + oldLines[oldLines.length - lines.length].length - lines[0].length :
-              this.yylloc.first_column - len
-        };
-
-        if (this.options.ranges) {
-            this.yylloc.range = [r[0], r[0] + this.yyleng - len];
-        }
-        this.yyleng = this.yytext.length;
-        return this;
-    },
+unput:function (ch){var len=ch.length;var lines=ch.split(/(?:\r\n?|\n)/g);this._input=ch+this._input;this.yytext=this.yytext.substr(0,this.yytext.length-len-1);this.offset-=len;var oldLines=this.match.split(/(?:\r\n?|\n)/g);this.match=this.match.substr(0,this.match.length-1);this.matched=this.matched.substr(0,this.matched.length-1);if(lines.length-1){this.yylineno-=lines.length-1}var r=this.yylloc.range;this.yylloc={first_line:this.yylloc.first_line,last_line:this.yylineno+1,first_column:this.yylloc.first_column,last_column:lines?(lines.length===oldLines.length?this.yylloc.first_column:0)+oldLines[oldLines.length-lines.length].length-lines[0].length:this.yylloc.first_column-len};if(this.options.ranges){this.yylloc.range=[r[0],r[0]+this.yyleng-len]}this.yyleng=this.yytext.length;return this},
 
 // When called from action, caches matched text and appends it on next action
-more:function () {
-        this._more = true;
-        return this;
-    },
+more:function (){this._more=true;return this},
 
 // When called from action, signals the lexer that this rule fails to match the input, so the next matching rule (regex) should be tested instead.
-reject:function () {
-        if (this.options.backtrack_lexer) {
-            this._backtrack = true;
-        } else {
-            return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).\n' + this.showPosition(), {
-                text: "",
-                token: null,
-                line: this.yylineno
-            });
-
-        }
-        return this;
-    },
+reject:function (){if(this.options.backtrack_lexer){this._backtrack=true}else{return this.parseError("Lexical error on line "+(this.yylineno+1)+". You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).\n"+this.showPosition(),{text:"",token:null,line:this.yylineno})}return this},
 
 // retain first n characters of the match
-less:function (n) {
-        this.unput(this.match.slice(n));
-    },
+less:function (n){this.unput(this.match.slice(n))},
 
 // displays already matched input, i.e. for error messages
-pastInput:function () {
-        var past = this.matched.substr(0, this.matched.length - this.match.length);
-        return (past.length > 20 ? '...':'') + past.substr(-20).replace(/\n/g, "");
-    },
+pastInput:function (){var past=this.matched.substr(0,this.matched.length-this.match.length);return(past.length>20?"...":"")+past.substr(-20).replace(/\n/g,"")},
 
 // displays upcoming input, i.e. for error messages
-upcomingInput:function () {
-        var next = this.match;
-        if (next.length < 20) {
-            next += this._input.substr(0, 20-next.length);
-        }
-        return (next.substr(0,20) + (next.length > 20 ? '...' : '')).replace(/\n/g, "");
-    },
+upcomingInput:function (){var next=this.match;if(next.length<20){next+=this._input.substr(0,20-next.length)}return(next.substr(0,20)+(next.length>20?"...":"")).replace(/\n/g,"")},
 
 // displays the character position where the lexing error occurred, i.e. for error messages
-showPosition:function () {
-        var pre = this.pastInput();
-        var c = new Array(pre.length + 1).join("-");
-        return pre + this.upcomingInput() + "\n" + c + "^";
-    },
+showPosition:function (){var pre=this.pastInput();var c=new Array(pre.length+1).join("-");return pre+this.upcomingInput()+"\n"+c+"^"},
 
 // test the lexed token: return FALSE when not a match, otherwise return token
-test_match:function (match, indexed_rule) {
-        var token,
-            lines,
-            backup;
-
-        if (this.options.backtrack_lexer) {
-            // save context
-            backup = {
-                yylineno: this.yylineno,
-                yylloc: {
-                    first_line: this.yylloc.first_line,
-                    last_line: this.last_line,
-                    first_column: this.yylloc.first_column,
-                    last_column: this.yylloc.last_column
-                },
-                yytext: this.yytext,
-                match: this.match,
-                matches: this.matches,
-                matched: this.matched,
-                yyleng: this.yyleng,
-                offset: this.offset,
-                _more: this._more,
-                _input: this._input,
-                yy: this.yy,
-                conditionStack: this.conditionStack.slice(0),
-                done: this.done
-            };
-            if (this.options.ranges) {
-                backup.yylloc.range = this.yylloc.range.slice(0);
-            }
-        }
-
-        lines = match[0].match(/(?:\r\n?|\n).*/g);
-        if (lines) {
-            this.yylineno += lines.length;
-        }
-        this.yylloc = {
-            first_line: this.yylloc.last_line,
-            last_line: this.yylineno + 1,
-            first_column: this.yylloc.last_column,
-            last_column: lines ?
-                         lines[lines.length - 1].length - lines[lines.length - 1].match(/\r?\n?/)[0].length :
-                         this.yylloc.last_column + match[0].length
-        };
-        this.yytext += match[0];
-        this.match += match[0];
-        this.matches = match;
-        this.yyleng = this.yytext.length;
-        if (this.options.ranges) {
-            this.yylloc.range = [this.offset, this.offset += this.yyleng];
-        }
-        this._more = false;
-        this._backtrack = false;
-        this._input = this._input.slice(match[0].length);
-        this.matched += match[0];
-        token = this.performAction.call(this, this.yy, this, indexed_rule, this.conditionStack[this.conditionStack.length - 1]);
-        if (this.done && this._input) {
-            this.done = false;
-        }
-        if (token) {
-            return token;
-        } else if (this._backtrack) {
-            // recover context
-            for (var k in backup) {
-                this[k] = backup[k];
-            }
-            return false; // rule action called reject() implying the next rule should be tested instead.
-        }
-        return false;
-    },
+test_match:function (match,indexed_rule){var token,lines,backup;if(this.options.backtrack_lexer){backup={yylineno:this.yylineno,yylloc:{first_line:this.yylloc.first_line,last_line:this.last_line,first_column:this.yylloc.first_column,last_column:this.yylloc.last_column},yytext:this.yytext,match:this.match,matches:this.matches,matched:this.matched,yyleng:this.yyleng,offset:this.offset,_more:this._more,_input:this._input,yy:this.yy,conditionStack:this.conditionStack.slice(0),done:this.done};if(this.options.ranges){backup.yylloc.range=this.yylloc.range.slice(0)}}lines=match[0].match(/(?:\r\n?|\n).*/g);if(lines){this.yylineno+=lines.length}this.yylloc={first_line:this.yylloc.last_line,last_line:this.yylineno+1,first_column:this.yylloc.last_column,last_column:lines?lines[lines.length-1].length-lines[lines.length-1].match(/\r?\n?/)[0].length:this.yylloc.last_column+match[0].length};this.yytext+=match[0];this.match+=match[0];this.matches=match;this.yyleng=this.yytext.length;if(this.options.ranges){this.yylloc.range=[this.offset,this.offset+=this.yyleng]}this._more=false;this._backtrack=false;this._input=this._input.slice(match[0].length);this.matched+=match[0];token=this.performAction.call(this,this.yy,this,indexed_rule,this.conditionStack[this.conditionStack.length-1]);if(this.done&&this._input){this.done=false}if(token){return token}else if(this._backtrack){for(var k in backup){this[k]=backup[k]}return false}return false},
 
 // return next match in input
-next:function () {
-        if (this.done) {
-            return this.EOF;
-        }
-        if (!this._input) {
-            this.done = true;
-        }
-
-        var token,
-            match,
-            tempMatch,
-            index;
-        if (!this._more) {
-            this.yytext = '';
-            this.match = '';
-        }
-        var rules = this._currentRules();
-        for (var i = 0; i < rules.length; i++) {
-            tempMatch = this._input.match(this.rules[rules[i]]);
-            if (tempMatch && (!match || tempMatch[0].length > match[0].length)) {
-                match = tempMatch;
-                index = i;
-                if (this.options.backtrack_lexer) {
-                    token = this.test_match(tempMatch, rules[i]);
-                    if (token !== false) {
-                        return token;
-                    } else if (this._backtrack) {
-                        match = false;
-                        continue; // rule action called reject() implying a rule MISmatch.
-                    } else {
-                        // else: this is a lexer rule which consumes input without producing a token (e.g. whitespace)
-                        return false;
-                    }
-                } else if (!this.options.flex) {
-                    break;
-                }
-            }
-        }
-        if (match) {
-            token = this.test_match(match, rules[index]);
-            if (token !== false) {
-                return token;
-            }
-            // else: this is a lexer rule which consumes input without producing a token (e.g. whitespace)
-            return false;
-        }
-        if (this._input === "") {
-            return this.EOF;
-        } else {
-            return this.parseError('Lexical error on line ' + (this.yylineno + 1) + '. Unrecognized text.\n' + this.showPosition(), {
-                text: "",
-                token: null,
-                line: this.yylineno
-            });
-        }
-    },
+next:function (){if(this.done){return this.EOF}if(!this._input){this.done=true}var token,match,tempMatch,index;if(!this._more){this.yytext="";this.match=""}var rules=this._currentRules();for(var i=0;i<rules.length;i++){tempMatch=this._input.match(this.rules[rules[i]]);if(tempMatch&&(!match||tempMatch[0].length>match[0].length)){match=tempMatch;index=i;if(this.options.backtrack_lexer){token=this.test_match(tempMatch,rules[i]);if(token!==false){return token}else if(this._backtrack){match=false;continue}else{return false}}else if(!this.options.flex){break}}}if(match){token=this.test_match(match,rules[index]);if(token!==false){return token}return false}if(this._input===""){return this.EOF}else{return this.parseError("Lexical error on line "+(this.yylineno+1)+". Unrecognized text.\n"+this.showPosition(),{text:"",token:null,line:this.yylineno})}},
 
 // return next match that has a token
-lex:function lex() {
-        var r = this.next();
-        if (r) {
-            return r;
-        } else {
-            return this.lex();
-        }
-    },
+lex:function lex(){var r=this.next();if(r){return r}else{return this.lex()}},
 
 // activates a new lexer condition state (pushes the new lexer condition state onto the condition stack)
-begin:function begin(condition) {
-        this.conditionStack.push(condition);
-    },
+begin:function begin(condition){this.conditionStack.push(condition)},
 
 // pop the previously active lexer condition state off the condition stack
-popState:function popState() {
-        var n = this.conditionStack.length - 1;
-        if (n > 0) {
-            return this.conditionStack.pop();
-        } else {
-            return this.conditionStack[0];
-        }
-    },
+popState:function popState(){var n=this.conditionStack.length-1;if(n>0){return this.conditionStack.pop()}else{return this.conditionStack[0]}},
 
 // produce the lexer rule set which is active for the currently active lexer condition state
-_currentRules:function _currentRules() {
-        if (this.conditionStack.length && this.conditionStack[this.conditionStack.length - 1]) {
-            return this.conditions[this.conditionStack[this.conditionStack.length - 1]].rules;
-        } else {
-            return this.conditions["INITIAL"].rules;
-        }
-    },
+_currentRules:function _currentRules(){if(this.conditionStack.length&&this.conditionStack[this.conditionStack.length-1]){return this.conditions[this.conditionStack[this.conditionStack.length-1]].rules}else{return this.conditions["INITIAL"].rules}},
 
 // return the currently active lexer condition state; when an index argument is provided it produces the N-th previous condition state, if available
-topState:function topState(n) {
-        n = this.conditionStack.length - 1 - Math.abs(n || 0);
-        if (n >= 0) {
-            return this.conditionStack[n];
-        } else {
-            return "INITIAL";
-        }
-    },
+topState:function topState(n){n=this.conditionStack.length-1-Math.abs(n||0);if(n>=0){return this.conditionStack[n]}else{return"INITIAL"}},
 
 // alias for begin(condition)
-pushState:function pushState(condition) {
-        this.begin(condition);
-    },
+pushState:function pushState(condition){this.begin(condition)},
 
 // return the number of states currently on the stack
-stateStackSize:function stateStackSize() {
-        return this.conditionStack.length;
-    },
+stateStackSize:function stateStackSize(){return this.conditionStack.length},
 options: {},
-performAction: function anonymous(yy,yy_,$avoiding_name_collisions,YY_START) {
+performAction: function anonymous(yy,yy_,$avoiding_name_collisions,YY_START
+/**/) {
+
 var YYSTATE=YY_START;
 switch($avoiding_name_collisions) {
 case 0:/* skip whitespace */
 break;
-case 1:return 24
+case 1:return 28
 break;
-case 2:return 33
+case 2:return 32
 break;
-case 3:return 23
+case 3:return 27
 break;
-case 4:return 32
+case 4:return 31
 break;
 case 5:return '?'
 break;
-case 6:return 21
+case 6:return 25
 break;
-case 7:return 9
+case 7:return 10
 break;
-case 8:return 11
+case 8:return 12
 break;
-case 9:return 26
+case 9:return 30
 break;
-case 10:return 26
+case 10:return 30
 break;
-case 11:return 25
+case 11:return 29
 break;
-case 12:return 19
+case 12:return 23
 break;
-case 13:return 20
+case 13:return 24
 break;
-case 14:return 15
+case 14:return 19
 break;
-case 15:return 28
+case 15:return 15
 break;
-case 16:return 29
+case 16:return 16
 break;
-case 17:return 30
+case 17:return 17
 break;
 case 18:return 5
 break;
@@ -6176,9 +6554,9 @@ case 19:return 'INVALID'
 break;
 }
 },
-rules: [/^(?:\s\s+)/,/^(?:[0-9]+(\.[0-9]+)?\b)/,/^(?:\s+:\s+)/,/^(?::\s*)/,/^(?:\s+\?\s+)/,/^(?:\?)/,/^(?:,\s*)/,/^(?:\()/,/^(?:\))/,/^(?:"(\\"|[^\"])*")/,/^(?:'(\\'|[^\'])*')/,/^(?:(true|false))/,/^(?:[A-Z][\w\d]*)/,/^(?:\w[\w\d]*)/,/^(?:\.)/,/^(?:\s*=\s*)/,/^(?:\s*>\s*)/,/^(?:\s*<\s*)/,/^(?:$)/,/^(?:.)/],
+rules: [/^(?:\s\s+)/,/^(?:[0-9]+(\.[0-9]+)?\b)/,/^(?:\s+:\s+)/,/^(?::\s*)/,/^(?:\s+\?\s+)/,/^(?:\?)/,/^(?:,\s*)/,/^(?:\()/,/^(?:\))/,/^(?:"(\\"|[^\"])*")/,/^(?:'(\\'|[^\'])*')/,/^(?:(true|false))/,/^(?:[A-Z][\w\d]*)/,/^(?:\w[\w\d]*)/,/^(?:\.)/,/^(?:\s*(=|>=|>|<|<=)\s*)/,/^(?:\s*(\+|-)\s*)/,/^(?:\s*(\/|\*)\s*)/,/^(?:$)/,/^(?:.)/],
 conditions: {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19],"inclusive":true}}
-});
+};
 return lexer;
 })();
 parser.lexer = lexer;
@@ -6194,14 +6572,7 @@ if (typeof require !== 'undefined' && typeof exports !== 'undefined') {
 exports.parser = parser;
 exports.Parser = parser.Parser;
 exports.parse = function () { return parser.parse.apply(parser, arguments); };
-exports.main = function commonjsMain(args) {
-    if (!args[1]) {
-        console.log('Usage: '+args[0]+' FILE');
-        process.exit(1);
-    }
-    var source = require('fs').readFileSync(require('path').normalize(args[1]), "utf8");
-    return exports.parser.parse(source);
-};
+exports.main = function commonjsMain(args){if(!args[1]){console.log("Usage: "+args[0]+" FILE");process.exit(1)}var source=require("fs").readFileSync(require("path").normalize(args[1]),"utf8");return exports.parser.parse(source)};
 if (typeof module !== 'undefined' && require.main === module) {
   exports.main(process.argv.slice(1));
 }
@@ -6219,9 +6590,16 @@ pi.components = require('./components');
 
 pi.export(pi.components, "$c");
 
+var BaseComponent = require('./components/base');
+var Renderable = require('./components/modules/renderable');
+
+BaseComponent.include(Renderable);
+
 pi.klass = require('./components/utils/klass');
 
 pi.renderers = require('./renderers');
+
+
 
 pi.Plugin = require('./plugins');
 
@@ -6311,26 +6689,27 @@ IframeUpload = (function() {
   };
 
   IframeUpload.upload = function(form, url, params, method) {
-    var _this = this;
-    return new Promise(function(resolve) {
-      var iframe, iframe_id;
-      iframe_id = "iframe_" + (utils.uid());
-      iframe = _this._build_iframe(iframe_id);
-      form = _this._build_form(form, iframe_id, params, url, method);
-      Nod.body.append(iframe);
-      iframe.on("load", function() {
-        var response;
-        if (iframe.node.contentDocument.readyState === 'complete') {
-          response = iframe.node.contentDocument.getElementsByTagName("body")[0];
-          utils.after(500, function() {
-            return iframe.remove();
-          });
-          iframe.off();
-          return resolve(response);
-        }
-      });
-      return form.node.submit();
-    });
+    return new Promise((function(_this) {
+      return function(resolve) {
+        var iframe, iframe_id;
+        iframe_id = "iframe_" + (utils.uid());
+        iframe = _this._build_iframe(iframe_id);
+        form = _this._build_form(form, iframe_id, params, url, method);
+        Nod.body.append(iframe);
+        iframe.on("load", function() {
+          var response;
+          if (iframe.node.contentDocument.readyState === 'complete') {
+            response = iframe.node.contentDocument.getElementsByTagName("body")[0];
+            utils.after(500, function() {
+              return iframe.remove();
+            });
+            iframe.off();
+            return resolve(response);
+          }
+        });
+        return form.node.submit();
+      };
+    })(this));
   };
 
   return IframeUpload;
@@ -6339,10 +6718,9 @@ IframeUpload = (function() {
 
 module.exports = IframeUpload;
 
-
 }});
 
-require.define({'pieces-core/net/index': function(exports, require, module) {
+;require.define({'pieces-core/net/index': function(exports, require, module) {
   'use strict'
 module.exports = require('./net');
 
@@ -6361,8 +6739,6 @@ IframeUpload = require('./iframe.upload');
 Nod = require('../core/nod').Nod;
 
 Net = (function() {
-  var _this = this;
-
   function Net() {}
 
   Net._prepare_response = function(xhr) {
@@ -6468,72 +6844,73 @@ Net = (function() {
   Net.method_override = false;
 
   Net.request = function(method, url, data, options, xhr) {
-    var _this = this;
     if (options == null) {
       options = {};
     }
-    return new Promise(function(resolve, reject) {
-      var key, q, req, use_json, value, _headers;
-      req = xhr || new XMLHttpRequest();
-      use_json = options.json != null ? options.json : _this.use_json;
-      _headers = utils.merge(_this.headers, options.headers || {});
-      if (method === 'GET') {
-        q = _this._data_to_query(data);
-        if (q) {
-          if (url.indexOf("?") < 0) {
-            url += "?";
+    return new Promise((function(_this) {
+      return function(resolve, reject) {
+        var key, q, req, use_json, value, _headers;
+        req = xhr || new XMLHttpRequest();
+        use_json = options.json != null ? options.json : _this.use_json;
+        _headers = utils.merge(_this.headers, options.headers || {});
+        if (method === 'GET') {
+          q = _this._data_to_query(data);
+          if (q) {
+            if (url.indexOf("?") < 0) {
+              url += "?";
+            } else {
+              url += "&";
+            }
+            url += "" + q;
+          }
+          data = null;
+        } else {
+          if (_this.method_override === true) {
+            data._method = method;
+            _headers['X-HTTP-Method-Override'] = method;
+            method = 'POST';
+          }
+          if (use_json) {
+            _headers['Content-Type'] = 'application/json';
+            if (data != null) {
+              data = JSON.stringify(data);
+            }
           } else {
-            url += "&";
+            data = _this._data_to_form(data);
           }
-          url += "" + q;
         }
-        data = null;
-      } else {
-        if (_this.method_override === true) {
-          data._method = method;
-          _headers['X-HTTP-Method-Override'] = method;
-          method = 'POST';
+        req.open(method, url, true);
+        req.withCredentials = !!options.withCredentials;
+        for (key in _headers) {
+          if (!__hasProp.call(_headers, key)) continue;
+          value = _headers[key];
+          req.setRequestHeader(key, value);
         }
-        if (use_json) {
-          _headers['Content-Type'] = 'application/json';
-          if (data != null) {
-            data = JSON.stringify(data);
+        _headers = null;
+        if (typeof options.progress === 'function') {
+          req.upload.onprogress = function(event) {
+            value = event.lengthComputable ? event.loaded * 100 / event.total : 0;
+            return options.progress(Math.round(value));
+          };
+        }
+        req.onreadystatechange = function() {
+          if (req.readyState !== 4) {
+            return;
           }
-        } else {
-          data = _this._data_to_form(data);
-        }
-      }
-      req.open(method, url, true);
-      req.withCredentials = !!options.withCredentials;
-      for (key in _headers) {
-        if (!__hasProp.call(_headers, key)) continue;
-        value = _headers[key];
-        req.setRequestHeader(key, value);
-      }
-      _headers = null;
-      if (typeof options.progress === 'function') {
-        req.upload.onprogress = function(event) {
-          value = event.lengthComputable ? event.loaded * 100 / event.total : 0;
-          return options.progress(Math.round(value));
+          if (_this._is_success(req.status)) {
+            return resolve(_this._prepare_response(req));
+          } else if (_this._is_app_error(req.status)) {
+            return reject(Error(_this._prepare_error(req)));
+          } else {
+            return reject(Error('500 Internal Server Error'));
+          }
         };
-      }
-      req.onreadystatechange = function() {
-        if (req.readyState !== 4) {
-          return;
-        }
-        if (_this._is_success(req.status)) {
-          return resolve(_this._prepare_response(req));
-        } else if (_this._is_app_error(req.status)) {
-          return reject(Error(_this._prepare_error(req)));
-        } else {
-          return reject(Error('500 Internal Server Error'));
-        }
+        req.onerror = function() {
+          reject(Error("Network Error"));
+        };
+        return req.send(data);
       };
-      req.onerror = function() {
-        reject(Error("Network Error"));
-      };
-      return req.send(data);
-    });
+    })(this));
   };
 
   Net.upload = function(url, data, options, xhr) {
@@ -6553,8 +6930,7 @@ Net = (function() {
   };
 
   Net.iframe_upload = function(form, url, data, options) {
-    var as_json, method,
-      _this = this;
+    var as_json, method;
     if (data == null) {
       data = {};
     }
@@ -6569,33 +6945,35 @@ Net = (function() {
       throw Error('Form is undefined');
     }
     method = options.method || 'POST';
-    return new Promise(function(resolve, reject) {
-      return IframeUpload.upload(form, url, _this._to_params(data), method).then(function(response) {
-        var e;
-        if (response == null) {
-          reject(Error('Response is empty'));
-        }
-        if (!as_json) {
-          resolve(response.innerHtml);
-        }
-        response = (function() {
-          try {
-            return JSON.parse(response.innerHTML);
-          } catch (_error) {
-            e = _error;
-            return JSON.parse(response.innerText);
+    return new Promise((function(_this) {
+      return function(resolve, reject) {
+        return IframeUpload.upload(form, url, _this._to_params(data), method).then(function(response) {
+          var e;
+          if (response == null) {
+            reject(Error('Response is empty'));
           }
-        })();
-        return resolve(response);
-      })["catch"](function(e) {
-        return reject(e);
-      });
-    });
+          if (!as_json) {
+            resolve(response.innerHtml);
+          }
+          response = (function() {
+            try {
+              return JSON.parse(response.innerHTML);
+            } catch (_error) {
+              e = _error;
+              return JSON.parse(response.innerText);
+            }
+          })();
+          return resolve(response);
+        })["catch"](function(e) {
+          return reject(e);
+        });
+      };
+    })(this));
   };
 
   return Net;
 
-}).call(this);
+})();
 
 Net.XHR_UPLOAD = !!window.FormData;
 
@@ -6609,199 +6987,18 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
 
 module.exports = Net;
 
-
 }});
 
-require.define({'pieces-core/plugins/base/index': function(exports, require, module) {
+;require.define({'pieces-core/plugins/base/index': function(exports, require, module) {
   'use strict'
 require('./selectable');
-require('./renderable');
-require('./restful');
-
-}});
-
-require.define({'pieces-core/plugins/base/renderable': function(exports, require, module) {
-  'use strict';
-var Base, Plugin, Renderers, utils, _ref, _renderer_reg,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-Base = require('../../components/base');
-
-Plugin = require('../plugin');
-
-utils = require('../../core/utils');
-
-Renderers = require('../../renderers');
-
-_renderer_reg = /(\w+)(?:\(([\w\-\/]+)\))?/;
-
-Base.Renderable = (function(_super) {
-  __extends(Renderable, _super);
-
-  function Renderable() {
-    _ref = Renderable.__super__.constructor.apply(this, arguments);
-    return _ref;
-  }
-
-  Renderable.prototype.id = 'renderable';
-
-  Renderable.included = function(klass) {
-    var self;
-    self = this;
-    return klass.before_initialize(function() {
-      return this.attach_plugin(self);
-    });
-  };
-
-  Renderable.prototype.initialize = function(target) {
-    this.target = target;
-    Renderable.__super__.initialize.apply(this, arguments);
-    this.target._renderer = this.find_renderer();
-    this.target.delegate_to(this, 'render');
-    return this;
-  };
-
-  Renderable.prototype.render = function(data) {
-    var nod;
-    this.target.remove_children();
-    if (data != null) {
-      nod = this.target._renderer.render(data, false);
-      if (nod != null) {
-        this.target.append(nod);
-        this.target.piecify(this.target);
-      } else {
-        utils.error("failed to render data for: " + this.target.pid + "}", data);
-      }
-    }
-    return this.target;
-  };
-
-  Renderable.prototype.find_renderer = function() {
-    var klass, name, param, renderer, tpl, _, _ref1;
-    if ((this.target.options.renderer != null) && _renderer_reg.test(this.target.options.renderer)) {
-      _ref1 = this.target.options.renderer.match(_renderer_reg), _ = _ref1[0], name = _ref1[1], param = _ref1[2];
-      klass = Renderers[utils.camelCase(name)];
-      if (klass != null) {
-        return new klass(param);
-      }
-    } else if ((tpl = this.target.find('.pi-renderer'))) {
-      renderer = new Renderers.Simple(tpl);
-      tpl.remove();
-      return renderer;
-    }
-    return new Renderers.Base();
-  };
-
-  return Renderable;
-
-})(Plugin);
-
-module.exports = Base.Renderable;
-
-
-}});
-
-require.define({'pieces-core/plugins/base/restful': function(exports, require, module) {
-  'use strict';
-var Base, Compiler, Plugin, Renderable, ResourceEvent, utils, _ref,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-Base = require('../../components/base');
-
-Plugin = require('../plugin');
-
-utils = require('../../core/utils');
-
-Renderable = require('./renderable');
-
-Compiler = require('../../grammar/compiler');
-
-ResourceEvent = require('../../resources/events');
-
-utils = require('../../core/utils');
-
-Base.Restful = (function(_super) {
-  __extends(Restful, _super);
-
-  function Restful() {
-    _ref = Restful.__super__.constructor.apply(this, arguments);
-    return _ref;
-  }
-
-  Restful.prototype.id = 'restful';
-
-  Restful.prototype.initialize = function(target) {
-    var f, promise, rest,
-      _this = this;
-    this.target = target;
-    Restful.__super__.initialize.apply(this, arguments);
-    this._uid = utils.uid('r');
-    if (!this.target.has_renderable) {
-      this.target.attach_plugin(Renderable);
-    }
-    if ((rest = this.target.options.rest) != null) {
-      f = Compiler.str_to_fun(rest);
-      promise = f.call(this);
-      if (!(promise instanceof Promise)) {
-        promise = promise ? utils.promise.resolved(promise) : utils.promise.rejected();
-      }
-      promise.then(function(resource) {
-        return _this.bind(resource, _this.target.children().length === 0);
-      }, function() {
-        return utils.error("resource not found: " + rest, _this.target.options.rest);
-      });
-    }
-    return this;
-  };
-
-  Restful.prototype.bind = function(resource, render) {
-    if (render == null) {
-      render = false;
-    }
-    if (this.resource) {
-      this.resource.off(ResourceEvent.Update, this.resource_update());
-      this.resource.off(ResourceEvent.Create, this.resource_update());
-    }
-    this.resource = resource;
-    if (!this.resource) {
-      this.target.render(null);
-      return;
-    }
-    this.resource.on([ResourceEvent.Update, ResourceEvent.Create], this.resource_update());
-    if (render) {
-      return this.target.render(resource);
-    }
-  };
-
-  Restful.prototype.resource_update = function(e) {
-    utils.debug_verbose('Restful component event', e);
-    return this.on_update(e.currentTarget);
-  };
-
-  Restful.event_handler('resource_update');
-
-  Restful.prototype.on_update = function(data) {
-    return this.target.render(data);
-  };
-
-  Restful.prototype.dispose = function() {
-    return this.bind(null);
-  };
-
-  return Restful;
-
-})(Plugin);
-
-module.exports = Base.Restful;
 
 
 }});
 
 require.define({'pieces-core/plugins/base/selectable': function(exports, require, module) {
   'use strict';
-var Base, Events, Klass, Plugin, utils, _ref,
+var Base, Events, Klass, Plugin, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -6819,8 +7016,7 @@ Base.Selectable = (function(_super) {
   __extends(Selectable, _super);
 
   function Selectable() {
-    _ref = Selectable.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return Selectable.__super__.constructor.apply(this, arguments);
   }
 
   Selectable.prototype.id = 'selectable';
@@ -6856,10 +7052,9 @@ Base.Selectable = (function(_super) {
 
 module.exports = Base.Selectable;
 
-
 }});
 
-require.define({'pieces-core/plugins/index': function(exports, require, module) {
+;require.define({'pieces-core/plugins/index': function(exports, require, module) {
   'use strict'
 var plugin = require('./plugin');
 require('./base');
@@ -6870,7 +7065,7 @@ module.exports = plugin;
 
 require.define({'pieces-core/plugins/plugin': function(exports, require, module) {
   'use strict';
-var Core, Plugin, utils, _ref,
+var Core, Plugin, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -6882,8 +7077,7 @@ Plugin = (function(_super) {
   __extends(Plugin, _super);
 
   function Plugin() {
-    _ref = Plugin.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return Plugin.__super__.constructor.apply(this, arguments);
   }
 
   Plugin.prototype.id = "";
@@ -6915,10 +7109,9 @@ Plugin = (function(_super) {
 
 module.exports = Plugin;
 
-
 }});
 
-require.define({'pieces-core/renderers/base': function(exports, require, module) {
+;require.define({'pieces-core/renderers/base': function(exports, require, module) {
   'use strict';
 var Base, BaseComponent, Nod, utils;
 
@@ -6957,10 +7150,9 @@ Base = (function() {
 
 module.exports = Base;
 
-
 }});
 
-require.define({'pieces-core/renderers/index': function(exports, require, module) {
+;require.define({'pieces-core/renderers/index': function(exports, require, module) {
   'use strict'
 var Renderers = {};
 Renderers.Base = require('./base');
@@ -7002,7 +7194,12 @@ Simple = (function(_super) {
   __extends(Simple, _super);
 
   function Simple(nod) {
-    this.create_templater(nod.html());
+    var _html;
+    _html = nod.html();
+    if (!_html.match(/^<.*>$/)) {
+      _html = "<div>" + _html + "</div>";
+    }
+    this.create_templater(_html);
   }
 
   Simple.prototype.create_templater = function(text) {
@@ -7034,18 +7231,19 @@ Simple = (function(_super) {
   };
 
   Simple.prototype.parse_conditional = function(str) {
-    var index, res,
-      _this = this;
+    var index, res;
     res = '';
     index = 0;
-    str.replace(/(['"][^'"]*['"])|$/g, function(match, literal, offset) {
-      res += str.slice(index, offset).replace(/\b([a-zA-Z][\w\(\)]*)\b/g, '__obj.$&');
-      index = offset + match.length;
-      if (literal) {
-        res += literal;
-      }
-      return match;
-    });
+    str.replace(/(['"][^'"]*['"])|$/g, (function(_this) {
+      return function(match, literal, offset) {
+        res += str.slice(index, offset).replace(/\b([a-zA-Z][\w\(\)]*)\b/g, '__obj.$&');
+        index = offset + match.length;
+        if (literal) {
+          res += literal;
+        }
+        return match;
+      };
+    })(this));
     return res;
   };
 
@@ -7060,44 +7258,47 @@ Simple = (function(_super) {
   };
 
   Simple.prototype._funstr = function(text) {
-    var hash, index, source,
-      _this = this;
+    var hash, index, source;
     hash = this.to_hash(text);
     index = 0;
     source = '';
-    text = text.replace(_reg_partials, function(partial) {
-      var content, fun_name, name, partial_source, _, _ref;
-      _ref = partial.match(/^\{\>\s*(\w+)\s*\}([\s\S]*)\{\<\s*\w+\s*\}$/), _ = _ref[0], name = _ref[1], content = _ref[2];
-      partial_source = _this._funstr(content.trim());
-      fun_name = "_" + name + "_" + (utils.uid('partial'));
-      source += "\nfunction " + fun_name + "(__obj, $parent, $i, $key, $val){" + partial_source + "};\n";
-      return "{!\n  __ref = __obj." + name + "\n  if(Array.isArray(__ref)){\n    for(var i=0, len=__ref.length;i<len;i++){\n      __p+=" + fun_name + "(__ref[i], __obj, i, null, __ref[i]);\n    }\n  }else if(typeof __ref === 'object' && __ref){\n    for(var k in __ref){\n      if(!__ref.hasOwnProperty(k)) continue;\n      __p+=" + fun_name + "(__ref[k], __obj, null, k, __ref[k]);\n    }\n  }else if(__ref){\n    __p+=" + fun_name + "(__obj);\n  }\n!}";
-    });
+    text = text.replace(_reg_partials, (function(_this) {
+      return function(partial) {
+        var content, fun_name, name, partial_source, _, _ref;
+        _ref = partial.match(/^\{\>\s*(\w+)\s*\}([\s\S]*)\{\<\s*\w+\s*\}$/), _ = _ref[0], name = _ref[1], content = _ref[2];
+        partial_source = _this._funstr(content.trim());
+        fun_name = "_" + name + "_" + (utils.uid('partial'));
+        source += "\nfunction " + fun_name + "(__obj, $parent, $i, $key, $val){" + partial_source + "};\n";
+        return "{!\n  __ref = __obj." + name + "\n  if(Array.isArray(__ref)){\n    for(var i=0, len=__ref.length;i<len;i++){\n      __p+=" + fun_name + "(__ref[i], __obj, i, null, __ref[i]);\n    }\n  }else if(typeof __ref === 'object' && __ref){\n    for(var k in __ref){\n      if(!__ref.hasOwnProperty(k)) continue;\n      __p+=" + fun_name + "(__ref[k], __obj, null, k, __ref[k]);\n    }\n  }else if(__ref){\n    __p+=" + fun_name + "(__obj);\n  }\n!}";
+      };
+    })(this));
     source += "\n__p+='";
-    text.replace(_reg_simple, function(match, escape, conditional, evaluation, offset) {
-      var no_escape, prefix, prop, _, _ref;
-      source += _this.escape(text.slice(index, offset));
-      if (escape) {
-        _ref = escape.match(/^(\=)?\s*([\s\S]+?)\s*$/), _ = _ref[0], no_escape = _ref[1], prop = _ref[2];
-        prefix = prop.match(/^\$(i|key|val|parent)/) ? '' : '__obj.';
-        escape = prefix + prop;
-        if (no_escape) {
-          source += "'+(((__t = " + escape + ") == void 0) ? '' : __t)+'";
-        } else {
-          source += "'+(((__t = pi.utils.escapeHTML(" + escape + ")) == void 0) ? '' : __t)+'";
+    text.replace(_reg_simple, (function(_this) {
+      return function(match, escape, conditional, evaluation, offset) {
+        var no_escape, prefix, prop, _, _ref;
+        source += _this.escape(text.slice(index, offset));
+        if (escape) {
+          _ref = escape.match(/^(\=)?\s*([\s\S]+?)\s*$/), _ = _ref[0], no_escape = _ref[1], prop = _ref[2];
+          prefix = prop.match(/^\$(i|key|val|parent)/) ? '' : '__obj.';
+          escape = prefix + prop;
+          if (no_escape) {
+            source += "'+(((__t = " + escape + ") == void 0) ? '' : __t)+'";
+          } else {
+            source += "'+(((__t = pi.utils.escapeHTML(" + escape + ")) == void 0) ? '' : __t)+'";
+          }
         }
-      }
-      if (conditional) {
-        conditional = conditional.indexOf(":") > 0 ? conditional : conditional + ' : \'\'';
-        conditional = utils.squish(conditional);
-        source += "'+(((__t = " + (_this.parse_conditional(conditional)) + ") == void 0) ? '' : __t)+'";
-      }
-      if (evaluation) {
-        source += "';\n" + evaluation + ";\n__p+='";
-      }
-      index = offset + match.length;
-      return match;
-    });
+        if (conditional) {
+          conditional = conditional.indexOf(":") > 0 ? conditional : conditional + ' : \'\'';
+          conditional = utils.squish(conditional);
+          source += "'+(((__t = " + (_this.parse_conditional(conditional)) + ") == void 0) ? '' : __t)+'";
+        }
+        if (evaluation) {
+          source += "';\n" + evaluation + ";\n__p+='";
+        }
+        index = offset + match.length;
+        return match;
+      };
+    })(this));
     source += "';";
     return source = "var __ref,__t,__p='';__obj = __obj || {};\n" + source + "\nreturn __p;\n//# sourceURL=/simpletemplates/source_" + hash + "\";\n";
   };
@@ -7108,10 +7309,9 @@ Simple = (function(_super) {
 
 module.exports = Simple;
 
-
 }});
 
-require.define({'pieces-core/resources/association': function(exports, require, module) {
+;require.define({'pieces-core/resources/association': function(exports, require, module) {
   'use strict';
 var Association, Base, ResourceEvent, View, utils,
   __hasProp = {}.hasOwnProperty,
@@ -7129,36 +7329,37 @@ Association = (function(_super) {
   __extends(Association, _super);
 
   function Association(resources, scope, options) {
-    var _this = this;
     this.resources = resources;
     this.options = options != null ? options : {};
     Association.__super__.constructor.apply(this, arguments);
     this._only_update = false;
     this.owner = this.options.owner;
-    if (options.belongs_to === true) {
-      if (options.owner._persisted) {
+    if (this.options.belongs_to === true) {
+      if (this.options.owner._persisted) {
         this.owner_name_id = this.options.key;
       } else {
         this._only_update = true;
-        this.options.owner.one(ResourceEvent.Create, (function() {
-          var el, _i, _len, _ref, _ref1;
-          _this._only_update = false;
-          _this.owner = _this.options.owner;
-          _this.owner_name_id = _this.options.key;
-          _ref = _this.__all__;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            el = _ref[_i];
-            el.set(utils.obj.wrap(_this.owner_name_id, _this.owner.id), true);
-          }
-          if (_this.options._scope !== false) {
-            if (((_ref1 = _this.options._scope) != null ? _ref1[_this.options.key] : void 0) != null) {
-              _this.options.scope = utils.merge(_this.options._scope, utils.obj.wrap(_this.options.key, _this.owner.id));
-            } else {
-              _this.options.scope = utils.obj.wrap(_this.options.key, _this.owner.id);
+        this.options.owner.one(ResourceEvent.Create, ((function(_this) {
+          return function() {
+            var el, _i, _len, _ref, _ref1;
+            _this._only_update = false;
+            _this.owner = _this.options.owner;
+            _this.owner_name_id = _this.options.key;
+            _ref = _this.__all__;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              el = _ref[_i];
+              el.set(utils.obj.wrap(_this.owner_name_id, _this.owner.id), true);
             }
-            return _this.reload();
-          }
-        }));
+            if (_this.options._scope !== false) {
+              if (((_ref1 = _this.options._scope) != null ? _ref1[_this.options.key] : void 0) != null) {
+                _this.options.scope = utils.merge(_this.options._scope, utils.obj.wrap(_this.options.key, _this.owner.id));
+              } else {
+                _this.options.scope = utils.obj.wrap(_this.options.key, _this.owner.id);
+              }
+              return _this.reload();
+            }
+          };
+        })(this)));
       }
     } else {
       if (!this.options.scope) {
@@ -7178,7 +7379,7 @@ Association = (function(_super) {
     this.clear_all();
     if (this.options.scope) {
       this._filter = utils.matchers.object_ext(this.options.scope);
-      return this.load(this.options.source.where(this.options.scope));
+      return this.load(this.resources.where(this.options.scope));
     }
   };
 
@@ -7217,8 +7418,8 @@ Association = (function(_super) {
 
   Association.prototype.on_destroy = function(el) {
     if (this.options.copy === false) {
-      this.trigger(ResourceEvent.Destroy, this._wrap(el));
-      return this.remove(el, true, false);
+      this.remove(el, true, false);
+      return this.trigger(ResourceEvent.Destroy, this._wrap(el));
     } else {
       return Association.__super__.on_destroy.apply(this, arguments);
     }
@@ -7253,24 +7454,71 @@ Association = (function(_super) {
 })(View);
 
 utils.extend(Base, {
-  view: function(params) {
+  views_cache: {},
+  clear_cache: function(key) {
+    if (key != null) {
+      delete this.views_cache[key];
+      return;
+    }
+    return this.views_cache = {};
+  },
+  cache_view: function(params, view) {
+    var k;
+    k = this.cache_key_from_object(params);
+    return this.views_cache[this.cache_id()][k] = view;
+  },
+  cached_view: function(params) {
+    var k;
+    k = this.cache_key_from_object(params);
+    return this.views_cache[this.cache_id()][k];
+  },
+  view: function(params, cache) {
     var view;
+    if (cache == null) {
+      cache = true;
+    }
+    if (cache && (view = this.cached_view(params))) {
+      return view;
+    }
     view = new Association(this, params, {
       scope: params,
-      copy: false,
-      source: this
+      copy: false
     });
     view.reload();
+    if (cache) {
+      this.cache_view(params, view);
+    }
     return view;
+  },
+  cache_key_from_object: function(data) {
+    var key, keys, parts;
+    keys = Object.keys(data).sort();
+    parts = [
+      (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = keys.length; _i < _len; _i++) {
+          key = keys[_i];
+          _results.push("" + key + "_" + data[key]);
+        }
+        return _results;
+      })()
+    ];
+    return parts.join(":");
+  },
+  cache_id: function() {
+    var _base, _name;
+    this._cache_id || (this._cache_id = utils.uid('res'));
+    (_base = this.views_cache)[_name = this._cache_id] || (_base[_name] = {});
+    return this._cache_id;
   }
 });
 
 module.exports = Association;
 
-
 }});
 
-require.define({'pieces-core/resources/base': function(exports, require, module) {
+;require.define({'pieces-core/resources/base': function(exports, require, module) {
   'use strict';
 var Base, EventDispatcher, ResourceEvent, utils, _singular,
   __hasProp = {}.hasOwnProperty,
@@ -7334,8 +7582,9 @@ Base = (function(_super) {
       data[this.resource_name] = this.build(data[this.resource_name]);
     }
     if (data[this.resources_name] != null) {
-      return data[this.resources_name] = this.load(data[this.resources_name]);
+      data[this.resources_name] = this.load(data[this.resources_name]);
     }
+    return data;
   };
 
   Base.clear_all = function() {
@@ -7487,6 +7736,14 @@ Base = (function(_super) {
 
   Base.second = function() {
     return this.__all__[1];
+  };
+
+  Base.last = function() {
+    return this.__all__[this.__all__.length - 1];
+  };
+
+  Base.count = function() {
+    return this.__all__.length;
   };
 
   Base.where = function(params) {
@@ -7651,10 +7908,9 @@ Base.Event = ResourceEvent;
 
 module.exports = Base;
 
-
 }});
 
-require.define({'pieces-core/resources/events': function(exports, require, module) {
+;require.define({'pieces-core/resources/events': function(exports, require, module) {
   'use strict';
 var ResourceEvent;
 
@@ -7667,10 +7923,9 @@ ResourceEvent = {
 
 module.exports = ResourceEvent;
 
-
 }});
 
-require.define({'pieces-core/resources/index': function(exports, require, module) {
+;require.define({'pieces-core/resources/index': function(exports, require, module) {
   'use strict'
 
 var utils = require('../core/utils');
@@ -7683,6 +7938,8 @@ resources.REST = require('./rest');
 
 utils.extend(resources, require('./modules'));
 
+require('./utils/binding');
+
 module.exports = resources;
 
 
@@ -7690,7 +7947,7 @@ module.exports = resources;
 
 require.define({'pieces-core/resources/modules/has_many': function(exports, require, module) {
   'use strict';
-var Association, Base, Core, HasMany, ResourceEvent, utils, _ref,
+var Association, Base, Core, HasMany, ResourceEvent, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -7708,8 +7965,7 @@ HasMany = (function(_super) {
   __extends(HasMany, _super);
 
   function HasMany() {
-    _ref = HasMany.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return HasMany.__super__.constructor.apply(this, arguments);
   }
 
   HasMany.has_many = function(name, params) {
@@ -7727,9 +7983,8 @@ HasMany = (function(_super) {
     } else if (params.update_if === true) {
       _update_filter = utils.truthy;
     }
-    this.prototype[name] = function() {
-      var default_scope, options,
-        _this = this;
+    this.getter(name, (function() {
+      var default_scope, options;
       if (this["__" + name + "__"] == null) {
         options = {
           name: name,
@@ -7757,17 +8012,19 @@ HasMany = (function(_super) {
           this["__" + name + "__"].load(params.source.where(options.scope));
         }
         if (params.update_if) {
-          this["__" + name + "__"].listen(function(e) {
-            var data;
-            data = e.data[params.source.resources_name] || e.data[params.source.resource_name];
-            if (_update_filter(e.data.type, data)) {
-              return _this.trigger_assoc_event(name, e.data.type, data);
-            }
-          });
+          this["__" + name + "__"].listen((function(_this) {
+            return function(e) {
+              var data;
+              data = e.data[params.source.resources_name] || e.data[params.source.resource_name];
+              if (_update_filter(e.data.type, data)) {
+                return _this.trigger_assoc_event(name, e.data.type, data);
+              }
+            };
+          })(this));
         }
       }
       return this["__" + name + "__"];
-    };
+    }));
     if (params.route === true) {
       this.routes({
         member: [
@@ -7781,7 +8038,7 @@ HasMany = (function(_super) {
       this.prototype["on_load_" + name] = function(data) {
         this["" + name + "_loaded"] = true;
         if (data[name] != null) {
-          return this[name]().load(data[name]);
+          return this[name].load(data[name]);
         }
       };
     }
@@ -7791,15 +8048,15 @@ HasMany = (function(_super) {
       }
       if (data[name]) {
         this["" + name + "_loaded"] = true;
-        return this[name]().load(data[name]);
+        return this[name].load(data[name]);
       }
     });
     this.after_initialize(function() {
-      return this[name]();
+      return this[name];
     });
     if (params.destroy === true) {
       this.before_destroy(function() {
-        return this[name]().clear_all(true);
+        return this[name].clear_all(true);
       });
     }
     if (params.attribute === true) {
@@ -7807,7 +8064,7 @@ HasMany = (function(_super) {
       return this.prototype.attributes = function() {
         var data;
         data = _old.call(this);
-        data[name] = this[name]().serialize();
+        data[name] = this[name].serialize();
         return data;
       };
     }
@@ -7819,12 +8076,11 @@ HasMany = (function(_super) {
 
 module.exports = HasMany;
 
-
 }});
 
-require.define({'pieces-core/resources/modules/has_one': function(exports, require, module) {
+;require.define({'pieces-core/resources/modules/has_one': function(exports, require, module) {
   'use strict';
-var Base, Core, HasOne, ResourceEvent, utils, _ref,
+var Base, Core, HasOne, ResourceEvent, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -7840,13 +8096,11 @@ HasOne = (function(_super) {
   __extends(HasOne, _super);
 
   function HasOne() {
-    _ref = HasOne.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return HasOne.__super__.constructor.apply(this, arguments);
   }
 
   HasOne.has_one = function(name, params) {
-    var bind_fun, resource_name, _old, _update_filter,
-      _this = this;
+    var bind_fun, resource_name, _old, _update_filter;
     if (params == null) {
       throw Error("Has one require at least 'source' param");
     }
@@ -7861,38 +8115,40 @@ HasOne = (function(_super) {
     } else {
       _update_filter = utils.falsey;
     }
-    params.source.listen(function(e) {
-      var el, target, _i, _len, _ref1, _results;
-      if (!_this.all().length) {
-        return;
-      }
-      e = e.data;
-      if (e.type === ResourceEvent.Load) {
-        _ref1 = params.source.all();
-        _results = [];
-        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-          el = _ref1[_i];
+    params.source.listen((function(_this) {
+      return function(e) {
+        var el, target, _i, _len, _ref, _results;
+        if (!_this.all().length) {
+          return;
+        }
+        e = e.data;
+        if (e.type === ResourceEvent.Load) {
+          _ref = params.source.all();
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            el = _ref[_i];
+            if (el[params.foreign_key] && (target = _this.get(el[params.foreign_key])) && target.association(name)) {
+              _results.push(target[bind_fun](el));
+            } else {
+              _results.push(void 0);
+            }
+          }
+          return _results;
+        } else {
+          el = e[resource_name];
           if (el[params.foreign_key] && (target = _this.get(el[params.foreign_key])) && target.association(name)) {
-            _results.push(target[bind_fun](el));
-          } else {
-            _results.push(void 0);
+            if (e.type === ResourceEvent.Destroy) {
+              delete _this[name];
+            } else if (e.type === ResourceEvent.Create) {
+              target[bind_fun](el, true);
+            }
+            if (_update_filter(e, el)) {
+              return target.trigger_assoc_event(name, e.type, utils.obj.wrap(name, _this[name]));
+            }
           }
         }
-        return _results;
-      } else {
-        el = e[resource_name];
-        if (el[params.foreign_key] && (target = _this.get(el[params.foreign_key])) && target.association(name)) {
-          if (e.type === ResourceEvent.Destroy) {
-            delete _this[name];
-          } else if (e.type === ResourceEvent.Create) {
-            target[bind_fun](el, true);
-          }
-          if (_update_filter(e, el)) {
-            return target.trigger_assoc_event(name, e.type, utils.obj.wrap(name, _this[name]));
-          }
-        }
-      }
-    });
+      };
+    })(this));
     this.prototype[bind_fun] = function(el, silent) {
       if (silent == null) {
         silent = false;
@@ -7932,8 +8188,8 @@ HasOne = (function(_super) {
     });
     if (params.destroy === true) {
       this.before_destroy(function() {
-        var _ref1;
-        return (_ref1 = this[name]) != null ? _ref1.remove() : void 0;
+        var _ref;
+        return (_ref = this[name]) != null ? _ref.remove() : void 0;
       });
     }
     if (params.attribute === true) {
@@ -7953,10 +8209,9 @@ HasOne = (function(_super) {
 
 module.exports = HasOne;
 
-
 }});
 
-require.define({'pieces-core/resources/modules/index': function(exports, require, module) {
+;require.define({'pieces-core/resources/modules/index': function(exports, require, module) {
   'use strict'
 var modules = {};
 modules.HasMany = require('./has_many');
@@ -7968,7 +8223,7 @@ module.exports = modules;
 
 require.define({'pieces-core/resources/rest': function(exports, require, module) {
   'use strict';
-var Base, EventDispatcher, Net, REST, ResourceEvent, utils, _double_slashes_reg, _path_reg, _ref, _tailing_slash_reg,
+var Base, EventDispatcher, Net, REST, ResourceEvent, utils, _double_slashes_reg, _path_reg, _tailing_slash_reg,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   __slice = [].slice;
@@ -7993,8 +8248,7 @@ REST = (function(_super) {
   __extends(REST, _super);
 
   function REST() {
-    _ref = REST.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return REST.__super__.constructor.apply(this, arguments);
   }
 
   REST._rscope = "/:path";
@@ -8057,70 +8311,75 @@ REST = (function(_super) {
   };
 
   REST.routes = function(data) {
-    var spec, _fn, _i, _j, _len, _len1, _ref1, _ref2, _results,
-      _this = this;
+    var spec, _fn, _i, _j, _len, _len1, _ref, _ref1, _results;
     if (data.collection != null) {
-      _ref1 = data.collection;
-      _fn = function(spec) {
-        _this[spec.action] = function(params) {
-          var _this = this;
-          if (params == null) {
-            params = {};
-          }
-          return this._request(spec.path, spec.method, params).then(function(response) {
-            var dep, _j, _len1, _ref2;
-            if (_this.__deps__ != null) {
-              _ref2 = _this.__deps__;
-              for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-                dep = _ref2[_j];
-                dep.from_data(response);
-              }
+      _ref = data.collection;
+      _fn = (function(_this) {
+        return function(spec) {
+          _this[spec.action] = function(params) {
+            if (params == null) {
+              params = {};
             }
-            if (_this["on_" + spec.action] != null) {
-              return _this["on_" + spec.action](response);
-            } else {
-              return _this.on_all(response);
-            }
-          });
+            return this._request(spec.path, spec.method, params).then((function(_this) {
+              return function(response) {
+                var dep, _j, _len1, _ref1;
+                if (_this.__deps__ != null) {
+                  _ref1 = _this.__deps__;
+                  for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+                    dep = _ref1[_j];
+                    dep.from_data(response);
+                  }
+                }
+                if (_this["on_" + spec.action] != null) {
+                  return _this["on_" + spec.action](response);
+                } else {
+                  return _this.on_all(response);
+                }
+              };
+            })(this));
+          };
+          return _this["" + spec.action + "_path"] = spec.path;
         };
-        return _this["" + spec.action + "_path"] = spec.path;
-      };
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        spec = _ref1[_i];
+      })(this);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        spec = _ref[_i];
         _fn(spec);
       }
     }
     if (data.member != null) {
-      _ref2 = data.member;
+      _ref1 = data.member;
       _results = [];
-      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-        spec = _ref2[_j];
-        _results.push((function(spec) {
-          _this.prototype[spec.action] = function(params) {
-            var _this = this;
-            if (params == null) {
-              params = {};
-            }
-            return this.constructor._request(spec.path, spec.method, utils.merge(params, {
-              id: this.id
-            }), this).then(function(response) {
-              var dep, _k, _len2, _ref3;
-              if (_this.constructor.__deps__ != null) {
-                _ref3 = _this.constructor.__deps__;
-                for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
-                  dep = _ref3[_k];
-                  dep.from_data(response);
-                }
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        spec = _ref1[_j];
+        _results.push((function(_this) {
+          return function(spec) {
+            _this.prototype[spec.action] = function(params) {
+              if (params == null) {
+                params = {};
               }
-              if (_this["on_" + spec.action] != null) {
-                return _this["on_" + spec.action](response);
-              } else {
-                return _this.on_all(response);
-              }
-            });
+              return this.constructor._request(spec.path, spec.method, utils.merge(params, {
+                id: this.id
+              }), this).then((function(_this) {
+                return function(response) {
+                  var dep, _k, _len2, _ref2;
+                  if (_this.constructor.__deps__ != null) {
+                    _ref2 = _this.constructor.__deps__;
+                    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+                      dep = _ref2[_k];
+                      dep.from_data(response);
+                    }
+                  }
+                  if (_this["on_" + spec.action] != null) {
+                    return _this["on_" + spec.action](response);
+                  } else {
+                    return _this.on_all(response);
+                  }
+                };
+              })(this));
+            };
+            return _this.prototype["" + spec.action + "_path"] = spec.path;
           };
-          return _this.prototype["" + spec.action + "_path"] = spec.path;
-        })(spec));
+        })(this)(spec));
       }
       return _results;
     }
@@ -8131,22 +8390,23 @@ REST = (function(_super) {
   };
 
   REST._interpolate_path = function(path, params, target) {
-    var vars,
-      _this = this;
+    var vars;
     path = this._rscope.replace(":path", path).replace(_double_slashes_reg, "/").replace(_tailing_slash_reg, '');
     if (this.prototype.wrap_attributes && (params[this.resource_name] != null) && (typeof params[this.resource_name] === 'object')) {
       vars = utils.extend(params[this.resource_name], params, false, [this.resource_name]);
     } else {
       vars = params;
     }
-    return path.replace(_path_reg, function(match) {
-      var part, _ref1, _ref2;
-      part = match.slice(1);
-      return (_ref1 = (_ref2 = vars[part]) != null ? _ref2 : target != null ? target[part] : void 0) != null ? _ref1 : _this._globals[part];
-    });
+    return path.replace(_path_reg, (function(_this) {
+      return function(match) {
+        var part, _ref, _ref1;
+        part = match.slice(1);
+        return (_ref = (_ref1 = vars[part]) != null ? _ref1 : target != null ? target[part] : void 0) != null ? _ref : _this._globals[part];
+      };
+    })(this));
   };
 
-  REST.error = function(action, message) {
+  REST.on_error = function(action, message) {
     return EventDispatcher.Global.trigger("net_error", {
       resource: this.resources_name,
       action: action,
@@ -8155,30 +8415,25 @@ REST = (function(_super) {
   };
 
   REST._request = function(path, method, params, target) {
-    var _this = this;
     path = this._interpolate_path(path, utils.merge(params, {
       resources: this.resources_name,
       resource: this.resource_name
     }), target);
-    return Net[method].call(null, path, params)["catch"](function(error) {
-      _this.error(error.message);
-      throw error;
-    });
+    return Net[method].call(null, path, params)["catch"]((function(_this) {
+      return function(error) {
+        _this.on_error(error.message);
+        throw error;
+      };
+    })(this));
   };
 
   REST.on_all = function(data) {
-    if (data[this.resources_name] != null) {
-      data[this.resources_name] = this.load(data[this.resources_name]);
-    }
-    return data;
+    return this.from_data(data);
   };
 
   REST.on_show = function(data) {
-    var el;
-    if (data[this.resource_name] != null) {
-      el = this.build(data[this.resource_name]);
-      return el;
-    }
+    this.from_data(data);
+    return data[this.resource_name];
   };
 
   REST.find = function(id) {
@@ -8238,17 +8493,9 @@ REST = (function(_super) {
     params = data[this.constructor.resource_name];
     if (params != null) {
       this.set(params);
-      return this;
+      data[this.constructor.resource_name] = this;
     }
-  };
-
-  REST.prototype.on_create = function(data) {
-    var params;
-    params = data[this.constructor.resource_name];
-    if (params != null) {
-      this.set(params);
-      return this;
-    }
+    return data;
   };
 
   REST.prototype.attributes = function() {
@@ -8283,10 +8530,10 @@ REST = (function(_super) {
   };
 
   REST.prototype.rollback = function() {
-    var key, param, _i, _len, _ref1;
-    _ref1 = this.changes;
-    for (param = _i = 0, _len = _ref1.length; _i < _len; param = ++_i) {
-      key = _ref1[param];
+    var key, param, _i, _len, _ref;
+    _ref = this.changes;
+    for (param = _i = 0, _len = _ref.length; _i < _len; param = ++_i) {
+      key = _ref[param];
       this[key] = this._snapshot[key];
     }
     this.changes = {};
@@ -8300,10 +8547,7 @@ REST = (function(_super) {
   };
 
   REST.prototype._wrap = function(attributes) {
-    var data;
-    data = {};
-    data[this.constructor.resource_name] = attributes;
-    return data;
+    return utils.obj.wrap(this.constructor.resource_name, attributes);
   };
 
   return REST;
@@ -8312,10 +8556,81 @@ REST = (function(_super) {
 
 module.exports = REST;
 
+}});
+
+;require.define({'pieces-core/resources/utils/binding': function(exports, require, module) {
+  'use strict';
+var Base, BindListener, Core, Events, ResourceBind, View, utils,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+utils = require('../../core/utils');
+
+BindListener = require('../../core/binding').BindListener;
+
+Events = require('../events');
+
+Base = require('../base');
+
+View = require('../view');
+
+Core = require('../../core/core');
+
+ResourceBind = (function(_super) {
+  __extends(ResourceBind, _super);
+
+  function ResourceBind() {
+    return ResourceBind.__super__.constructor.apply(this, arguments);
+  }
+
+  ResourceBind.prototype.handle_resource_view = function(target, name, _root, last) {
+    if (target != null) {
+      this.listeners.push.apply(this.listeners, target.listen(this._update));
+    }
+    return true;
+  };
+
+  ResourceBind.prototype.handle_resource = function(target, name, root) {
+    if (root == null) {
+      root = false;
+    }
+    utils.debug('resource', target, name, root);
+    if (root) {
+      this.listeners.push.apply(this.listeners, target.on(Events.Destroy, (function(_this) {
+        return function() {
+          return _this.dispose();
+        };
+      })(this)));
+    } else {
+      if (target != null) {
+        this.listeners.push.apply(this.listeners, target.on(Events.Destroy, this._disable));
+      }
+    }
+    if (target != null) {
+      this.listeners.push.apply(this.listeners, target.on([Events.Update, Events.Create], this._update));
+    }
+    return true;
+  };
+
+  return ResourceBind;
+
+})(Core);
+
+BindListener.prepend_type('resource', function(target) {
+  return (target instanceof Base) || (target instanceof View.ViewItem);
+});
+
+BindListener.prepend_type('resource_view', function(target) {
+  return target instanceof View;
+});
+
+BindListener.include(ResourceBind);
+
+module.exports = BindListener;
 
 }});
 
-require.define({'pieces-core/resources/view': function(exports, require, module) {
+;require.define({'pieces-core/resources/view': function(exports, require, module) {
   'use strict';
 var Base, EventDispatcher, ResourceEvent, View, ViewItem, utils,
   __hasProp = {}.hasOwnProperty,
@@ -8381,7 +8696,6 @@ View = (function(_super) {
   __extends(View, _super);
 
   function View(resources, scope, options) {
-    var _this = this;
     this.resources = resources;
     this.options = options != null ? options : {};
     View.__super__.constructor.apply(this, arguments);
@@ -8391,16 +8705,18 @@ View = (function(_super) {
     this.resources_name = this.resources.resources_name;
     this.resource_name = this.resources.resource_name;
     this._filter = (scope != null) && scope !== false ? utils.matchers.object_ext(scope) : utils.truthy;
-    this.resources.listen(function(e) {
-      var el, _name;
-      el = e.data[_this.resource_name];
-      if (el != null) {
-        if (!_this._filter(el)) {
-          return;
+    this.resources.listen((function(_this) {
+      return function(e) {
+        var el, _name;
+        el = e.data[_this.resource_name];
+        if (el != null) {
+          if (!_this._filter(el)) {
+            return;
+          }
         }
-      }
-      return typeof _this[_name = "on_" + e.data.type] === "function" ? _this[_name](el) : void 0;
-    });
+        return typeof _this[_name = "on_" + e.data.type] === "function" ? _this[_name](el) : void 0;
+      };
+    })(this));
   }
 
   utils.extend(View.prototype, Base);
@@ -8517,14 +8833,15 @@ View = (function(_super) {
 
 })(EventDispatcher);
 
-module.exports = View;
+View.ViewItem = ViewItem;
 
+module.exports = View;
 
 }});
 
-require.define({'pieces-core/views/base': function(exports, require, module) {
+;require.define({'pieces-core/views/base': function(exports, require, module) {
   'use strict';
-var Base, BaseComponent, utils, _ref,
+var Base, BaseComponent, utils,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -8536,8 +8853,7 @@ Base = (function(_super) {
   __extends(Base, _super);
 
   function Base() {
-    _ref = Base.__super__.constructor.apply(this, arguments);
-    return _ref;
+    return Base.__super__.constructor.apply(this, arguments);
   }
 
   Base.prototype.is_view = true;
@@ -8552,11 +8868,11 @@ Base = (function(_super) {
   };
 
   Base.prototype.init_modules = function() {
-    var mod, _, _ref1, _results;
-    _ref1 = this.options.modules;
+    var mod, _, _ref, _results;
+    _ref = this.options.modules;
     _results = [];
-    for (mod in _ref1) {
-      _ = _ref1[mod];
+    for (mod in _ref) {
+      _ = _ref[mod];
       _results.push(this.mixin(this.constructor.lookup_module(mod)));
     }
     return _results;
@@ -8575,12 +8891,9 @@ Base = (function(_super) {
 })(BaseComponent);
 
 utils.extend(BaseComponent.prototype, {
-  view: function() {
-    return this.__view__ || (this.__view__ = this._find_view());
-  },
   context: function() {
-    var _ref1;
-    return this.__controller__ || (this.__controller__ = (_ref1 = this.view()) != null ? _ref1.controller : void 0);
+    var _ref;
+    return this.__controller__ || (this.__controller__ = (_ref = this.view()) != null ? _ref.controller : void 0);
   },
   _find_view: function() {
     var comp;
@@ -8594,12 +8907,15 @@ utils.extend(BaseComponent.prototype, {
   }
 });
 
-module.exports = Base;
+BaseComponent.getter('view', function() {
+  return this.__view__ || (this.__view__ = this._find_view());
+});
 
+module.exports = Base;
 
 }});
 
-require.define({'pieces-core/views/index': function(exports, require, module) {
+;require.define({'pieces-core/views/index': function(exports, require, module) {
   'use strict'
 var views = {};
 views.Base = require('./base');

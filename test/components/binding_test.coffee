@@ -57,6 +57,7 @@ describe "Binding", ->
       Chef.off()
       Eater.clear_all()
       Eater.off()
+      Testo.clear_cache()
       test_div.remove()
 
     it "binds simple property on existent target", ->

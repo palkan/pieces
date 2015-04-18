@@ -5,7 +5,12 @@ ResourceEvent = require './events'
 utils = require '../core/utils'
 
 class Association extends View
-  # generate new view for resource
+  # Generate new view for resource
+  # Options:
+  #  belongs_to - set to true if this association has owner (then it handle owner creation event)
+  #  owner - association owner (only when `belongs_to` is true)
+  # 
+  # See other options in View
   constructor: (@resources, scope, @options={}) ->
     super
     @_only_update = false
@@ -45,7 +50,7 @@ class Association extends View
       # update view filter
       @_filter = utils.matchers.object_ext(@options.scope)
       # reload associated resources
-      @load @options.source.where(@options.scope)
+      @load @resources.where(@options.scope)
 
   # create new resource
   build: (data={}, silent = false, params={}) ->
@@ -67,8 +72,8 @@ class Association extends View
 
   on_destroy: (el) ->
     if @options.copy is false
-      @trigger ResourceEvent.Destroy, @_wrap(el)
       @remove el, true, false
+      @trigger ResourceEvent.Destroy, @_wrap(el)
     else
       super
 
@@ -89,11 +94,38 @@ class Association extends View
       @trigger ResourceEvent.Load,{}
 
 utils.extend(Base,
+  views_cache: {}
+  clear_cache: (key) ->
+    if key?
+      delete @views_cache[key]
+      return
+    @views_cache = {}
+
+  cache_view: (params, view) ->
+    k = @cache_key_from_object(params)
+    @views_cache[@cache_id()][k] = view
+
+  cached_view: (params) ->
+    k = @cache_key_from_object(params)
+    @views_cache[@cache_id()][k]
+
   # Generate new view for resource
-  view: (params) ->
-    view = new Association(@, params, scope: params, copy: false, source: @)
+  view: (params, cache = true) ->
+    return view if cache && (view = @cached_view(params))
+    view = new Association(@, params, scope: params, copy: false)
     view.reload()
+    @cache_view(params, view) if cache
     view
+
+  cache_key_from_object: (data) ->
+    keys = Object.keys(data).sort()
+    parts = [("#{key}_#{data[key]}") for key in keys]
+    parts.join(":")
+
+  cache_id: ->
+    @_cache_id ||= utils.uid('res')
+    @views_cache[@_cache_id]||={}
+    @_cache_id
 )
 
 module.exports = Association

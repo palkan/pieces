@@ -1,6 +1,6 @@
 {
   "name": "pieces-core",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "author": "Vlad Dem <palkan>",
   "license": "MIT",
   "main": "pieces.js",

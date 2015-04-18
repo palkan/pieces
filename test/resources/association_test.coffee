@@ -20,6 +20,7 @@ describe "Resources", ->
       Chef.off()
       Eater.clear_all()
       Eater.off()
+      Chef.clear_cache()
 
     describe "initialization", ->
       it "base methods", ->
@@ -102,6 +103,32 @@ describe "Resources", ->
         chef = Chef.build name: 'Cheffo'
         Eater.get(1).set(name: 'Romario')
         expect(chef.eaters.count()).to.eq 0
+
+    describe "cache", ->
+      it "caches view by params (one key)", ->
+        view = Chef.view(coolness:'hard')
+        expect(view.count()).to.eq 1
+        view2 = Chef.view(coolness: 'hard')
+        expect(view2.count()).to.eq 1
+        expect(view).to.eq view2
+
+      it "caches view by params (several keys)", ->
+        view = Chef.view(coolness:'hard','name~':'I')
+        expect(view.count()).to.eq 1
+        Chef.build coolness:'hard', name: 'MarIna', id: 123
+        view2 = Chef.view('name~':'I', coolness:'hard')
+        expect(view2.count()).to.eq 2
+        expect(view.count()).to.eq 2
+        expect(view).to.eq view2
+
+      it "doesn't cache when cache is false", ->
+        view = Chef.view({coolness: 'hard'}, false)
+        expect(view.count()).to.eq 1
+        Chef.build coolness:'hard', name: 'MarIna', id: 123
+        view2 = Chef.view(coolness:'hard')
+        expect(view2.count()).to.eq 2
+        expect(view.count()).to.eq 2
+        expect(view).to.not.eq view2
 
     describe "add elements", ->
       beforeEach ->

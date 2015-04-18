@@ -33,7 +33,11 @@ class ViewItem extends EventDispatcher
 
 # Resource View is a temporary projection of resource
 class View extends EventDispatcher
-  # generate new view for resource
+  # Generate new view for resource
+  # Options:
+  #   copy: if set to `true` then copies every item into `ViewItem`; otherwise collects references to items
+  #   params: parameters filter for items
+  #   id_alias: rename 'id' field when returning attributes; if set to `false` then remove attributes without id 
   constructor: (@resources, scope, @options={}) ->
     super
     @__all_by_id__ = {}
