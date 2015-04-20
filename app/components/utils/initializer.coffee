@@ -71,7 +71,9 @@ class Initializer
     data = {}
     for mod in list
       do(mod) ->
-        [_, name, optstr] = mod.match(_mod_rxp)
+        matches = mod.match(_mod_rxp)
+        return unless matches?
+        [_, name, optstr] = matches
         opts = Compiler.compile_fun(optstr).call() if optstr?
         data[name] = opts
     data

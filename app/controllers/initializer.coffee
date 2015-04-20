@@ -11,8 +11,8 @@ Page = require './page'
 # 
 # Example:
 # 
-#   <div data-controller="base | listable(resource_name) | paginated | with_loader" 
-#     data-pid="some" 
+#   <div data-controller="base | listable(resource_name) paginated with_loader" 
+#     data-pid="some"
 #     data-view="| popuped" 
 #     data-strategy="all_for_one"
 #     data-default="main">...</div>
@@ -40,7 +40,7 @@ class ControllerBuilder
     delete options['view']
     delete options['controller']
 
-    options.modules = Initializer.parse_modules(c_options[1..])
+    options.modules = Initializer.parse_modules((c_options[1]||'').split(/\s+/))
 
     controller = new cklass(utils.clone(options))
 
@@ -49,7 +49,7 @@ class ControllerBuilder
     delete options['default']
 
     # add view-specific modules
-    utils.extend(options.modules, Initializer.parse_modules(v_options[1..]), true)
+    utils.extend(options.modules, Initializer.parse_modules((v_options[1]||'').split(/\s+/)), true)
 
     view = new vklass(nod.node, host, options)
     controller.set_view view 

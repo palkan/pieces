@@ -1354,8 +1354,12 @@ Initializer = (function() {
     var data, mod, _fn, _i, _len;
     data = {};
     _fn = function(mod) {
-      var name, opts, optstr, _, _ref;
-      _ref = mod.match(_mod_rxp), _ = _ref[0], name = _ref[1], optstr = _ref[2];
+      var matches, name, opts, optstr, _;
+      matches = mod.match(_mod_rxp);
+      if (matches == null) {
+        return;
+      }
+      _ = matches[0], name = matches[1], optstr = matches[2];
       if (optstr != null) {
         opts = Compiler.compile_fun(optstr).call();
       }
@@ -2028,11 +2032,11 @@ ControllerBuilder = (function() {
     vklass = utils.obj.get_class_path(Views, vklass_name) || BaseView;
     delete options['view'];
     delete options['controller'];
-    options.modules = Initializer.parse_modules(c_options.slice(1));
+    options.modules = Initializer.parse_modules((c_options[1] || '').split(/\s+/));
     controller = new cklass(utils.clone(options));
     delete options['strategy'];
     delete options['default'];
-    utils.extend(options.modules, Initializer.parse_modules(v_options.slice(1)), true);
+    utils.extend(options.modules, Initializer.parse_modules((v_options[1] || '').split(/\s+/)), true);
     view = new vklass(nod.node, host, options);
     controller.set_view(view);
     host_context = (_view = host.view) ? _view.controller : Page.instance;
