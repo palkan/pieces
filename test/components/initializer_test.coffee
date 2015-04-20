@@ -4,9 +4,13 @@ h = require 'pieces-core/test/helpers'
 describe "Component Initializer", ->
   Nod = pi.Nod
   it "parse options", ->
-    el = Nod.create('<div data-component="test" data-hidden="true" data-collection-id="13" data-plugins="autoload search filter"></div>')
+    el = Nod.create('<div data-component="test" data-hidden="true" data-collection-id="13" data-plugins="autoload(199) search(highlight:true) filter"></div>')
     options = pi.Initializer.gather_options el
-    expect(options).to.include({component:"test",hidden:true,collection_id:13}).and.to.have.property('plugins').with.length(3)
+    expect(options).to.include({component:"test",hidden:true,collection_id:13}).and.to.have.property('plugins')
+    plugins = options.plugins
+    expect(plugins).to.have.keys('autoload','search','filter')
+    expect(plugins.autoload).to.eq 199
+    expect(plugins.search).to.include({highlight:true})
 
   it "init base component", ->
     el = Nod.create('<div data-component="test_component" data-hidden="true"></div>')

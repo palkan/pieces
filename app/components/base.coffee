@@ -172,15 +172,14 @@ class Base extends Nod
   # Extend instance functionality with plugins
   # (from options)
   init_plugins: ->
-    if @options.plugins?
-      @attach_plugin @constructor.lookup_module(name) for name in @options.plugins
-      delete @options.plugins
+    for own name, opts of @options.plugins
+      @attach_plugin(@constructor.lookup_module(name), opts)
     return
 
-  attach_plugin: (plugin) ->
+  attach_plugin: (plugin, opts) ->
     if plugin?
       utils.debug_verbose "plugin attached #{plugin::id}"
-      @__plugins__.push plugin.attached(@)
+      @__plugins__.push plugin.attached(@, opts)
 
   # Find all top-level children components (elements with class Klass.PI)
   # and initialize them

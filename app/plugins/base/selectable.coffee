@@ -8,7 +8,7 @@ utils = require '../../core/utils'
 # Add ability to 'select' element  - toggle 'is-selected' class and trigger 'selected' event 
 class Base.Selectable extends Plugin
   id: 'selectable'
-  initialize: (@target) ->
+  initialize: ->
     super
     Base.active_property @target, 'selected',
       type: 'bool'

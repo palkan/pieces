@@ -1,4 +1,5 @@
 ## 0.4.0
+* Pass plugin options as modules options (`"search(highlight:true)"`)
 * Bindings
 * Scoped component
 * BaseInput is listening for 'input' event to update 'val'

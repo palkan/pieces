@@ -322,21 +322,19 @@ Base = (function(_super) {
   Base.register_callback('initialize');
 
   Base.prototype.init_plugins = function() {
-    var name, _i, _len, _ref;
-    if (this.options.plugins != null) {
-      _ref = this.options.plugins;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        name = _ref[_i];
-        this.attach_plugin(this.constructor.lookup_module(name));
-      }
-      delete this.options.plugins;
+    var name, opts, _ref;
+    _ref = this.options.plugins;
+    for (name in _ref) {
+      if (!__hasProp.call(_ref, name)) continue;
+      opts = _ref[name];
+      this.attach_plugin(this.constructor.lookup_module(name), opts);
     }
   };
 
-  Base.prototype.attach_plugin = function(plugin) {
+  Base.prototype.attach_plugin = function(plugin, opts) {
     if (plugin != null) {
       utils.debug_verbose("plugin attached " + plugin.prototype.id);
-      return this.__plugins__.push(plugin.attached(this));
+      return this.__plugins__.push(plugin.attached(this, opts));
     }
   };
 
@@ -1268,7 +1266,7 @@ module.exports = Guesser;
 
 ;require.define({'pieces-core/components/utils/initializer': function(exports, require, module) {
   'use strict';
-var ComponentBuilder, Components, Config, Guesser, Initializer, Nod, utils, _bind_re, _event_re;
+var Compiler, ComponentBuilder, Components, Config, Guesser, Initializer, Nod, utils, _bind_re, _event_re, _mod_rxp;
 
 Guesser = require('./guesser');
 
@@ -1278,11 +1276,15 @@ Config = require('../../core/config');
 
 Components = require('../');
 
+Compiler = require('../../grammar/compiler');
+
 utils = require('../../core/utils');
 
 _event_re = /^on_(.+)/i;
 
 _bind_re = /^bind_(.+)/i;
+
+_mod_rxp = /^(\w+)(\(.*\))?$/;
 
 Initializer = (function() {
   function Initializer() {}
@@ -1333,7 +1335,7 @@ Initializer = (function() {
       config_name = "base";
     }
     opts = utils.clone(el.data());
-    opts.plugins = opts.plugins != null ? opts.plugins.split(/\s+/) : null;
+    opts.plugins = opts.plugins != null ? this.parse_modules(opts.plugins.split(/\s+/)) : {};
     opts.events = {};
     opts.bindings = {};
     for (key in opts) {
@@ -1346,6 +1348,24 @@ Initializer = (function() {
       }
     }
     return utils.merge(utils.obj.get_path(Config, config_name) || {}, opts);
+  };
+
+  Initializer.parse_modules = function(list) {
+    var data, mod, _fn, _i, _len;
+    data = {};
+    _fn = function(mod) {
+      var name, opts, optstr, _, _ref;
+      _ref = mod.match(_mod_rxp), _ = _ref[0], name = _ref[1], optstr = _ref[2];
+      if (optstr != null) {
+        opts = Compiler.compile_fun(optstr).call();
+      }
+      return data[name] = opts;
+    };
+    for (_i = 0, _len = list.length; _i < _len; _i++) {
+      mod = list[_i];
+      _fn(mod);
+    }
+    return data;
   };
 
   return Initializer;
@@ -1973,7 +1993,7 @@ module.exports = controllers;
 
 require.define({'pieces-core/controllers/initializer': function(exports, require, module) {
   'use strict';
-var BaseView, Compiler, ControllerBuilder, Controllers, Initializer, Page, Views, utils, _mod_rxp;
+var BaseView, ControllerBuilder, Controllers, Initializer, Page, Views, utils;
 
 Controllers = require('./index');
 
@@ -1986,10 +2006,6 @@ Views = require('../views');
 Initializer = require('../components/utils/initializer');
 
 Page = require('./page');
-
-Compiler = require('../grammar/compiler');
-
-_mod_rxp = /^(\w+)(\(.*\))?$/;
 
 ControllerBuilder = (function() {
   function ControllerBuilder() {}
@@ -2012,11 +2028,11 @@ ControllerBuilder = (function() {
     vklass = utils.obj.get_class_path(Views, vklass_name) || BaseView;
     delete options['view'];
     delete options['controller'];
-    options.modules = this.parse_modules(c_options.slice(1));
+    options.modules = Initializer.parse_modules(c_options.slice(1));
     controller = new cklass(utils.clone(options));
     delete options['strategy'];
     delete options['default'];
-    utils.extend(options.modules, this.parse_modules(v_options.slice(1)), true);
+    utils.extend(options.modules, Initializer.parse_modules(v_options.slice(1)), true);
     view = new vklass(nod.node, host, options);
     controller.set_view(view);
     host_context = (_view = host.view) ? _view.controller : Page.instance;
@@ -2024,24 +2040,6 @@ ControllerBuilder = (function() {
       as: view.pid
     });
     return view;
-  };
-
-  ControllerBuilder.parse_modules = function(list) {
-    var data, mod, _fn, _i, _len;
-    data = {};
-    _fn = function(mod) {
-      var name, opts, optstr, _, _ref;
-      _ref = mod.match(_mod_rxp), _ = _ref[0], name = _ref[1], optstr = _ref[2];
-      if (optstr != null) {
-        opts = Compiler.compile_fun(optstr).call();
-      }
-      return data[name] = opts;
-    };
-    for (_i = 0, _len = list.length; _i < _len; _i++) {
-      mod = list[_i];
-      _fn(mod);
-    }
-    return data;
   };
 
   return ControllerBuilder;
@@ -7021,8 +7019,7 @@ Base.Selectable = (function(_super) {
 
   Selectable.prototype.id = 'selectable';
 
-  Selectable.prototype.initialize = function(target) {
-    this.target = target;
+  Selectable.prototype.initialize = function() {
     Selectable.__super__.initialize.apply(this, arguments);
     Base.active_property(this.target, 'selected', {
       type: 'bool',
@@ -7090,14 +7087,19 @@ Plugin = (function(_super) {
     });
   };
 
-  Plugin.attached = function(instance) {
-    return (new this()).initialize(instance);
+  Plugin.attached = function(instance, options) {
+    if (options == null) {
+      options = {};
+    }
+    return (new this()).initialize(instance, options);
   };
 
-  Plugin.prototype.initialize = function(instance) {
-    instance[this.id] = this;
-    instance["has_" + this.id] = true;
-    instance.addClass("has-" + this.id);
+  Plugin.prototype.initialize = function(target, options) {
+    this.target = target;
+    this.options = options;
+    this.target[this.id] = this;
+    this.target["has_" + this.id] = true;
+    this.target.addClass("has-" + this.id);
     return this;
   };
 

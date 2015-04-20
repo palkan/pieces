@@ -11,13 +11,13 @@ class Plugin extends Core
     klass.after_initialize -> @attach_plugin self 
   
   # invoked when plugin attached to instance
-  @attached: (instance) ->
-    (new @()).initialize instance
+  @attached: (instance, options={}) ->
+    (new @()).initialize instance, options
 
-  initialize: (instance) ->
-    instance[@id] = @
-    instance["has_#{@id}"] = true
-    instance.addClass "has-#{@id}"
+  initialize: (@target, @options) ->
+    @target[@id] = @
+    @target["has_#{@id}"] = true
+    @target.addClass "has-#{@id}"
     @
 
   dispose: utils.truthy

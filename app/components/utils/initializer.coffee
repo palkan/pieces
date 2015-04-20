@@ -3,10 +3,21 @@ Guesser = require './guesser'
 Nod = require('../../core/nod').Nod
 Config = require '../../core/config'
 Components = require '../'
+Compiler = require '../../grammar/compiler'
 utils = require '../../core/utils'
 
 _event_re = /^on_(.+)/i
 _bind_re = /^bind_(.+)/i
+
+# extract module name and options from string
+# 
+# Example:
+#   "listable(id: 1)".match(_mod_rxp)
+#   ["listable(id: 1)", "listable", "(id: 1)"]
+#   
+#   "loadable".match(_mod_rxp)
+#   ["loadable", "loadable", undefined]
+_mod_rxp = /^(\w+)(\(.*\))?$/
 
 class Initializer
   # List of builders (ComponentBuilder, ControllerBuilder, etc)
@@ -41,7 +52,7 @@ class Initializer
   @gather_options: (el, config_name = "base") ->
     opts = utils.clone(el.data())
 
-    opts.plugins = if opts.plugins? then opts.plugins.split(/\s+/) else null
+    opts.plugins = if opts.plugins? then @parse_modules(opts.plugins.split(/\s+/)) else {}
     opts.events = {}
     opts.bindings = {}
 
@@ -53,6 +64,17 @@ class Initializer
 
     # merge options with defaults
     utils.merge((utils.obj.get_path(Config, config_name)||{}), opts)
+
+  # given array of modules (as strings) 
+  # return object module_name -> options
+  @parse_modules: (list) ->
+    data = {}
+    for mod in list
+      do(mod) ->
+        [_, name, optstr] = mod.match(_mod_rxp)
+        opts = Compiler.compile_fun(optstr).call() if optstr?
+        data[name] = opts
+    data
 
 # Creates component from node
 class ComponentBuilder

@@ -5,16 +5,6 @@ BaseView = require '../views/base'
 Views = require '../views'
 Initializer = require '../components/utils/initializer'
 Page = require './page'
-Compiler = require '../grammar/compiler'
-# extract module name and options from string
-# 
-# Example:
-#   "listable(id: 1)".match(_mod_rxp)
-#   ["listable(id: 1)", "listable", "(id: 1)"]
-#   
-#   "loadable".match(_mod_rxp)
-#   ["loadable", "loadable", undefined]
-_mod_rxp = /^(\w+)(\(.*\))?$/
 
 # Generate controller and view for nod.
 # Return view.
@@ -50,7 +40,7 @@ class ControllerBuilder
     delete options['view']
     delete options['controller']
 
-    options.modules = @parse_modules(c_options[1..])
+    options.modules = Initializer.parse_modules(c_options[1..])
 
     controller = new cklass(utils.clone(options))
 
@@ -59,7 +49,7 @@ class ControllerBuilder
     delete options['default']
 
     # add view-specific modules
-    utils.extend(options.modules, @parse_modules(v_options[1..]), true)
+    utils.extend(options.modules, Initializer.parse_modules(v_options[1..]), true)
 
     view = new vklass(nod.node, host, options)
     controller.set_view view 
@@ -67,17 +57,6 @@ class ControllerBuilder
     host_context = if (_view = host.view) then _view.controller else Page.instance
     host_context.add_context controller, as: view.pid
     view
-
-  # given array of modules (as strings) 
-  # return object module_name -> options
-  @parse_modules: (list) ->
-    data = {}
-    for mod in list
-      do(mod) ->
-        [_, name, optstr] = mod.match(_mod_rxp)
-        opts = Compiler.compile_fun(optstr).call() if optstr?
-        data[name] = opts
-    data
 
 Initializer.insert_builder_at(ControllerBuilder, 0)
 
