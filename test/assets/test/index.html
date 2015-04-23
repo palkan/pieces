@@ -21,7 +21,7 @@
       pi.app.initialize();
       // allow to set _nod on window
       mocha.setup({globals:['_nod']});
-      mocha.checkLeaks();
+      if(!pi.utils.browser.info().msie) mocha.checkLeaks();
       if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
       else { mocha.run(); }
     </script>

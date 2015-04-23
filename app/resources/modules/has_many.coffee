@@ -54,11 +54,16 @@ class HasMany extends Core
 
     # add route and handler
     if params.route is true
-      @routes member: [{action: "load_#{name}", path: params.path, method: params.method}] 
-      @::["on_load_#{name}"] = (data) ->
-        @["#{name}_loaded"] = true
-        if data[name]?
-          @[name].load data[name]
+      @routes member: utils.obj.wrap("load_#{name}", utils.obj.wrap(params.method, params.path))
+      @action_handler(
+        "load_#{name}",
+        ((data, target) ->
+          target["#{name}_loaded"] = true
+          if data[name]?
+            target[name].load data[name]
+          data
+        )
+      )
 
     # add callbacks
     @after_update (data) ->
@@ -76,10 +81,11 @@ class HasMany extends Core
 
     # hack attributes
     if params.attribute is true
-      _old = @::attributes
-      @::attributes = ->
-        data = _old.call(@)
-        data[name] = @[name].serialize()
-        data
+      @::attributes = utils.func.append(
+        @::attributes,
+        (data) ->
+          data[name] = @[name].serialize()
+          data
+      )
 
 module.exports = HasMany

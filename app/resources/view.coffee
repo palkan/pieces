@@ -15,11 +15,11 @@ class ViewItem extends EventDispatcher
   utils.extend @::, Base::, false
 
   created: (tid) ->
-    @view.created(@,tid)
+    @view.created(@, tid)
 
-  trigger: (e,data,bubbles = true) ->
+  trigger: (e, data, bubbles = true) ->
     super
-    @view.trigger e, @view._wrap(@)
+    @view.trigger e, @
 
   attributes: ->
     if @options.params?
@@ -50,8 +50,8 @@ class View extends EventDispatcher
 
     @resources.listen (e) =>
       el = e.data[@resource_name]
-      if el?
-        return unless @_filter(el)
+      
+      return if e.type isnt ResourceEvent.Load  && el? && !@_filter(el) 
 
       @["on_#{e.data.type}"]?(el)
   
@@ -90,18 +90,10 @@ class View extends EventDispatcher
         el = new ViewItem(@,data,@options)
       if el.id
         @add el  
-        @trigger(ResourceEvent.Create, @_wrap(el)) unless silent
+        @trigger(ResourceEvent.Create, el) unless silent
       el
     else
       el.set(data, silent)
-
-  _wrap: (el) ->
-    if el instanceof ViewItem
-      utils.obj.wrap el.view.resource_name, el
-    else if el instanceof Base
-      utils.obj.wrap el.constructor.resource_name, el
-    else
-      el
 
   serialize: ->
     res = []
@@ -112,8 +104,10 @@ class View extends EventDispatcher
   listen: (callback) ->
     @on "update", callback
 
-  trigger: (event,data) ->
+  trigger: (event, el, changes) ->
+    data = utils.obj.wrap(@resources.resource_name, el) 
     data.type = event
+    data.changes = changes
     super "update", data 
 
   off: (callback) ->

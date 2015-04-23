@@ -74,10 +74,11 @@ class HasOne extends Core
 
     # hack attributes
     if params.attribute is true
-      _old = @::attributes
-      @::attributes = ->
-        data = _old.call(@)
-        data[name] = @[name].attributes()
-        data
+      @::attributes = utils.func.append(
+        @::attributes,
+        (data) ->
+          data[name] = @[name].attributes()
+          data
+      )
 
 module.exports = HasOne
