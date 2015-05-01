@@ -22,13 +22,13 @@ class Core
   @include: (mixins...) ->
     for mixin in mixins
       utils.extend @::, mixin::, true, ['constructor']
-      mixin.included @
+      mixin.included?(@)
 
   # extend class with mixin class methods
   @extend: (mixins...) ->
     for mixin in mixins
       utils.extend @, mixin, true, ['__super__']
-      mixin.extended @
+      mixin.extended?(@)
 
   @alias: (from, to) ->
     @::[from] = (args...) ->
