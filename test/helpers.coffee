@@ -5,7 +5,23 @@ require './support/components'
 require './support/resources'
 require './support/context'
 
+class Spyf
+  constructor: (@count = 1) ->
+    @fun = sinon.spy()
+
+  apply: (ths, args) ->
+    @fun.apply(ths, args)
+
+  call: (ths, args...) ->
+    @apply(ths, args)
+
+  is_valid: ->
+    return "Expected #{@count}, got #{@fun.callCount}" if @fun.callCount != @count
+
 class TestHelpers
+  @spyf: (count) -> 
+    new Spyf(count)
+
   @test_cont: (cont, html = 'div') ->
     nod = pi.Nod.create html
     cont.append nod

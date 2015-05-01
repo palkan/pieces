@@ -21,7 +21,7 @@ describe "Core", ->
     t.delegate_to obj, "world"
     expect(t.hello_world()).to.eq "hello do do" 
 
-  describe "getset", ->
+  describe ".getset", ->
     it "class", ->
       expect(pi.Test.available).to.be.undefined
       pi.Test.make_available() 
@@ -33,8 +33,24 @@ describe "Core", ->
       t = (new pi.Test4()).init("john")
       expect(t.inited).to.be.true
 
-  describe "callbacks", ->
+  describe ".register_callback", ->
     it "after", ->
       t = (new pi.Test4()).init("john")
       expect(t._inited).to.be.true
       expect(t.my_name).to.eq 'john 2'
+
+    it "before", ->
+      t = new pi.Test5()
+      t.data.name = 'before'
+      t.dispose()
+      expect(t.data).to.be.undefined
+
+    it "with promise", (done) ->
+      t = new pi.Test5()
+      p = t.dispose()
+      expect(t.dispose_time).to.be.undefined
+      p.then(
+        ->  
+          expect(t.dispose_time).to.be.above(99)
+          done()
+      ).catch(done)

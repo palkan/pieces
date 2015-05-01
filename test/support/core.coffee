@@ -1,4 +1,5 @@
 'use strict'
+utils = pi.utils
 
 class Renameable
   world: (name = "my world") ->
@@ -47,3 +48,25 @@ class pi.Test2 extends pi.Test
 
 class pi.Test3 extends pi.Test
   @include Renameable, Helloable
+
+class pi.Test5 extends pi.Test
+  constructor: ->
+    super
+    @data = {}
+
+  dispose: ->
+    @_disposed = true
+    utils.promise.delayed(100)
+
+  @register_callback 'dispose'
+
+  @before_dispose(
+    -> 
+      delete @data
+      @ts = +(new Date())
+  )
+
+  @after_dispose(
+    ->
+      @dispose_time = +(new Date()) - @ts
+  )

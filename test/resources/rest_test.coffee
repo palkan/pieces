@@ -97,7 +97,6 @@ describe "Resources", ->
         Testo.fetch().then(
           (data) -> 
             expect(data.testos).to.have.length 3
-            expect(Testo.all()).to.have.length 3
             expect(Salt.all()).to.have.length 1
             done()
         ).catch(done)
@@ -113,7 +112,7 @@ describe "Resources", ->
 
 
     describe "#destroy", ->
-      it "persistedt", (done) ->
+      it "persistent", (done) ->
         Testo.fetch().then(
           ->
             Testo.listen (e) ->
