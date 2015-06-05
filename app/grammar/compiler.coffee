@@ -147,6 +147,14 @@ class CompiledFun
       source+="else{ return (#{@["_get_#{data.right.code}"](data.right)});}"
     
     source+="}).call(this);"
+  
+  @_get_logic: (data, source='') ->
+    _left = data.left
+    _right = data.right
+
+    _type = data.type
+
+    source+="(#{@["_get_#{_left.code}"](_left)}) #{_type} (#{@["_get_#{_right.code}"](_right)})"
 
   @_get_simple: (data, source='') ->
     source+@_quote(data.value)
@@ -170,7 +178,7 @@ class Compiler
 
   @traverse: (ast, callback) ->
     callback.call(null, ast)
-    if (ast.code is 'op') || (ast.code is 'if')
+    if ast.left? && ast.right?
       @traverse(ast.left, callback)
       @traverse(ast.right, callback)
       @traverse(ast.cond, callback) if ast.code is 'if'

@@ -1,4 +1,5 @@
 ## 0.4.4 (master)
+* Logical operators support
 * REST as resources storage
 * 'after' callbacks recognize Promises
 * Add storage concept to resources

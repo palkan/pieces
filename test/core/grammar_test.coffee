@@ -88,18 +88,35 @@ describe "Compiler", ->
       obj = f.call()
       expect(obj.name).to.be.eq 'jojo'
 
-    it "calls conditional function", ->
-      window._abc_.flag = true
-      f = Compiler.str_to_fun("_abc_.flag ? _abc_.echo(flag: true) : 1")
-      obj = f.call()
-      expect(obj.flag).to.be.true
-      window._abc_.flag = false
-      obj = f.call()
-      expect(obj).to.eq 1
+    describe "logical", ->
+      it "parses simple logical expressions", ->
+        expect(Compiler.compile_fun("true || false").call()).to.be.true
+        expect(Compiler.compile_fun("true && false").call()).to.be.false
 
-    it "calls conditional function with operator", ->
-      window._abc_.flag = true
-      f = Compiler.str_to_fun("_abc_.chain().data.to_s() = 'data' ? true : false")
-      obj = f.call()
-      expect(obj).to.be.true
+      it "parses logical expressions", ->
+        expect(Compiler.compile_fun("(2 > 1 && 10 < 100) || 'false'").call()).to.be.true
+        expect(Compiler.compile_fun("(5 + 4 < 10) && (0 || false)").call()).to.be.false
+
+    describe "conditionals", ->
+      it "calls conditional function", ->
+        window._abc_.flag = true
+        f = Compiler.str_to_fun("_abc_.flag ? _abc_.echo(flag: true) : 1")
+        obj = f.call()
+        expect(obj.flag).to.be.true
+        window._abc_.flag = false
+        obj = f.call()
+        expect(obj).to.eq 1
+
+      it "calls conditional function with operator", ->
+        window._abc_.flag = true
+        f = Compiler.str_to_fun("_abc_.chain().data.to_s() = 'data' ? true : false")
+        obj = f.call()
+        expect(obj).to.be.true
+
+      it "calls conditional function with logical", ->
+        window._abc_.flag = true
+        window._abc_.val = 10
+        f = Compiler.str_to_fun("_abc_.flag || _abc_.val > 22 ? true : false")
+        obj = f.call()
+        expect(obj).to.be.true
 

@@ -7,8 +7,9 @@
 
 \s\s+                   /* skip whitespace */
 [0-9]+("."[0-9]+)?\b  return 'NUMBER'
+\s*("&&"|"||")\s*     return 'LOGIC'
 \s+":"\s+             return 'TELSE'
-":"\s*              return ':'
+":"\s*                return ':'
 \s+"?"\s+             return 'TIF'
 "?"                   return '?'
 ","\s*                return ','
@@ -37,6 +38,7 @@
   };
 %}
 
+%left 'LOGIC'
 %left 'OP'
 %left 'OP2'
 %left 'OP3'
@@ -51,12 +53,12 @@ expressions
         { return $1; }
     ;
 
-e
+e   
     : group_e
-        {$$ = $1;}       
+        {$$ = $1;} 
     | ternary
         {$$ = $1;}
-    | cond
+    | logic_e
         {$$ = $1;}
     | simple_e
         {$$ = $1;}
@@ -68,15 +70,27 @@ e
 
 group_e
     : '(' e ')'
-         {$$ = $2;}
+       {$$ = $2;}
+    ;
+
+logic_e
+    : simple_e LOGIC logic_e
+       {$$ = {code: 'logic', left: $1, right: $3, type: $2.trim()};}
+    | simple_e LOGIC group_e
+       {$$ = {code: 'logic', left: $1, right: $3, type: $2.trim()};}
+    | group_e LOGIC simple_e
+       {$$ = {code: 'logic', left: $1, right: $3, type: $2.trim()};}
+    | group_e LOGIC group_e
+       {$$ = {code: 'logic', left: $1, right: $3, type: $2.trim()};}
+    | simple_e LOGIC simple_e
+       {$$ = {code: 'logic', left: $1, right: $3, type: $2.trim()};}
     ;
 
 simple_e
     : method_chain
         {$$ = {code: 'chain', value: $1};}
     | val
-        {$$ = {code: 'simple', value: $1};}
-
+        {$$ = {code: 'simple', value: $1};}   
     | simple_e 'OP' simple_e
          {$$ = {code: 'op', left: $1, right: $3, type: $2.trim()};}
     | simple_e 'OP2' simple_e
@@ -153,5 +167,7 @@ val
 ternary
 
     : simple_e 'TIF' e 'TELSE' e
+        {$$ = {code: 'if', cond: $1, left: $3, right: $5};}
+    | logic_e 'TIF' e 'TELSE' e
         {$$ = {code: 'if', cond: $1, left: $3, right: $5};}
     ;
