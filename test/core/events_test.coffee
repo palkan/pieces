@@ -243,7 +243,7 @@ describe "EventDispatcher", ->
             <button class='pi'>Button</button>
           </div>
         """
-      example.on "resize", (spy_fun = sinon.spy())
+      example.on "resize", (spyf = h.spyf(1))
 
       pi.Nod.body.style('height','200px')
       h.resizeEvent()
@@ -251,36 +251,35 @@ describe "EventDispatcher", ->
       pi.utils.after 200, ->
         pi.Nod.body.style('height','200px')
         h.resizeEvent()
-        expect(spy_fun.callCount).to.eq 1
-        done()
+        done(spyf.is_valid())
 
-    it "not trigger resize event if size haven't changed",  ->
+    it "not trigger resize event if size haven't changed", (done) ->
       example = h.test_cont root_e, """
           <div style="height: 50%; width: 200px;">
             <button class='pi'>Button</button>
           </div>
       """
-      example.on "resize", (spy_fun = sinon.spy())
+      example.on "resize", (spyf = h.spyf(0))
       pi.Nod.body.style('width','200px')
       h.resizeEvent()
-      expect(spy_fun.callCount).to.eq 0
+      pi.utils.after 200, ->
+        done(spyf.is_valid())
 
     it "work with 'one'", (done) ->
       example = h.test_cont root_e, """
-          <div style="height: 50%; width: 200px;">
+          <div pid="one" style="height: 50%; width: 200px;">
             <button class='pi'>Button</button>
           </div>
       """
-      example.one "resize", (spy_fun = sinon.spy())
+      example.one "resize", (spyf = h.spyf(1))
 
-      pi.Nod.body.style('height','150px')
+      pi.Nod.body.style('height','300px')
       h.resizeEvent()
 
       pi.utils.after 400, (->
-        pi.Nod.body.style('height','100px')
+        pi.Nod.body.style('height','500px')
         h.resizeEvent()
         pi.utils.after 400, (->
-          expect(spy_fun.callCount).to.eq 1
-          done()
+           done(spyf.is_valid())
           )
         )

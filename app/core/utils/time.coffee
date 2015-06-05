@@ -67,6 +67,7 @@ class Time
   # Simply calls Date constructor, but
   # can auto-detect seconds/milliseconds
   @parse: (t) ->
+    return t if t instanceof Date
     # convert to milliseconds if time was provided as number of seconds
     if typeof t is 'number' and t < 4000000000
       t*=1000

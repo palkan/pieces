@@ -22,13 +22,13 @@ class Core
   @include: (mixins...) ->
     for mixin in mixins
       utils.extend @::, mixin::, true, ['constructor']
-      mixin.included @
+      mixin.included?(@)
 
   # extend class with mixin class methods
   @extend: (mixins...) ->
     for mixin in mixins
       utils.extend @, mixin, true, ['__super__']
-      mixin.extended @
+      mixin.extended?(@)
 
   @alias: (from, to) ->
     @::[from] = (args...) ->
@@ -61,7 +61,12 @@ class Core
     @::["__#{method}"] = (args...) ->
       @run_callbacks "before_#{callback_name}", args
       res = @constructor::[method].apply(@,args)
-      @run_callbacks "after_#{callback_name}", args
+      if utils.promise.is(res)
+        res.then( =>
+          @run_callbacks "after_#{callback_name}", args          
+        )
+      else
+        @run_callbacks "after_#{callback_name}", args
       res 
 
     (@callbacked||=[]).push method
@@ -135,7 +140,7 @@ class Core
       callback.apply(@,args)
 
   # delegate methods to another object or nested object/method (then to is string key)
-  delegate_to: (to, methods...) ->
+  @delegate_to: (to, methods...) ->
     to = if typeof to is 'string' then @[to] else to
     
     for method in methods
@@ -143,5 +148,7 @@ class Core
         @[method] = (args...) ->
           to[method].apply(to, args)
     return
+
+  delegate_to: @delegate_to
 
 module.exports = Core

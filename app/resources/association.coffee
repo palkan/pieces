@@ -64,7 +64,7 @@ class Association extends View
   on_update: (el) ->
     if @get(el.id)
       if @options.copy is false
-        @trigger ResourceEvent.Update, @_wrap(el)
+        @trigger ResourceEvent.Update, el
       else
         super
     else if @_only_update is false
@@ -73,7 +73,7 @@ class Association extends View
   on_destroy: (el) ->
     if @options.copy is false
       @remove el, true, false
-      @trigger ResourceEvent.Destroy, @_wrap(el)
+      @trigger ResourceEvent.Destroy, el
     else
       super
 
@@ -81,7 +81,7 @@ class Association extends View
     if (view_item = (@get(el.id) || @get(el.__tid__)))
       @created(view_item, el.__tid__)
       if @options.copy is false
-        @trigger ResourceEvent.Create, @_wrap(el)
+        @trigger ResourceEvent.Create, el
       else
         view_item.set(el.attributes())
     else if !@_only_update
@@ -91,41 +91,52 @@ class Association extends View
     return if @_only_update
     if @options.scope
       @load @resources.where(@options.scope)
-      @trigger ResourceEvent.Load,{}
+      @trigger ResourceEvent.Load
 
-utils.extend(Base,
-  views_cache: {}
-  clear_cache: (key) ->
+class Viewable
+  @extended: ->
+  @included: (base) ->
+    base.views_cache = {}
+    base.extend @
+
+  @clear_cache: (key) ->
     if key?
       delete @views_cache[key]
       return
     @views_cache = {}
 
-  cache_view: (params, view) ->
+  @cache_view: (params, view) ->
     k = @cache_key_from_object(params)
     @views_cache[@cache_id()][k] = view
 
-  cached_view: (params) ->
+  @cached_view: (params) ->
     k = @cache_key_from_object(params)
     @views_cache[@cache_id()][k]
 
   # Generate new view for resource
-  view: (params, cache = true) ->
+  @view: (params, cache = true) ->
     return view if cache && (view = @cached_view(params))
     view = new Association(@, params, scope: params, copy: false)
     view.reload()
     @cache_view(params, view) if cache
     view
 
-  cache_key_from_object: (data) ->
+  @cache_key_from_object: (data) ->
     keys = Object.keys(data).sort()
     parts = [("#{key}_#{data[key]}") for key in keys]
     parts.join(":")
 
-  cache_id: ->
+  @cache_id: ->
     @_cache_id ||= utils.uid('res')
     @views_cache[@_cache_id]||={}
     @_cache_id
-)
+
+  # trigger 'update event' and invoke special handler of type 'on_#{association_name}_update: (type,el) ->' if any
+  trigger_assoc_event: (name, type, data) ->
+    if typeof @["on_#{name}_update"] is 'function'
+      @["on_#{name}_update"].call(@, type, data)
+    @trigger ResourceEvent.Update, @, utils.obj.wrap(name, true)
+
+Base.include Viewable
 
 module.exports = Association

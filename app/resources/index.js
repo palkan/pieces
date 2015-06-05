@@ -6,9 +6,14 @@ var resources = {};
 resources.Base = require('./base');
 resources.View = require('./view');
 resources.Association = require('./association');
-resources.REST = require('./rest');
 
+var Storage = require('./storage');
+resources.Base.include(Storage);
+
+utils.extend(resources, require('./adapters'));
 utils.extend(resources, require('./modules'));
+
+resources.Base.include(resources.ParamsFilter);
 
 require('./utils/binding');
 
