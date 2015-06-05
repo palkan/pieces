@@ -211,6 +211,30 @@ describe "Binding", ->
       expect(author.text()).to.eq '0'
       expect(spy.callCount).to.eq 3
 
+    it "binds with logical", ->
+      author = example.find('.author')
+      b = new Binding(author, 'visible', "host.input.val.length>2 && host.input.visible")
+      spy = sinon.spy(b, 'update')
+      expect(author.visible).to.be.false
+
+      example.input.value 'test123'
+      expect(author.visible).to.be.true
+      expect(spy.callCount).to.eq 1
+
+      example.input.hide()
+      expect(author.visible).to.be.false
+      expect(spy.callCount).to.eq 2
+
+      example.input.value '1'
+      expect(author.visible).to.be.false
+      example.input.show()
+      expect(author.visible).to.be.false
+      expect(spy.callCount).to.eq 4
+
+      example.input.value '123'
+      expect(author.visible).to.be.true
+      expect(spy.callCount).to.eq 5
+
   describe "DOM bindings", ->
     beforeEach  ->
       test_div = h.test_cont root, '''
@@ -227,6 +251,7 @@ describe "Binding", ->
             <input pid="input" type="text" class="pi" data-component="text_input" data-serialize="true"/>
             <input pid="input2" type="text" class="pi" data-component="text_input" data-serialize="true"/>
             <span class="pi sum" data-bind-text="input.val + input2.val"></span>
+            <span class="pi alert" data-bind-visible="input.val > 10 || input2.val > 10">Too much!</span>
           </div>
         </div>
       </div>'''
@@ -260,3 +285,15 @@ describe "Binding", ->
       expect(sum.text()).to.eq '3'
       example2.input2.value '5'
       expect(sum.text()).to.eq '8'
+
+    it 'binds complex expression (with logical bindables)', ->
+      alert = example2.find('.alert')
+      expect(alert.visible).to.be.false
+      example2.input.value '100'
+      expect(alert.visible).to.be.true
+      example2.input2.value '50'
+      expect(alert.visible).to.be.true
+      example2.input.value '1'
+      expect(alert.visible).to.be.true
+      example2.input2.value '5'
+      expect(alert.visible).to.be.false

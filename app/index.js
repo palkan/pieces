@@ -1,6 +1,8 @@
 'use strict'
 var pi = require('./core');
 
+pi.VERSION = require('./version');
+
 pi.Compiler = require('./grammar/compiler');
 
 pi.components = require('./components');
