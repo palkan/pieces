@@ -34,7 +34,7 @@ utils.extend(
   )
 
 # handle all pi clicks
-Nod.root.ready ->
+Nod.root.ready().then( ->
   Nod.root.listen(
     'a', 
     'click', 
@@ -45,6 +45,7 @@ Nod.root.ready ->
         e.target.pi_call e.target, e.target.attr("href")
       return
     )
+)
 
 # magic function
 $ = (q) ->
@@ -54,5 +55,10 @@ $ = (q) ->
     Nod.create q
   else
     Nod.root.find q
+
+for method in ['ready', 'loaded']
+  do(method) ->
+    $[method] = (callback) ->
+      Nod.root[method](callback)
 
 module.exports = $

@@ -180,3 +180,16 @@ describe "Nod", ->
         test_div.data('is-d', '22')
         expect(test_div.data('is_d')).to.equal '22'
 
+  describe "NodRoot", ->
+    it "ready", (done) ->
+      Nod.root.ready().then(
+        ->
+          Nod.root.ready()
+      ).then(done)
+
+    it "loaded", (done) ->
+      Nod.root.loaded().then(
+        ->
+          Nod.root.loaded()
+
+      ).then(done)

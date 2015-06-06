@@ -676,66 +676,61 @@ class Nod.Root extends Nod
   initialize: ->
     _ready_state = if document.attachEvent then 'complete' else 'interactive'
 
-    @_loaded = document.readyState is 'complete'
+    _loaded = document.readyState is 'complete'
+    _ready = document.readyState is _ready_state
     
-    unless @_loaded
-      @_loaded_callbacks = []
-      load_handler = =>
-        utils.debug 'DOM loaded'
-        @_loaded = true
-        @fire_all()
-        NodEvent.remove window, 'load', load_handler
-      NodEvent.add window, 'load', load_handler
+    if _loaded 
+      @loaded_promise = utils.promise.resolved()
+    else
+      @loaded_promise = new Promise(
+        (resolve) ->
+          load_handler = ->
+            utils.info 'DOM Load' 
+            NodEvent.remove window, 'load', load_handler
+            resolve()
 
-    unless @_ready
+          NodEvent.add(
+            window,
+            'load',
+            load_handler
+          )
+      )
+
+    if _ready
+      @ready_promise = utils.promise.resolved()
+    else
       if document.addEventListener
-        
-        @_ready = document.readyState is _ready_state
-        return if @_ready
-
-        @_ready_callbacks = []
-        ready_handler = =>
-          utils.debug 'DOM ready'
-          @_ready = true
-          @fire_ready()
-          document.removeEventListener 'DOMContentLoaded', ready_handler   
-        document.addEventListener 'DOMContentLoaded', ready_handler
+        @ready_promise = new Promise(
+          (resolve) ->
+            ready_handler = =>
+              utils.info 'DOM Ready'
+              document.removeEventListener 'DOMContentLoaded', ready_handler
+              resolve()
+            
+            document.addEventListener 'DOMContentLoaded', ready_handler
+        )
       else
-
-        @_ready = document.readyState is _ready_state
-        return if @_ready
-
-        @_ready_callbacks = []
-        ready_handler = =>
-          if document.readyState is _ready_state
-            utils.debug 'DOM ready'
-            @_ready = true
-            @fire_ready()
-            document.detachEvent 'onreadystatechange', ready_handler
-        document.attachEvent 'onreadystatechange', ready_handler    
+        @ready_promise = new Promise(
+          (resolve) ->
+            ready_handler = =>
+              if document.readyState is _ready_state
+                utils.info 'DOM Ready'
+                document.detachEvent 'onreadystatechange', ready_handler
+                resolve()
+            document.attachEvent 'onreadystatechange', ready_handler    
+        )
 
   ready: (callback) ->
-    if @_ready
-      callback.call null
+    if callback?
+      @ready_promise.then(callback)
     else
-      @_ready_callbacks.push callback
+      @ready_promise
 
   loaded: (callback) ->
-    if @_loaded
-      callback.call null
+    if callback?
+      @loaded_promise.then(callback)
     else
-      @_loaded_callbacks.push callback
-
-  fire_all: ->
-    @fire_ready() if @_ready_callbacks
-    while callback=@_loaded_callbacks.shift()
-      callback.call null
-    @_loaded_callbacks = null
-
-  fire_ready: ->
-    while callback=@_ready_callbacks.shift()
-      callback.call null
-    @_ready_callbacks = null
+      @loaded_promise
 
   scrollTop: ->
     @node.scrollTop || document.body.scrollTop
