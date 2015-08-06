@@ -6,7 +6,7 @@
   "directories": {
     "lib": "./app"
   },
-  "version": "0.4.4",
+  "version": "0.5.0",
   "license": "MIT",
   "homepage": "",
   "repository": {
@@ -19,40 +19,10 @@
   "engines": {
     "node": "~0.10"
   },
-  "scripts": {
-    "start": "./node_modules/.bin/brunch watch --server",
-    "test": "mocha-phantomjs http://localhost:3333/test/",
-    "browserify": "cd app && browserify --extension .coffee index.js -o ../pieces.js && cd .. && ./node_modules/uglify-js-brunch/node_modules/.bin/uglifyjs -m toplevel pieces.js > pieces.min.js",
-    "postinstall": "./node_modules/.bin/bower install",
-    "requirify": "./node_modules/.bin/brunch build -P && cp ./public/js/pieces.js ./pieces.require.min.js && ./node_modules/.bin/brunch build && cp ./public/js/pieces.js ./pieces.require.js"
-  },
-  "browserify": {
-    "transform": [
-      ["coffeeify", {"ext": ".coffee"}] 
-    ]
-  }, 
-  "dependencies": {
-  },
+  "scripts": {},
+  "dependencies": {},
   "devDependencies": {
-    "brunch": "~1.7",
-    "bower": "~1.4",
-
-    "javascript-brunch": "~1.7",
-    "coffee-script": "~1.9",
-    "coffee-script-brunch": "~1.8",
-    "uglify-js-brunch": "~> 1.7",
-    "coffeeify": "~1.0",
-    "auto-reload-brunch": "~1.7",
-
-    "css-brunch": "~1.7",
-    
-    "express": "~4",
-    "connect-multiparty": "~1",
-    "body-parser":"~1",
-
-    "chai": "~> 2.2",
-    "sinon": "~> 1",
-    "mocha": "~> 2.2",
-    "sinon-chai": "~> 2.7"
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.2.0"
   }
 }
