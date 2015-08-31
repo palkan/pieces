@@ -4,7 +4,3 @@ node_js:
 branches:
   except:
     - /^cis-.*$/
-before_script:
-  - "npm install -g mocha-phantomjs"
-  - "npm start &"
-  - "sleep 20"
