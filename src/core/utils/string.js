@@ -14,7 +14,7 @@
 
 var _uniq_id = 100
 
-export function uid(pref = ""){
+export function uid(pref = ''){
   return `${pref}${++_uniq_id}`
 }
 
