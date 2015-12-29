@@ -24,10 +24,10 @@ _defaults(exports, _interopExportWildcard(_object, _defaults));
  * Extend object with another object.
  * By default it doesn't overwrite existing keys.
  * To overwrite existing keys set `overwrite` option to `true`.
- * 
+ *
  * You can whitelist/blacklist keys to inject using `only`/`except` option.
  *
- * @example 
+ * @example
  *  extend({ a: 1 }, { a: 2, b: 3 }) #=> { a: 1, b: 3 }
  *  extend({ a: 1 }, { a: 2, b: 3 }, { overwrite: true }) #=> { a: 2, b: 3 }
  *  extend({ a: 1 }, { a: 2, b: 3, c: 4 }, { except: ['c']}) #=> { a: 1, b: 3 }
@@ -54,13 +54,13 @@ function extend(target, mixin) {
 
   try {
     for (var _iterator = Object.keys(mixin)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var _key = _step.value;
+      var key = _step.value;
 
-      if (!options.overwrite && target.hasOwnProperty(_key)) continue;
+      if (!options.overwrite && target.hasOwnProperty(key)) continue;
 
-      if (options.only && options.only.indexOf(_key) === -1 || options.except && options.except.indexOf(_key) > -1) continue;
+      if (options.only && options.only.indexOf(key) === -1 || options.except && options.except.indexOf(key) > -1) continue;
 
-      target[_key] = mixin[_key];
+      target[key] = mixin[key];
     }
   } catch (err) {
     _didIteratorError = true;
@@ -86,20 +86,20 @@ function extend(target, mixin) {
 *
 *
 * @example
-*   extract_to({}, { a: 1, b: 2}, ['a']) #=> { a: 1 }
-*   extract_to({}, { a: 1, b: { x: 2, z: 3 }}, [{ b: 'x' }]) #=> { b: { x: 2 } }
+*   extractTo({}, { a: 1, b: 2}, ['a']) #=> { a: 1 }
+*   extractTo({}, { a: 1, b: { x: 2, z: 3 }}, [{ b: 'x' }]) #=> { b: { x: 2 } }
 *
 * @param {Object} target
 * @param {Object} source
 * @param {Array} params
 */
-function extract_to(data, source, params) {
+function extractTo(data, source, params) {
   if (!source) return;
 
   if (Array.isArray(source)) {
     if (!Array.isArray(data)) data = [];
     source.forEach(function (el) {
-      data.push(extract_to({}, el, params));
+      return data.push(extractTo({}, el, params));
     });
     return data;
   } else {
@@ -107,8 +107,8 @@ function extract_to(data, source, params) {
       if (source.hasOwnProperty(params)) data[params] = source[params];
       return data[params];
     } else if (Array.isArray(params)) {
-      params.forEach(function (p) {
-        extract_to(data, source, p);
+      params.map(function (p) {
+        return extractTo(data, source, p);
       });
     } else {
       var _iteratorNormalCompletion2 = true;
@@ -117,11 +117,11 @@ function extract_to(data, source, params) {
 
       try {
         for (var _iterator2 = Object.keys(params)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var _key2 = _step2.value;
+          var key = _step2.value;
 
-          if (!params.hasOwnProperty(_key2)) continue;
-          Array.isArray(source[_key2]) ? data[_key2] = [] : data[_key2] = {};
-          extract_to(data[_key2], source[_key2], params[_key2]);
+          if (!params.hasOwnProperty(key)) continue;
+          data[key] = Array.isArray(source[key]) ? [] : {};
+          extractTo(data[key], source[key], params[key]);
         }
       } catch (err) {
         _didIteratorError2 = true;
@@ -138,6 +138,7 @@ function extract_to(data, source, params) {
         }
       }
     }
+
     return data;
   }
 }
@@ -158,7 +159,7 @@ function extract_to(data, source, params) {
 
 function extract(source, params) {
   var data = {};
-  extract_to(data, source, params);
+  extractTo(data, source, params);
   return data;
 }
 
@@ -170,7 +171,7 @@ function extract(source, params) {
 */
 
 function clone(obj) {
-  if (obj == void 0 || typeof obj != 'object') return obj;
+  if (obj == void 0 || typeof obj !== 'object') return obj;
 
   if (obj instanceof Date) return new Date(obj.getTime());
 
@@ -187,7 +188,7 @@ function clone(obj) {
 
   if (typeof obj.clone === 'function') return obj.clone();
 
-  newInstance = new obj.constructor();
+  var newInstance = new obj.constructor();
 
   var _iteratorNormalCompletion3 = true;
   var _didIteratorError3 = false;
@@ -195,7 +196,7 @@ function clone(obj) {
 
   try {
     for (var _iterator3 = Object.keys(obj)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      key = _step3.value;
+      var key = _step3.value;
 
       newInstance[key] = clone(obj[key]);
     }
@@ -222,10 +223,10 @@ function clone(obj) {
 
 /**
  * Return unique string with prefix (if provided)
- * 
- * @example 
+ *
+ * @example
  *  uid() #=> "101"
- *  uid() #=> "102" 
+ *  uid() #=> "102"
  *  uid("pre") #=> "pre103"
  *
  * @param {String} [pref]
@@ -240,20 +241,20 @@ exports.camelize = camelize;
 exports.capitalize = capitalize;
 exports.underscore = underscore;
 exports.serialize = serialize;
-exports.strip_quotes = strip_quotes;
+exports.stripQuotes = stripQuotes;
 exports.squish = squish;
-var _uniq_id = 100;
+var uniqueId = 100;
 
 function uid() {
   var pref = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
 
-  return '' + pref + ++_uniq_id;
+  return '' + pref + ++uniqueId;
 }
 
 /**
  * Convert string from underscore to camel case
- * 
- * @example 
+ *
+ * @example
  *  camelize('my_name') #=> "MyName"
  *
  * @param {String} str
@@ -266,13 +267,13 @@ function toUp(m, p1, p2) {
 }
 
 function camelize(str) {
-  return ('' + str).replace(/(?:^(\w)|_(\w))/g, toUp);
+  return String(str).replace(/(?:^(\w)|_(\w))/g, toUp);
 }
 
 /**
  * Convert the first letter of a string to upper case
- * 
- * @example 
+ *
+ * @example
  *  capitalize('my name') #=> "My name"
  *
  * @param {String} str
@@ -286,8 +287,8 @@ function capitalize(str) {
 
 /**
  * Convert string to underscore from came case
- * 
- * @example 
+ *
+ * @example
  *  underscore('MyName') #=> "my_name"
  *  underscore('myName') #=> "my_name"
  *
@@ -299,10 +300,10 @@ function toSnake(m, p, offset, string) {
   return offset + p.length == string.length ? p.toLowerCase() : p.toLowerCase() + '_';
 }
 
-var notsnake_rxp = /((?:^[^A-Z]|[A-Z])+[^A-Z]*)/g;
+var notsnakeRxp = /((?:^[^A-Z]|[A-Z])+[^A-Z]*)/g;
 
 function underscore(str) {
-  return ('' + str).replace(notsnake_rxp, toSnake);
+  return String(str).replace(notsnakeRxp, toSnake);
 }
 
 /**
@@ -312,14 +313,14 @@ function underscore(str) {
  *   serialize('null') #=> null
  *   serialize('1.2') #=> 1.2
  *   serialize('true') #=> true
- * 
+ *
  * @param {String} str
  * @return {*}
  */
 
 function serialize(str) {
   if (str == void 0) return null;
-  str = '' + str;
+  str = String(str);
   switch (str.toLowerCase().trim()) {
     case 'null':
       return null;
@@ -344,7 +345,7 @@ function serialize(str) {
  * @return {String}
  */
 
-function strip_quotes(str) {
+function stripQuotes(str) {
   var a = str.charCodeAt(0);
   var b = str.charCodeAt(str.length - 1);
   return a === b && (a === 0x22 || a === 0x27) ? str.slice(1, -1) : str;
@@ -358,12 +359,11 @@ function strip_quotes(str) {
  */
 
 function squish(str) {
-  return ('' + str).trim().replace(/\s+/g, ' ');
+  return String(str).trim().replace(/\s+/g, ' ');
 }
 
 },{}],4:[function(require,module,exports){
 'use strict';
-
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
@@ -384,7 +384,6 @@ pi.utils = _;
 
 },{"./core/utils":1,"./version":5}],5:[function(require,module,exports){
 'use strict';
-
 Object.defineProperty(exports, '__esModule', {
   value: true
 });

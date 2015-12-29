@@ -1,7 +1,8 @@
-import * as _ from './core/utils'
-import {VERSION} from './version'
+'use strict';
+import * as _ from './core/utils';
+import {VERSION} from './version';
 
-export function pi(){
+export function pi() {
 }
 
 pi.version = VERSION;

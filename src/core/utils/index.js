@@ -1,2 +1,4 @@
-export * from './string'
-export * from './object'
+'use strict';
+
+export * from './string';
+export * from './object';

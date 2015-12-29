@@ -1,13 +1,13 @@
-'use strict'
+'use strict';
 
 /**
  * Extend object with another object.
  * By default it doesn't overwrite existing keys.
  * To overwrite existing keys set `overwrite` option to `true`.
- * 
+ *
  * You can whitelist/blacklist keys to inject using `only`/`except` option.
  *
- * @example 
+ * @example
  *  extend({ a: 1 }, { a: 2, b: 3 }) #=> { a: 1, b: 3 }
  *  extend({ a: 1 }, { a: 2, b: 3 }, { overwrite: true }) #=> { a: 2, b: 3 }
  *  extend({ a: 1 }, { a: 2, b: 3, c: 4 }, { except: ['c']}) #=> { a: 1, b: 3 }
@@ -19,20 +19,20 @@
  * @return {Object}
  */
 
-export function extend(target, mixin, options = {}){
-  for(let key of Object.keys(mixin)){
-    if(!options.overwrite && target.hasOwnProperty(key)) continue 
-    
-    if(
+export function extend(target, mixin, options = {}) {
+  for (let key of Object.keys(mixin)) {
+    if (!options.overwrite && target.hasOwnProperty(key)) continue;
+
+    if (
       options.only && (options.only.indexOf(key) === -1) ||
       options.except && (options.except.indexOf(key) > -1)
-    ) continue
+    ) continue;
 
-    target[key] = mixin[key]
+    target[key] = mixin[key];
   }
-  return target
-}
 
+  return target;
+}
 
 /**
 * Add specified keys from source to target.
@@ -40,42 +40,37 @@ export function extend(target, mixin, options = {}){
 *
 *
 * @example
-*   extract_to({}, { a: 1, b: 2}, ['a']) #=> { a: 1 }
-*   extract_to({}, { a: 1, b: { x: 2, z: 3 }}, [{ b: 'x' }]) #=> { b: { x: 2 } }
+*   extractTo({}, { a: 1, b: 2}, ['a']) #=> { a: 1 }
+*   extractTo({}, { a: 1, b: { x: 2, z: 3 }}, [{ b: 'x' }]) #=> { b: { x: 2 } }
 *
 * @param {Object} target
 * @param {Object} source
 * @param {Array} params
 */
-function extract_to(data, source, params){
-  if(!source) return
+function extractTo(data, source, params) {
+  if (!source) return;
 
-  if(Array.isArray(source)){
-    if(!Array.isArray(data)) data = []
-    source.forEach((el) => {
-      data.push(extract_to({}, el, params))
-    })
-    return data
-  }else{
-    if(typeof params === 'string'){
-      if(source.hasOwnProperty(params)) data[params] = source[params]
-      return data[params] 
-    }
-    else if(Array.isArray(params)){
-      params.forEach((p) => {
-        extract_to(data, source, p)
-      })
-    }else{
-      for(let key of Object.keys(params)){
-        if(!params.hasOwnProperty(key)) continue
-        Array.isArray(source[key]) ? (data[key] = []) : (data[key] = {})
-        extract_to(data[key], source[key], params[key])
+  if (Array.isArray(source)) {
+    if (!Array.isArray(data)) data = [];
+    source.forEach((el) => data.push(extractTo({}, el, params)));
+    return data;
+  }else {
+    if (typeof params === 'string') {
+      if (source.hasOwnProperty(params)) data[params] = source[params];
+      return data[params];
+    } else if (Array.isArray(params)) {
+      params.map((p) => extractTo(data, source, p));
+    }else {
+      for (let key of Object.keys(params)) {
+        if (!params.hasOwnProperty(key)) continue;
+        data[key] = Array.isArray(source[key]) ? [] : {};
+        extractTo(data[key], source[key], params[key]);
       }
     }
-    return data
+
+    return data;
   }
 }
-
 
 /**
 * Create new object from source containing only specified keys.
@@ -90,12 +85,11 @@ function extract_to(data, source, params){
 * @param {Array} params
 * @return {Object}
 */
-export function extract(source, params){
-  var data = {}
-  extract_to(data, source, params)
-  return data
+export function extract(source, params) {
+  let data = {};
+  extractTo(data, source, params);
+  return data;
 }
-
 
 /**
 * Clone anything: from primitives to objects, Date, RegExp, Element.
@@ -103,31 +97,31 @@ export function extract(source, params){
 * @param {*} obj
 * @return {*}
 */
-export function clone(obj){
-  if(
-    (obj == void 0) || typeof obj != 'object'
-    ) return obj
+export function clone(obj) {
+  if (
+    (obj == void 0) || typeof obj !== 'object'
+    ) return obj;
 
-  if(obj instanceof Date) return new Date(obj.getTime()) 
+  if (obj instanceof Date) return new Date(obj.getTime());
 
-  if(obj instanceof RegExp){
-    var flags = ''
-    if(obj.global) flags += 'g'
-    if(obj.ignoreCase) flags += 'i'
-    if(obj.multiline) flags += 'm'
-    if(obj.sticky) flags += 'y'
-    return new RegExp(obj.source, flags) 
+  if (obj instanceof RegExp) {
+    var flags = '';
+    if (obj.global) flags += 'g';
+    if (obj.ignoreCase) flags += 'i';
+    if (obj.multiline) flags += 'm';
+    if (obj.sticky) flags += 'y';
+    return new RegExp(obj.source, flags);
   }
 
-  if(obj instanceof Element) return obj.cloneNode(true)
+  if (obj instanceof Element) return obj.cloneNode(true);
 
-  if(typeof obj.clone === 'function') return obj.clone()
+  if (typeof obj.clone === 'function') return obj.clone();
 
-  newInstance = new obj.constructor()
+  let newInstance = new obj.constructor();
 
-  for(key of Object.keys(obj)){
-    newInstance[key] = clone(obj[key])
+  for (let key of Object.keys(obj)) {
+    newInstance[key] = clone(obj[key]);
   }
 
-  return newInstance
+  return newInstance;
 }
