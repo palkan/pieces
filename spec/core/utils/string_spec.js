@@ -1,5 +1,5 @@
 'use strict';
-import * as _ from '../../../src/core/utils/string';
+import * as _ from 'src/core/utils/string';
 
 describe('string utils', () => {
   describe('#camelize', () => {

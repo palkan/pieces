@@ -1,6 +1,6 @@
 'use strict';
 
-import {Event} from '../../../src/core/events/event';
+import {Event} from 'src/core/events/event';
 
 describe('Event', () => {
   let event;

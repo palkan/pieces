@@ -1,6 +1,6 @@
 'use strict';
-import {EventDispatcher} from '../../../src/core/events/event_dispatcher';
-import {EventListener} from '../../../src/core/events/event_listener';
+import {EventDispatcher} from 'src/core/events/event_dispatcher';
+import {EventListener} from 'src/core/events/event_listener';
 
 describe('EventDispatcher', () => {
   let subject;

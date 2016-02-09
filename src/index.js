@@ -1,4 +1,5 @@
 'use strict';
+
 import * as _ from './core/utils';
 import {VERSION} from './version';
 

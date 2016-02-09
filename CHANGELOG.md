@@ -1,3 +1,6 @@
+## 0.5.0
+* ES6! Here we go!
+
 ## 0.4.4 (master)
 * Logical operators support
 * REST as resources storage

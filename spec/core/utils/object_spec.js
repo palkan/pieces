@@ -1,5 +1,5 @@
 'use strict';
-import * as _ from '../../../src/core/utils/object';
+import * as _ from 'src/core/utils/object';
 
 describe('object utils', () => {
   describe('#extend', () => {
@@ -58,7 +58,7 @@ describe('object utils', () => {
     });
 
     it('extracts with subobjects filter values', () => {
-      let res = _.extract(source, ['id', { tags: ['id'] }, { user: [{ photo: 'thumb' }]}]);
+      let res = _.extract(source, ['id', { tags: ['id'] }, { user: [{ photo: 'thumb' }] }]);
       expect(res.id).toEqual(14);
       expect(res.user.id).toBeUndefined();
       expect(res.tags.length).toEqual(2);

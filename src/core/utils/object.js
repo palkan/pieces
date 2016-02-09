@@ -20,7 +20,7 @@
  */
 
 export function extend(target, mixin, options = {}) {
-  for (let key of Object.keys(mixin)) {
+  for (let key of Reflect.ownKeys(mixin)) {
     if (!options.overwrite && target.hasOwnProperty(key)) continue;
 
     if (
@@ -61,8 +61,7 @@ function extractTo(data, source, params) {
     } else if (Array.isArray(params)) {
       params.map((p) => extractTo(data, source, p));
     }else {
-      for (let key of Object.keys(params)) {
-        if (!params.hasOwnProperty(key)) continue;
+      for (let key of Reflect.ownKeys(params)) {
         data[key] = Array.isArray(source[key]) ? [] : {};
         extractTo(data[key], source[key], params[key]);
       }

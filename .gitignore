@@ -38,3 +38,8 @@ tmp/
 # Brunch output folder.
 public/
 pieces-rails/
+
+/dist
+/docs
+/build
+/jspm_packages

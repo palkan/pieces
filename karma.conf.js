@@ -10,15 +10,15 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['browserify', 'jasmine', 'jasmine-matchers'],
+    frameworks: ['jspm', 'jasmine', 'jasmine-matchers'],
 
 
     // list of files / patterns to load in the browser
-    files: [
-      'node_modules/gulp-babel/node_modules/babel-core/browser-polyfill.js',
-      'src/**/*.js',
-      'spec/**/*.js'
-    ],
+    // files: [
+    //   'node_modules/gulp-babel/node_modules/babel-core/browser-polyfill.js',
+    //   'src/**/*.js',
+    //   'spec/**/*.js'
+    // ],
 
 
     // list of files to exclude
@@ -28,15 +28,31 @@ module.exports = function(config) {
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-        'src/**/*.js': ['browserify'],
-        'spec/**/*.js': ['browserify']
+    // preprocessors: {
+    //     'src/**/*.js': ['browserify'],
+    //     'spec/**/*.js': ['browserify']
+    // },
+
+    proxies: {
+      '/src/': '/base/src/',
+      '/spec/': '/base/spec/',
+      '/jspm_packages/': '/base/jspm_packages/',
+      '/node_modules/phantomjs-polyfill/': '/base/node_modules/phantomjs-polyfill/'
     },
 
-    browserify: {
-        debug: true,
-        transform: [ 'babelify' ]
+    jspm: {
+      // Edit this to your needs 
+      loadFiles: [
+        'node_modules/phantomjs-polyfill/bind-polyfill.js',
+        'spec/**/*.js'
+      ],
+      serveFiles: ['src/**/*.js']
     },
+
+    // browserify: {
+    //     debug: true,
+    //     transform: [ 'babelify' ]
+    // },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
