@@ -1,6 +1,14 @@
 'use strict';
+import {mixin} from 'src/decorators/mixin';
 import {EventDispatcher} from 'src/core/events/event_dispatcher';
 import {EventListener} from 'src/core/events/event_listener';
+
+@mixin(EventDispatcher)
+class TestDispatcher {
+  dispose() {
+    this._disposed = true; 
+  }
+}
 
 describe('EventDispatcher', () => {
   let subject;
@@ -8,7 +16,7 @@ describe('EventDispatcher', () => {
   let event;
 
   beforeEach(() => {
-    subject = new EventDispatcher();
+    subject = new TestDispatcher();
     spy = jasmine.createSpy('listener');
   });
 
@@ -113,6 +121,17 @@ describe('EventDispatcher', () => {
       subject.off('event', spy, obj);
       subject.trigger('event');
       expect(spy.calls.count()).toBe(3);
+    });
+  });
+
+  describe('#dispose', () => {
+    it('removes all listeners on dispose', () => {
+      spy = jasmine.createSpy('new_listener');
+      subject.on('event', spy);
+      subject.trigger('event');
+      subject.dispose();
+      subject.trigger('event');
+      expect(spy.calls.count()).toBe(1);
     });
   });
 

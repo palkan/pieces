@@ -9,15 +9,21 @@ function _types(types) {
   else if (Array.isArray(types))
     return types;
   else
-    return [null];
+    return [];
 }
 
 const TypeListener = {};
 
+const listenersSym = Symbol('listeners');
+const listenersByKeySym = Symbol('listeners');
+
 export class EventDispatcher {
-  constructor() {
-    this.listeners = {};
-    this.listenersByKey = {};
+  get listeners() {
+    return this[listenersSym] || (this[listenersSym] = {});
+  }
+
+  get listenersByKey() {
+    return this[listenersByKeySym] || (this[listenersByKeySym] = {});
   }
 
   // API functions
@@ -45,7 +51,7 @@ export class EventDispatcher {
   * @param {Object} [context]
   * @param {Function} [filter]
   */
-  on(types, callback, context = null, filter = null) {
+  on(types, callback, context, filter) {
     for (let type of _types(types)) {
       this.addListener(type, callback, context, false, filter);
     }
@@ -59,7 +65,7 @@ export class EventDispatcher {
   * @param {Object} [context]
   * @param {Function} [filter]
   */
-  one(types, callback, context = null, filter = null) {
+  one(types, callback, context, filter) {
     for (let type of _types(types)) {
       this.addListener(type, callback, context, true, filter);
     }
@@ -82,6 +88,7 @@ export class EventDispatcher {
   * @param {Object, Null} [context]
   */
   off(types, callback, context, conditions) {
+    if(!types) return this.removeAllListeners();
     for (let type of _types(types)) {
       this.removeListener(type, callback, context);
     }
@@ -94,7 +101,7 @@ export class EventDispatcher {
   * @params [Object, Null] data data that will be passed with event as `event.data`
   * @params [Boolean] [bubbles]
   */
-  trigger(event, data, bubbles = true) {
+  trigger(event, data, bubbles) {
     if (!(event instanceof Event)) event = new Event(event, this, bubbles);
     event.data = data;
     event.currentTarget = this;
@@ -176,7 +183,12 @@ export class EventDispatcher {
       this.removeListenersType(type);
     }
 
-    this.listeners = {};
-    this.listenersByKey = {};
+    this[listenersSym] = {};
+    this[listenersByKeySym] = {};
+  }
+
+  dispose($super) {
+    this.removeAllListeners();
+    return $super();
   }
 }

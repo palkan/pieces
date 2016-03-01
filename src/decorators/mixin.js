@@ -1,11 +1,8 @@
 'use strict'
 
-/* no-op function */
-function noop(){}
-
 function mixinSuper(fun, $super){
   return function(...args){
-    args.push($super.bind(this))
+    if($super) args.push($super.bind(this));
     fun.apply(this, args);
   };
 }
@@ -39,7 +36,7 @@ export function mixin(mod) {
       const value = descriptor.value;
 
       if(typeof value === 'function'){
-        descriptor.value = mixinSuper(value, target[key] || noop);
+        descriptor.value = mixinSuper(value, target[key]);
       }
 
       Object.defineProperty(target, key, descriptor);

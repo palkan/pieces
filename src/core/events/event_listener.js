@@ -6,7 +6,7 @@ import * as _ from '../utils';
 * Base event listener class
 */
 export class EventListener {
-  constructor(type, handler, context = null, disposable = false, filter = null) {
+  constructor(type, handler, context, disposable, filter) {
     this.type = type;
     this.filter = filter;
     this.disposable = disposable;
