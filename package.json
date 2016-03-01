@@ -25,7 +25,8 @@
     "watch": "./node_modules/karma/bin/karma start",
     "start": "gulp",
     "build": "jspm bundle-sfx src/index.js dist/pieces.min.js --minify --skip-source-maps",
-    "docs": "esdoc -c .esdoc.json"
+    "docs": "esdoc -c .esdoc.json",
+    "postinstall": "jspm install"
   },
   "dependencies": {},
   "devDependencies": {
@@ -51,6 +52,9 @@
     "require-dir": "^0.3.0"
   },
   "jspm": {
+    "directories": {
+      "lib": "./src"
+    },
     "dependencies": {},
     "devDependencies": {
       "babel": "npm:babel-core@^5.8.24",
