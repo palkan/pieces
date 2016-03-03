@@ -1,5 +1,6 @@
 'use strict';
 
+import {mixin} from '../../decorators/mixin'; 
 import {Event} from './event';
 import {EventListener} from './event_listener';
 
@@ -187,8 +188,12 @@ export class EventDispatcher {
     this[listenersByKeySym] = {};
   }
 
-  dispose($super) {
-    this.removeAllListeners();
-    return $super();
+  get [mixin.override]() {
+    return {
+      dispose($super) {
+        this.removeAllListeners();
+        return $super();
+      }
+    }
   }
 }

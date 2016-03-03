@@ -21,8 +21,9 @@
     "node": "~0.10"
   },
   "scripts": {
-    "test": "./node_modules/karma/bin/karma start --single-run --browsers PhantomJS",
-    "watch": "./node_modules/karma/bin/karma start",
+    "test": "karma start --single-run --browsers PhantomJS",
+    "chrome": "karma start --browsers Chrome",
+    "watch": "karma start",
     "start": "gulp",
     "build": "jspm bundle-sfx src/index.js dist/pieces.min.js --minify --skip-source-maps",
     "docs": "esdoc -c .esdoc.json",

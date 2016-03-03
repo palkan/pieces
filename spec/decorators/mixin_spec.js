@@ -3,29 +3,40 @@
 import {mixin} from 'src/decorators/mixin';
 
 let ObjectMixin = {
-  initialize($super) {
-    $super()
-    this._mix_object = true;
+  [mixin.override]: {
+    initialize($super) {
+      $super()
+      this._mix_object = true;
+    }
+  },
+
+  [mixin.classMethods]: {
+    mix() {
+      return true;
+    }
   }
 }
 
 class ClassMixin {
-  initialize($super) {
-    $super()
-    this._mix_class = true;
-  }
-
-  dispose($super) {
-    this._mix_class = false;
-    $super()
-  }
-
   get initialized() {
     return this._initialized;
   }
 
   set alive(val){
     return this._alive = val;
+  }
+
+  get [mixin.override]() {
+    return {
+      initialize($super) {
+        $super()
+        this._mix_class = true;
+      },
+      dispose($super) {
+        this._mix_class = false;
+        $super()
+      }
+    }
   }
 }
 
@@ -50,11 +61,11 @@ function testClass(){
 }
 
 describe('mixin', () => {
-  let obj;
+  let obj, klass;
   describe('mixin into class', () => {
     describe('ObjectMixin', () => {
       beforeEach(() => {
-        let klass = testClass();
+        klass = testClass();
         mixin(ObjectMixin)(klass);
         obj = new klass();
       });
@@ -65,6 +76,10 @@ describe('mixin', () => {
 
       it('calls mixin method', () => {
         expect(obj._mix_object).toBe(true)
+      });
+
+      it('calls mixin class method', () => {
+        expect(klass.mix()).toBe(true)
       });
     });
 
