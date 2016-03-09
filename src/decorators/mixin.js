@@ -27,7 +27,7 @@ function mixin(mod) {
 
   const instanceKeys = _.without(
     Reflect.ownKeys(mod),
-    [mixin.override, mixin.classMethods]
+    'constructor', mixin.override, mixin.classMethods
   );
 
   const superKeys = mod[mixin.override] || [];

@@ -2,6 +2,9 @@
 
 import {Nod} from 'src/core/nod';
 
+/* Stub animation frame */
+window.requestAnimationFrame = function(fun){ return fun(); }
+
 let Helpers = {
   /** Creates div element and append it to body; returns element as Nod */
   testRoot: function(){

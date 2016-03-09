@@ -4,11 +4,19 @@ import * as _ from 'src/core/utils/string';
 describe('string utils', () => {
   describe('#camelize', () => {
     it('works with one word', () => {
-      expect(_.camelize('worm')).toEqual('Worm');
+      expect(_.camelize('worm')).toEqual('worm');
     });
 
     it('works with a few words', () => {
-      expect(_.camelize('little_camel_in_the_desert')).toEqual('LittleCamelInTheDesert');
+      expect(_.camelize('little_camel_in_the_desert')).toEqual('littleCamelInTheDesert');
+    });
+
+    it('recognizes undefined', () => {
+      expect(_.camelize(undefined)).toBeUndefined();
+    });
+
+    it('recognizes null', () => {
+      expect(_.camelize(null)).toBeNull();
     });
   });
 

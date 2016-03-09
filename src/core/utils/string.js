@@ -34,7 +34,8 @@ function toUp(m, p1, p2) {
 }
 
 export function camelize(str) {
-  return String(str).replace(/(?:^(\w)|_(\w))/g, toUp);
+  if (str == void 0) return str;
+  return String(str).replace(/(?:[_\-](\w))/g, toUp);
 }
 
 /**

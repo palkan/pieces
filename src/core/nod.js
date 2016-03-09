@@ -2,6 +2,9 @@
 
 import {mixin} from '../decorators/mixin';
 import {EventDispatcher} from './events/event_dispatcher';
+import {NodStyles} from './nod/styles';
+import {NodGeometry} from './nod/geometry';
+import {NodData} from './nod/data';
 
 const nodCache = new WeakMap();
 
@@ -29,6 +32,9 @@ let _matches = proto.matches ||
 /**
 * DOM element wrapper.
 */
+@mixin(NodData)
+@mixin(NodStyles)
+@mixin(NodGeometry)
 @mixin(EventDispatcher)
 class Nod {
   /**
@@ -265,32 +271,6 @@ class Nod {
       return this.element.getAttribute(prop);
     else
       this.element.setAttribute(prop, val);
-    return this;
-  }
-
-  /**
-  * Get or set element style.
-  * 
-  * @param {String} name Style name
-  * @param {*} [val] Style value
-  *
-  * @example
-  *   // get style value
-  *   style('display');
-  * 
-  *   // set style
-  *   style('display', 'none');
-  *
-  *   // remove style
-  *   style('display', null);
-  */
-  style(name, val){
-    if(val === null) 
-      this.element.style.removeProperty(name);
-    else if(val == void 0) 
-      return this.element.style[name];
-    else
-      this.element.style[name] = val;
     return this;
   }
 

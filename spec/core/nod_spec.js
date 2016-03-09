@@ -150,24 +150,6 @@ describe("Nod", () => {
     });
   });
 
-  describe("#style", () => {
-    it("set style", () => {
-      nod = Nod.create("<span>1</span>");
-      nod.style("opacity", "0.9");
-      expect(nod.outerHtml()).toMatch(/<span\s+style=\"opacity:\s*0\.9;\s*\"/);
-    });
-
-    it("get style", () => {
-      nod = Nod.create("<span style='display: none;'>1</span>");
-      expect(nod.style('display')).toEqual('none');
-    });
-
-    it("remove style", () => {
-      nod = Nod.create("<span style='display: none; opacity: 0.9;'>1</span>");
-      expect(nod.style('display', null).outerHtml()).toMatch(/<span\s+style=\"opacity:\s*0\.9;\s*\"/);
-    });
-  });
-
   describe("#find", () => {
     it("find element", () => {
       nod = Nod.create(

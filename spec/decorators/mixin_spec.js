@@ -38,6 +38,10 @@ class ClassMixin {
       }
     }
   }
+
+  reinit(){
+    this._initialized = false;
+  }
 }
 
 function testClass(){
@@ -71,15 +75,15 @@ describe('mixin', () => {
       });
 
       it('calls super method', () => {
-        expect(obj._initialized).toBe(true)
+        expect(obj._initialized).toBe(true);
       });
 
       it('calls mixin method', () => {
-        expect(obj._mix_object).toBe(true)
+        expect(obj._mix_object).toBe(true);
       });
 
       it('calls mixin class method', () => {
-        expect(klass.mix()).toBe(true)
+        expect(klass.mix()).toBe(true);
       });
     });
 
@@ -91,20 +95,25 @@ describe('mixin', () => {
       });
 
       it('calls super method', () => {
-        expect(obj._initialized).toBe(true)
+        expect(obj._initialized).toBe(true);
       });
 
       it('calls mixin method', () => {
-        expect(obj._mix_class).toBe(true)
+        expect(obj._mix_class).toBe(true);
+      });
+
+      it('adds methods', () => {
+        obj.reinit();
+        expect(obj.initialized).toBe(false);
       });
 
       it('adds getters', () => {
-        expect(obj.initialized).toBe(true)
+        expect(obj.initialized).toBe(true);
       });
 
       it('adds setters', () => {
         obj.alive = false;
-        expect(obj._alive).toBe(false)
+        expect(obj._alive).toBe(false);
       });
     });
 
@@ -117,15 +126,15 @@ describe('mixin', () => {
       });
 
       it('calls super method', () => {
-        expect(obj._initialized).toBe(true)
+        expect(obj._initialized).toBe(true);
       });
 
       it('calls class mixin method', () => {
-        expect(obj._mix_class).toBe(true)
+        expect(obj._mix_class).toBe(true);
       });
 
       it('calls obejct mixin method', () => {
-        expect(obj._mix_object).toBe(true)
+        expect(obj._mix_object).toBe(true);
       });
     });
   });
