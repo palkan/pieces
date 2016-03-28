@@ -16,7 +16,7 @@ function _types(types) {
 const TypeListener = {};
 
 const listenersSym = Symbol('listeners');
-const listenersByKeySym = Symbol('listeners');
+const listenersByKeySym = Symbol('listenersByKey');
 
 export class EventDispatcher {
   get listeners() {
@@ -128,6 +128,10 @@ export class EventDispatcher {
       new TypeListener[type](type, callback, context, disposable, filter) :
       new EventListener(type, callback, context, disposable, filter);
 
+    this.storeListener(listener);
+  }
+
+  storeListener(listener){
     this.listeners[listener.type] = this.listeners[listener.type] || [];
     this.listeners[listener.type].push(listener);
     this.listenersByKey[listener.uid] = listener;

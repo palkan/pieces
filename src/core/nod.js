@@ -2,6 +2,7 @@
 
 import {mixin} from '../decorators/mixin';
 import {EventDispatcher} from './events/event_dispatcher';
+import {NodEvents} from './nod/events';
 import {NodStyles} from './nod/styles';
 import {NodGeometry} from './nod/geometry';
 import {NodData} from './nod/data';
@@ -22,7 +23,8 @@ function _element(node){
 }
 
 let proto = Element.prototype;
-let _matches = proto.matches ||
+
+export let matches = proto.matches ||
          proto.matchesSelector ||
          proto.mozMatchesSelector ||
          proto.msMatchesSelector ||
@@ -35,6 +37,7 @@ let _matches = proto.matches ||
 @mixin(NodData)
 @mixin(NodStyles)
 @mixin(NodGeometry)
+@mixin(NodEvents)
 @mixin(EventDispatcher)
 class Nod {
   /**
@@ -122,7 +125,7 @@ class Nod {
     }else{
       let p = this.element;
       while((p = p.parentNode) && (p != document)){
-        if(_matches.call(p, selector)){
+        if(matches.call(p, selector)){
           return Nod.create(p);
         }
       }
@@ -290,7 +293,7 @@ class Nod {
     const rest = [];
 
     while(el){
-      if(_matches.call(el, selector))
+      if(matches.call(el, selector))
         yield el;
       else
         el.firstElementChild && rest.unshift(el.firstElementChild);

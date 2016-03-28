@@ -10,6 +10,7 @@ export class EventListener {
     this.type = type;
     this.filter = filter;
     this.disposable = disposable;
+    this.count = 0;
 
     // add uid to function to recognize it later
     if (!handler._uid) handler._uid = _.uid('func');
@@ -29,6 +30,8 @@ export class EventListener {
     if (this.disposed || (this.filter && !this.filter(event))) return;
 
     event.captured = this.handler.call(this.context, event) !== false;
+    this.count++;
+    _.verbose("Event dispatched:", event);
     if (this.disposable) this.dispose();
   }
 
