@@ -26,7 +26,9 @@
     "watch": "karma start",
     "start": "gulp",
     "build": "jspm bundle-sfx src/index.js dist/pieces.min.js --minify --skip-source-maps",
+    "devbuild": "jspm bundle-sfx src/index.js dist/pieces.dev.js",
     "docs": "esdoc -c .esdoc.json",
+    "grammar": "jison src/grammar/grammar.jison -m js -o src/grammar/parser.js",
     "postinstall": "jspm install"
   },
   "dependencies": {},
@@ -40,6 +42,7 @@
     "gulp-notify": "^2.2.0",
     "gulp-util": "^3.0.7",
     "jasmine-core": "^2.3.4",
+    "jison": "~>0.4.17",
     "jshint": "^2.8.0",
     "jspm": "^0.16.27",
     "karma": "^0.13.9",
