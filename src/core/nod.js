@@ -6,6 +6,8 @@ import {NodEvents} from './nod/events';
 import {NodStyles} from './nod/styles';
 import {NodGeometry} from './nod/geometry';
 import {NodData} from './nod/data';
+import {with_raf} from './nod/with_raf';
+import * as _ from './utils';
 
 const nodCache = new WeakMap();
 
@@ -101,8 +103,16 @@ class Nod {
     return new Nod(el);
   }
 
+  static get win(){
+    return Win.instance;
+  }
+
+  static get root(){
+    return Root.instance;
+  }
+
   constructor(element){
-    if(!element || !(element instanceof Element)){
+    if(!element || !((element instanceof Element) || (element === window))){
       throw Error("Nod constructor requires HTMLElement");
     }
 
@@ -303,3 +313,117 @@ class Nod {
 }
 
 export {Nod};
+
+const instanceSym = Symbol('instance');
+
+// Singleton class for document.documentElement
+export class Root extends Nod {
+  static get instance(){
+    return Root[instanceSym] || (Root[instanceSym] = new Root());
+  }
+
+  constructor(){
+    if(Root[instanceSym]) throw "Root is already defined!";
+    super(document.documentElement);
+    Root[instanceSym] = this;
+    this.initialize();
+  }
+
+  /* @private */
+  initialize(){
+    if(document.readyState === 'interactive' || document.readyState === 'complete'){
+      return this.ready_promise = Promise.resolve();
+    }
+
+    this.ready_promise = new Promise(
+      (resolve) => {
+        document.addEventListener('DOMContentLoaded', () => {
+          _.info("DOMContentLoaded");
+          resolve();
+        });
+      }
+    );
+  }
+
+  /**
+  * Return Promise which is resolved when DOM content is loaded
+  */
+  ready(){
+    return this.ready_promise;
+  }
+
+  get scrollTop(){
+    return this.element.scrollTop || document.body.scrollTop;
+  }
+  
+  get scrollLeft(){
+    return this.element.scrollLeft || document.body.scrollLeft;
+  }
+
+  get height(){
+    return window.innerHeight || this.element.clientHeight;
+  }
+
+  get width(){
+    return window.innerWidth || this.element.clientWidth;
+  }
+}
+
+// Singleton class for window
+export class Win extends Nod{
+  static get instance(){
+    return Win[instanceSym] || (Win[instanceSym] = new Win());
+  }
+
+  constructor(){
+    if(Win[instanceSym]) throw "Win is already defined!";
+    super(window);
+    Win[instanceSym] = this;
+    this.initialize();
+  }
+
+  /* @private */
+  initialize(){
+    if(document.readyState === 'complete'){
+      return this.loaded_promise = Promise.resolve();
+    }
+
+    this.loaded_promise = new Promise(
+      (resolve) => {
+        window.addEventListener('load', (e) => {
+          _.info("Loaded");
+          resolve();
+        });
+      }
+    );
+  }
+
+  /**
+  * Return Promise which is resolved when window is fully loaded
+  */
+  loaded(){
+    return this.loaded_promise;
+  }
+
+  set scrollY(y){
+    let x = this.scrollLeft;
+    return with_raf.call(this, 'scrollY', () => { this.element.scrollTo(x, y); });
+  }
+
+  set scrollX(x){
+    let y = this.scrollTop;
+    return with_raf.call(this, 'scrollY', () => { this.element.scrollTo(x, y); });
+  }
+
+  get width(){
+    return this.element.innerWidth;
+  }
+
+  get height(){
+    return this.element.innerHeight;
+  }   
+
+  get x(){ return 0; }
+
+  get y(){ return 0; }
+}

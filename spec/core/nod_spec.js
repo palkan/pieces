@@ -48,6 +48,18 @@ describe("Nod", () => {
     });
   });
 
+  describe(".win", () => {
+    it("loaded", (done) => {
+      Nod.win.loaded().then(done);
+    });
+  });
+
+  describe(".root", () => {
+    it("ready", (done) => {
+      Nod.root.ready().then(done);
+    });
+  });
+
   describe("#constructor", () => {
     it("creates new Nod", () => {
       el = document.createElement("div");

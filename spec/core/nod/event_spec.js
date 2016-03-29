@@ -10,7 +10,7 @@ describe("NodEvent", () => {
     spy = jasmine.createSpy('listener');
     nod = Nod.create(`
       <div id='cont'>
-        <button class='pi'>Button</button>
+        <button class='pi' data-pid='btn'>Button</button>
       </div>
     `);
     testRoot.append(nod);
@@ -165,5 +165,52 @@ describe("NodEvent", () => {
     h.click_on(el.element);
 
     expect(el.removeNativeListener.calls.count()).toEqual(1);
+  });
+
+  it("bubbles", () => {
+    nod.on("click", spy);
+
+    h.click_on(el.element);
+    expect(spy.calls.count()).toEqual(1);
+  });
+
+  it("cancels native event", () => {
+    nod.on("click", spy);
+    el.on("click", (e) => { e.cancel(); });
+
+    h.click_on(el.element);
+    expect(spy.calls.count()).toEqual(0);
+  });
+
+  describe("#listen", () => {
+    it("works with class", () => {
+      nod.listen(".pi", "click", spy);
+
+      h.click_on(el.element);
+      expect(spy.calls.count()).toEqual(1);
+    });
+
+    it("works with tags", () => {
+      nod.listen("button", "click", spy);
+
+      h.click_on(el.element);
+      expect(spy.calls.count()).toEqual(1);
+    });
+
+    it("works with attr selector", () => {
+      nod.listen("[data-pid=\"btn\"]", "click", spy);
+
+      h.click_on(el.element);
+      expect(spy.calls.count()).toEqual(1);
+    });
+
+    it("event contains target", (done) => {
+      nod.listen(".pi", "click", (e) => {
+        expect(e.target).toBe(el);
+        done();
+      });
+
+      h.click_on(el.element);
+    });
   });
 });

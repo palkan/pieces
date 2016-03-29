@@ -3,7 +3,7 @@
 import {Nod} from 'src/core/nod';
 import * as _ from 'src/core/utils';
 
-// _.setLogLevel('verbose');
+_.setLogLevel('debug');
 
 /* Stub animation frame */
 window.requestAnimationFrame = function(fun){ return fun(); }
