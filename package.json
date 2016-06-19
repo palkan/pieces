@@ -33,6 +33,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "body-parser": "^1.15.1",
     "del": "^2.2.0",
     "esdoc": "^0.4.4",
     "gulp": "~>3.9",
@@ -51,7 +52,7 @@
     "karma-jasmine-matchers": "^2.0.0-beta2",
     "karma-jspm": "^2.0.2",
     "karma-phantomjs-launcher": "^0.2.1",
-    "phantomjs": "^1.9.18",
+    "phantomjs": "~>2.1",
     "phantomjs-polyfill": "0.0.1",
     "require-dir": "^0.3.0"
   },

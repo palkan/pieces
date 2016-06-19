@@ -1,6 +1,8 @@
 // Karma configuration
 // Generated on Mon Aug 31 2015 20:07:34 GMT+0300 (MSK)
 
+TestMiddleware = require('./middleware.js');
+
 module.exports = function(config) {
   config.set({
 
@@ -25,6 +27,12 @@ module.exports = function(config) {
     exclude: [
     ],
 
+    middleware: ['test'],
+
+    plugins: [
+        'karma-*',
+        {'middleware:test': ['factory', TestMiddleware]}
+    ],
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
