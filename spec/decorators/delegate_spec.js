@@ -1,7 +1,7 @@
 "use strict";
 
-import {delegate_property} from 'src/decorators/delegate';
-import {delegate} from 'src/decorators/delegate';
+import {delegate_property} from 'decorators/delegate';
+import {delegate} from 'decorators/delegate';
 
 
 class Delegatto{

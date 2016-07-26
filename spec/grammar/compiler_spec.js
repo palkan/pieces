@@ -1,6 +1,6 @@
 'use strict';
 import {Helpers as h} from 'spec/helpers';
-import {Compiler} from 'src/grammar/compiler';
+import {Compiler} from 'grammar/compiler';
 
 window.grammar_test = {
   truthy(){

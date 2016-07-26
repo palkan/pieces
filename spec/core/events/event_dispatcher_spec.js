@@ -1,7 +1,7 @@
 'use strict';
-import {mixin} from 'src/decorators/mixin';
-import {EventDispatcher} from 'src/core/events/event_dispatcher';
-import {EventListener} from 'src/core/events/event_listener';
+import {mixin} from 'decorators/mixin';
+import {EventDispatcher} from 'core/events/event_dispatcher';
+import {EventListener} from 'core/events/event_listener';
 
 @mixin(EventDispatcher)
 class TestDispatcher {

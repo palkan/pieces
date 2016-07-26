@@ -1,6 +1,6 @@
 "use strict";
 
-import {mixin} from 'src/decorators/mixin';
+import {mixin} from 'decorators/mixin';
 
 let ObjectMixin = {
   [mixin.override]: {

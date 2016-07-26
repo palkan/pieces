@@ -1,7 +1,7 @@
 'use strict'
 
-import {Nod} from 'src/core/nod';
-import * as _ from 'src/core/utils';
+import {Nod} from 'core/nod';
+import * as _ from 'core/utils';
 
 _.setLogLevel('debug');
 

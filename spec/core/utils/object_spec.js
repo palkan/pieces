@@ -1,5 +1,5 @@
 'use strict';
-import * as _ from 'src/core/utils/object';
+import * as _ from 'core/utils/object';
 
 describe('object utils', () => {
   describe('#extend', () => {

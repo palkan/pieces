@@ -1,5 +1,5 @@
 'use strict';
-import * as _ from 'src/core/utils/array';
+import * as _ from 'core/utils/array';
 
 describe('array utils', () => {
   describe('#without', () => {

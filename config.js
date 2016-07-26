@@ -11,9 +11,11 @@ System.config({
     ]
   },
   paths: {
-    "src/*": "src/*",
     "github:*": "jspm_packages/github/*",
-    "npm:*": "jspm_packages/npm/*"
+    "npm:*": "jspm_packages/npm/*",
+    "node_modules/*": "node_modules/*",
+    "spec/*": "spec/*",
+    "*": "src/*",
   },
 
   map: {

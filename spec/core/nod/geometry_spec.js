@@ -1,6 +1,6 @@
 'use strict';
 import {Helpers as h} from 'spec/helpers';
-import {Nod} from 'src/core/nod';
+import {Nod} from 'core/nod';
 
 describe("NodGeometry", () => {
   var testRoot, el, nod;
